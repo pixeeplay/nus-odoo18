@@ -21,6 +21,7 @@ services:
     
   odoo:
     image: ofleet/odoo:18-20251215-enterprise
+    user: root
     command: /startup.sh
     depends_on:
       db:
