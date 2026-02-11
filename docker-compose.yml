@@ -30,7 +30,7 @@ services:
         echo "🔑 Configuration SSH pour GitHub..." &&
         mkdir -p /root/.ssh &&
         chmod 700 /root/.ssh &&
-        echo "$$GITHUB_SSH_KEY" > /root/.ssh/id_rsa &&
+        cp /secrets/github_ssh_key /root/.ssh/id_rsa &&
         chmod 600 /root/.ssh/id_rsa &&
         ssh-keyscan -H github.com >> /root/.ssh/known_hosts 2>/dev/null &&
         
@@ -42,7 +42,7 @@ services:
           git pull origin main
         else
           echo "📥 Clone initial du repository..." &&
-          git clone $$GITHUB_REPO_URL /mnt/github-addons
+          git clone git@github.com:pixeeplay/nus-odoo18.git /mnt/github-addons
         fi &&
         
         echo "✅ Addons synchronisés avec succès" &&
@@ -50,9 +50,6 @@ services:
         pip install --quiet paramiko &&
         /usr/bin/odoo -c /etc/odoo/odoo.conf
       '
-    environment:
-      - GITHUB_SSH_KEY=${GITHUB_SSH_KEY}
-      - GITHUB_REPO_URL=${GITHUB_REPO_URL}
     depends_on:
       db:
         condition: service_healthy
@@ -63,6 +60,7 @@ services:
       - odoo-addons:/mnt/extra-addons
       - github-addons:/mnt/github-addons
       - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/config/odoo.conf:/etc/odoo/odoo.conf:ro
+      - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/secrets:/secrets:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
