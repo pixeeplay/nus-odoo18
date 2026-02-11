@@ -21,35 +21,7 @@ services:
     
   odoo:
     image: ofleet/odoo:18-20251215-enterprise
-    entrypoint: ["/bin/sh", "-c"]
-    command: |
-      sh -c '
-        echo "🔧 Installation de Git..." &&
-        apt-get update -qq && apt-get install -y -qq git openssh-client &&
-        
-        echo "🔑 Configuration SSH pour GitHub..." &&
-        mkdir -p /root/.ssh &&
-        chmod 700 /root/.ssh &&
-        cp /secrets/github_ssh_key /root/.ssh/id_rsa &&
-        chmod 600 /root/.ssh/id_rsa &&
-        ssh-keyscan -H github.com >> /root/.ssh/known_hosts 2>/dev/null &&
-        
-        echo "📦 Synchronisation des addons depuis GitHub..." &&
-        if [ -d /mnt/github-addons/.git ]; then
-          echo "📥 Pull des dernières modifications..." &&
-          cd /mnt/github-addons &&
-          git reset --hard HEAD &&
-          git pull origin main
-        else
-          echo "📥 Clone initial du repository..." &&
-          git clone git@github.com:pixeeplay/nus-odoo18.git /mnt/github-addons
-        fi &&
-        
-        echo "✅ Addons synchronisés avec succès" &&
-        echo "🚀 Démarrage Odoo..." &&
-        pip install --quiet paramiko &&
-        /usr/bin/odoo -c /etc/odoo/odoo.conf
-      '
+    command: /startup.sh
     depends_on:
       db:
         condition: service_healthy
@@ -61,6 +33,7 @@ services:
       - github-addons:/mnt/github-addons
       - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/config/odoo.conf:/etc/odoo/odoo.conf:ro
       - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/secrets:/secrets:ro
+      - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/startup.sh:/startup.sh:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
