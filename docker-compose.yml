@@ -17,7 +17,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    shm_size: 8gb
+    shm_size: 32gb
     
   odoo:
     image: ofleet/odoo:18-20251215-enterprise
