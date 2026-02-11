@@ -1,0 +1,83 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    shm_size: 1024mb
+
+  odoo:
+    image: ofleet/odoo:18-20251215-enterprise
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["pip install --quiet paramiko && /usr/bin/odoo -c /etc/odoo/odoo.conf"]
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - odoo-addons:/mnt/extra-addons
+      - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/config/odoo.conf:/etc/odoo/odoo.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    labels:
+      # Main HTTP service on port 8069
+      - "traefik.http.routers.https-0-o40888kg0gcgoocwkskkkgk4-odoo.service=odoo-main"
+      - "traefik.http.services.odoo-main.loadbalancer.server.port=8069"
+      # Websocket routing to port 8072
+      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.rule=Host(`odoo.productsmanager.app`) && PathPrefix(`/websocket`)"
+      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.entryPoints=https"
+      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.tls=true"
+      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.service=odoo-websocket"
+      - "traefik.http.services.odoo-websocket.loadbalancer.server.port=8072"
+      # Longpolling routing to port 8072
+      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.rule=Host(`odoo.productsmanager.app`) && PathPrefix(`/longpolling`)"
+      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.entryPoints=https"
+      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.tls=true"
+      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.service=odoo-websocket"
+
+  ftp:
+    image: stilliard/pure-ftpd
+    ports:
+      - "2121:21"
+      - "47500-47509:47500-47509"
+    environment:
+      - PUBLICHOST=${PASV_ADDRESS}
+      - FTP_USER_NAME=odoo-addons
+      - FTP_USER_PASS=${FTP_PASS}
+      - FTP_USER_HOME=/home/ftpuser
+      - FTP_PASSIVE_PORTS=47500:47509
+    volumes:
+      - odoo-addons:/home/ftpuser
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/21' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
+  odoo-addons:
