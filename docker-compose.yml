@@ -26,7 +26,6 @@ services:
         condition: service_healthy
     ports:
       - "8069:8069"
-      - "8072:8072"
     volumes:
       - odoo-web-data:/var/lib/odoo
       - odoo-addons:/mnt/extra-addons
@@ -38,23 +37,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    labels:
-      # Main HTTP service on port 8069
-      - "traefik.http.routers.https-0-o40888kg0gcgoocwkskkkgk4-odoo.service=odoo-main"
-      - "traefik.http.services.odoo-main.loadbalancer.server.port=8069"
-      # Websocket routing to port 8072
-      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.rule=Host(`nus-odoo.productsmanager.app`) && PathPrefix(`/websocket`)"
-      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.entryPoints=https"
-      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.tls=true"
-      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.ws-o40888kg0gcgoocwkskkkgk4-odoo.service=odoo-websocket"
-      - "traefik.http.services.odoo-websocket.loadbalancer.server.port=8072"
-      # Longpolling routing to port 8072
-      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.rule=Host(`nus-odoo.productsmanager.app`) && PathPrefix(`/longpolling`)"
-      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.entryPoints=https"
-      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.tls=true"
-      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.lp-o40888kg0gcgoocwkskkkgk4-odoo.service=odoo-websocket"
 
   ftp:
     image: stilliard/pure-ftpd
