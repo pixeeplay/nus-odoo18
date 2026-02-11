@@ -1,0 +1,24 @@
+#pour 96 go RAM et 24 CPU 
+[options]
+db_host = db
+db_port = 5432
+db_user = odoo
+db_password = ProductsManagerOdoo18SecureProd2025X
+db_maxconn = 128
+addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
+data_dir = /var/lib/odoo
+workers = 8
+max_cron_threads = 4
+limit_memory_hard = 5368709120
+limit_memory_soft = 3221225472
+limit_time_cpu = 1200
+limit_time_real = 2400
+limit_time_real_cron = 7200
+limit_request = 8192
+proxy_mode = True
+http_interface = 0.0.0.0
+http_port = 8069
+longpolling_port = 8072
+list_db = True
+admin_passwd = Nusmob2710$
+without_demo = all
