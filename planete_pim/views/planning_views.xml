@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Planning: Providers list with run actions and last download info -->
+    <record id="view_planete_pim_planning_provider_tree" model="ir.ui.view">
+        <field name="name">planete.pim.planning.provider.tree</field>
+        <field name="model">ftp.provider</field>
+        <field name="arch" type="xml">
+            <list string="Planification — Fournisseurs" create="0" default_order="last_log_imported_at desc,last_run_at desc" decoration-danger="last_connection_status == 'failed'" decoration-info="last_connection_status == 'running'" decoration-success="last_connection_status == 'ok'">
+                <!-- Actions -->
+                <button name="action_run_ftp_now" type="object" string="Lancer FTP" class="btn-primary"/>
+                <button name="action_run_pim_now" type="object" string="Lancer PIM" class="btn-secondary"/>
+                <button name="action_open_last_log" type="object" string="Dernier log" class="btn-link"/>
+                <button name="action_view_logs" type="object" string="Logs" class="btn-link"/>
+
+                <!-- ✅/❌ Status indicator -->
+                <field name="last_connection_status" string="Statut Connexion" widget="badge" optional="show" options="{'selection_badge': {'ok': 'success', 'failed': 'danger', 'running': 'info'}}"/>
+
+                <!-- 🟢🟠🔴 Planning status indicator -->
+                <field name="planning_status" string="Statut Planif." widget="badge" optional="show" options="{'selection_badge': {'ok': 'success', 'warning': 'warning', 'error': 'danger'}}"/>
+
+                <!-- Identité -->
+                <field name="name"/>
+                <field name="company_id"/>
+
+                <!-- Planification FTP -->
+                <field name="auto_process" string="Planif. FTP"/>
+                <field name="schedule_level" string="Niveau FTP"/>
+                <field name="schedule_active" string="Cron FTP"/>
+
+                <!-- Planification PIM -->
+                <field name="schedule_pim_active" string="Cron PIM"/>
+                <field name="schedule_pim_level" string="Niveau PIM"/>
+
+                <!-- Statuts & Dernier exéc. -->
+                <field name="last_run_at" string="Dernière exécution"/>
+                <field name="last_error" string="Dernière erreur"/>
+                <!-- Prochaines exécutions (crons liés) -->
+                <field name="next_run_at" string="Prochaine exécution FTP"/>
+                <field name="pim_next_run_at" string="Prochaine exécution PIM"/>
+
+                <!-- Dernier fichier téléchargé (log source) -->
+                <field name="last_file_data_name" string="Dernier fichier"/>
+                <field name="last_log_imported_at" string="Importé le"/>
+                <field name="last_log_remote_mtime" string="Modifié (remote)"/>
+                <field name="last_file_available" string="Fichier dispo." widget="boolean_toggle" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Export action for planning data (calls the wizard) -->
+    <record id="action_planete_pim_planning_export_wizard" model="ir.actions.server">
+        <field name="name">Exporter Planification</field>
+        <field name="model_id" ref="model_ftp_provider"/>
+        <field name="binding_model_id" ref="model_ftp_provider"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+                'type': 'ir.actions.act_window',
+                'res_model': 'planete.pim.planning.export.wizard',
+                'name': 'Exporter Planification',
+                'view_mode': 'form',
+                'target': 'new',
+            }
+        </field>
+    </record>
+
+    <!-- Planning action -->
+    <record id="action_planete_pim_planning_providers" model="ir.actions.act_window">
+        <field name="name">Planification</field>
+        <field name="res_model">ftp.provider</field>
+        <field name="view_mode">list,form</field>
+        <field name="views" eval="[(ref('planete_pim.view_planete_pim_planning_provider_tree'), 'list'), (ref('ftp_tariff_import.view_ftp_provider_form'), 'form')]"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p>Vue des tâches de planification: lancez les imports FTP/PIM, visualisez l'état, la date/heure de dernière exécution, et accédez au dernier fichier téléchargé via le log.</p>
+        </field>
+    </record>
+
+    <!-- Planning menu under Planète PIM -->
+    <menuitem id="menu_planete_pim_planning"
+              name="Planification"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_planning_providers"
+              sequence="15"
+              groups="base.group_user"/>
+</odoo>

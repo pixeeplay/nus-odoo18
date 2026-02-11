@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree view -->
+    <record id="view_ftp_provider_tree" model="ir.ui.view">
+        <field name="name">ftp.provider.tree</field>
+        <field name="model">ftp.provider</field>
+        <field name="arch" type="xml">
+                <list string="FTP/SFTP/IMAP Providers" default_order="name">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="partner_id"/>
+                <field name="protocol"/>
+                <field name="host"/>
+                <field name="port"/>
+                <field name="username"/>
+                <field name="remote_dir_in"/>
+                <field name="file_pattern"/>
+                <field name="auto_process"/>
+                <field name="last_connection_status"/>
+                <field name="last_run_at"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="view_ftp_provider_form" model="ir.ui.view">
+        <field name="name">ftp.provider.form</field>
+        <field name="model">ftp.provider</field>
+        <field name="arch" type="xml">
+            <form string="FTP/SFTP/IMAP Provider">
+                <header>
+                    <button name="action_test_connection" type="object" string="Tester la connexion" class="btn-primary"/>
+                    <button name="action_open_preview" type="object" string="Aperçu des fichiers"/>
+                    <button name="action_import_now" type="object" string="Importer maintenant" class="btn-secondary"/>
+                    <button name="action_open_export_wizard" type="object" string="📥 Exporter les données" class="btn-info"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id" options="{'no_create': true}"/>
+                            <field name="partner_id" options="{'no_create': true}"/>
+                            <field name="protocol"/>
+                            <!-- Local filesystem options -->
+                            <field name="local_path" invisible="protocol != 'local'" placeholder="Ex: /opt/odoo/imports ou C:\Imports"/>
+                            <!-- URL options -->
+                            <field name="url" invisible="protocol != 'url'" placeholder="https://example.com/files/data.csv"/>
+                            <field name="url_username" invisible="protocol != 'url'" placeholder="Username (optionnel)"/>
+                            <field name="url_password" password="True" invisible="protocol != 'url'" placeholder="Password (optionnel)"/>
+                            <!-- Network options (hidden for local and URL) -->
+                            <field name="host" invisible="protocol in ['gdrive', 'local', 'url']"/>
+                            <field name="port" invisible="protocol in ['gdrive', 'local', 'url']"/>
+                            <field name="username" invisible="protocol in ['gdrive', 'local', 'url']"/>
+                            <field name="password" widget="text" invisible="protocol in ['gdrive', 'local', 'url']" placeholder="Mot de passe (visible)"/>
+                            <field name="ftp_passive" invisible="protocol != 'ftp'"/>
+                            <field name="ftp_use_tls" invisible="protocol != 'ftp'"/>
+                            <field name="timeout"/>
+                            <field name="retries"/>
+                            <field name="keepalive" invisible="protocol != 'sftp'"/>
+                            <field name="sftp_hostkey_fingerprint" invisible="protocol != 'sftp'"/>
+                            <field name="sftp_pkey_content" widget="text" placeholder="-----BEGIN PRIVATE KEY----- ..." invisible="protocol != 'sftp'"/>
+                            <field name="sftp_pkey_passphrase" password="True" invisible="protocol != 'sftp'"/>
+                            <!-- IMAP options -->
+                            <field name="imap_use_ssl" invisible="protocol != 'imap'"/>
+                            <field name="imap_search_criteria" invisible="protocol != 'imap'"/>
+                            <field name="imap_mark_seen" invisible="protocol != 'imap'"/>
+                            <field name="imap_move_processed" invisible="protocol != 'imap'"/>
+                            <field name="imap_move_error" invisible="protocol != 'imap'"/>
+                            <!-- Google Drive options -->
+                            <field name="gdrive_client_id" invisible="protocol != 'gdrive'"/>
+                            <field name="gdrive_client_secret" password="True" invisible="protocol != 'gdrive'"/>
+                            <field name="gdrive_folder_id" invisible="protocol != 'gdrive'" placeholder="ID du dossier Google Drive (laisser vide pour racine)"/>
+                            <field name="gdrive_export_folder_id" invisible="protocol != 'gdrive'" placeholder="ID du dossier pour l'export"/>
+                            <field name="gdrive_connected" invisible="protocol != 'gdrive'" widget="boolean"/>
+                            <field name="gdrive_redirect_uri" invisible="protocol != 'gdrive'" readonly="1" widget="CopyClipboardChar"/>
+                            <button name="action_gdrive_authorize" type="object" string="🔗 Autoriser Google Drive" class="btn-primary" invisible="protocol != 'gdrive' or gdrive_connected"/>
+                            <button name="action_gdrive_disconnect" type="object" string="🔌 Déconnecter Google Drive" class="btn-warning" invisible="protocol != 'gdrive' or not gdrive_connected"/>
+                            <button name="action_browse_gdrive_folders" type="object" string="📁 Parcourir Google Drive" class="btn-secondary" invisible="protocol != 'gdrive' or not gdrive_connected"/>
+                        </group>
+                        <group>
+                            <field name="remote_dir_in"/>
+                            <field name="remote_dir_processed"/>
+                            <field name="remote_dir_error"/>
+                            <field name="file_pattern"/>
+                            <field name="exclude_pattern"/>
+                            <field name="max_files_per_run"/>
+                            <field name="max_preview"/>
+                            <field name="max_preview_rows"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="CSV / Mapping" name="csv_mapping">
+                            <group>
+                                <field name="csv_encoding"/>
+                                <field name="csv_delimiter"/>
+                                <field name="csv_has_header"/>
+                                <field name="decimal_separator"/>
+                                <field name="barcode_columns"/>
+                                <field name="price_column"/>
+                                <field name="clear_duplicate_barcodes"/>
+                            </group>
+                        </page>
+
+                        <page string="Template de mapping" name="mapping_template">
+                            <group>
+                                <group>
+                                    <field name="mapping_template_id" domain="[('provider_id', 'in', [id, False])]" context="{'default_provider_id': id}"/>
+                                </group>
+                                <group>
+                                    <button name="action_configure_mapping_from_csv" 
+                                            type="object" 
+                                            string="📄 Configurer depuis un fichier CSV" 
+                                            class="btn-primary"/>
+                                </group>
+                            </group>
+                            <separator string="Templates liés à ce fournisseur"/>
+                            <field name="mapping_template_ids" nolabel="1">
+                                <list string="Templates de mapping" create="1" delete="1">
+                                    <field name="name"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                            <div class="text-muted mt-2">
+                                <p>Le template de mapping permet de définir la correspondance entre les colonnes du fichier CSV et les champs product.template.</p>
+                                <p>Une fois configuré, il sera automatiquement utilisé lors des imports manuels et planifiés.</p>
+                            </div>
+                        </page>
+
+                        <page string="Planification">
+                            <group>
+                                <group>
+                                    <field name="auto_process"/>
+                                    <field name="schedule_level"/>
+                                </group>
+                                <group>
+                                    <field name="schedule_active"/>
+                                    <field name="schedule_time" widget="float_time"/>
+                                    <field name="schedule_timezone" placeholder="Ex: Europe/Paris"/>
+                                    <field name="schedule_interval_type"/>
+                                    <field name="schedule_interval_number"/>
+                                    <field name="schedule_cron_id" readonly="1"/>
+                                </group>
+                                <button name="action_apply_schedule" type="object" string="Appliquer maintenant" class="btn-primary"/>
+                                <div class="o_form_label">
+                                    Si activé, un cron dédié exécutera ce fournisseur selon l’intervalle configuré. L’heure est prise en compte pour l’intervalle en jours. Vous pouvez toujours ajuster l’action planifiée générée dans Paramètres techniques » Actions planifiées.
+                                </div>
+                            </group>
+                        </page>
+
+                        <page string="Planification PIM">
+                            <group>
+                                <group>
+                                    <field name="schedule_pim_active"/>
+                                    <field name="schedule_pim_level"/>
+                                    <field name="schedule_pim_time" widget="float_time"/>
+                                    <field name="schedule_pim_timezone" placeholder="Ex: Europe/Paris"/>
+                                    <field name="schedule_pim_interval_type"/>
+                                    <field name="schedule_pim_interval_number"/>
+                                </group>
+                                <group>
+                                    <field name="schedule_pim_cron_id" readonly="1"/>
+                                </group>
+                                <button name="action_apply_pim_schedule" type="object" string="Appliquer maintenant" class="btn-secondary"/>
+                                <div class="o_form_label">
+                                    Activez la planification PIM pour créer/mettre à jour l'action planifiée dédiée. Vous pouvez définir un horaire indépendant de la planification FTP.
+                                </div>
+                            </group>
+                        </page>
+
+                        <page string="Multi-fichiers" name="multi_file">
+                            <div class="alert alert-info mb-3" role="alert">
+                                <strong>Mode Multi-fichiers</strong> - Pour les fournisseurs comme TD Synnex qui envoient plusieurs fichiers à fusionner (MaterialFile, StockFile, TaxesGouv).
+                            </div>
+                            <group>
+                                <group string="Activation">
+                                    <field name="multi_file_mode" widget="boolean_toggle"/>
+                                    <field name="multi_file_merge_key" invisible="not multi_file_mode" placeholder="Ex: Matnr"/>
+                                </group>
+                            </group>
+                            <group invisible="not multi_file_mode">
+                                <group string="Fichier principal (Material)">
+                                    <field name="file_pattern_material" placeholder="MaterialFile*.txt"/>
+                                    <field name="multi_file_material_delimiter"/>
+                                </group>
+                                <group string="Fichier stock (optionnel)">
+                                    <field name="file_pattern_stock" placeholder="StockFile*.txt"/>
+                                    <field name="multi_file_stock_delimiter"/>
+                                </group>
+                            </group>
+                            <group invisible="not multi_file_mode">
+                                <group string="Fichier taxes (optionnel)">
+                                    <field name="file_pattern_taxes" placeholder="TaxesGouv*.txt"/>
+                                    <div class="text-muted small">
+                                        Format spécial sans header. Matnr = 7-8 chiffres au début de ligne. Taxe = dernier nombre flottant.
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="text-muted mt-2" invisible="not multi_file_mode">
+                                <p><strong>Fonctionnement:</strong></p>
+                                <ul>
+                                    <li>Le fichier principal (Material) sert de base. Seuls les produits présents dans ce fichier sont traités.</li>
+                                    <li>Les fichiers Stock et Taxes sont fusionnés sur la colonne clé (Matnr).</li>
+                                    <li>Le résultat fusionné est passé au pipeline d'import standard.</li>
+                                    <li>Délimiteur "SAP" = gère automatiquement les tabulations ET les espaces multiples.</li>
+                                </ul>
+                            </div>
+                        </page>
+
+                        <page string="Journal">
+                            <group>
+                                <field name="last_connection_status" readonly="1"/>
+                                <field name="last_error" readonly="1" widget="text"/>
+                                <field name="last_run_at" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ftp_provider" model="ir.actions.act_window">
+        <field name="name">FTP/SFTP/IMAP Providers</field>
+        <field name="res_model">ftp.provider</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p>Create, test and manage FTP/SFTP/IMAP providers for tariff imports.</p>
+        </field>
+    </record>
+</odoo>

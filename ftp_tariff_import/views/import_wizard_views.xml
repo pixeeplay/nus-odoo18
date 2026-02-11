@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ftp_import_wizard" model="ir.ui.view">
+        <field name="name">ftp.import.wizard.form</field>
+        <field name="model">ftp.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Manual FTP/SFTP/IMAP Import" create="false" edit="false">
+                <header>
+                    <button name="action_process_now" type="object" string="Lancer l'import" class="btn-primary"/>
+                    <button special="cancel" string="Fermer" class="btn-link"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="provider_id" options="{'no_create': true}"/>
+                        <field name="only_list_pattern"/>
+                    </group>
+                    <group invisible="only_list_pattern == True">
+                        <field name="extra_paths" placeholder="/incoming/file1.csv
+/incoming/file2.csv"/>
+                    </group>
+                    <div class="o_form_label">Si 'Use Provider Pattern Only' est activé, l'import traitera tous les fichiers qui correspondent au pattern du fournisseur (et au maximum défini).</div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

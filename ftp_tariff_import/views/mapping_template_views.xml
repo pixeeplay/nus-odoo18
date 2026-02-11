@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================
+         FTP MAPPING TEMPLATE - VIEWS
+         ============================================ -->
+
+    <!-- List View for Mapping Template -->
+    <record id="view_ftp_mapping_template_tree" model="ir.ui.view">
+        <field name="name">ftp.mapping.template.tree</field>
+        <field name="model">ftp.mapping.template</field>
+        <field name="arch" type="xml">
+            <list string="Templates de mapping">
+                <field name="name"/>
+                <field name="provider_id"/>
+                <field name="line_count"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View for Mapping Template -->
+    <record id="view_ftp_mapping_template_form" model="ir.ui.view">
+        <field name="name">ftp.mapping.template.form</field>
+        <field name="model">ftp.mapping.template</field>
+        <field name="arch" type="xml">
+            <form string="Template de mapping">
+                <header>
+                    <button name="action_export_json" string="📤 Exporter JSON" type="object" class="btn-primary"
+                            title="Télécharger ce template de mapping au format JSON"/>
+                    <button name="%(ftp_tariff_import.action_ftp_mapping_import_wizard)d" string="📥 Importer JSON" type="action" class="btn-primary"
+                            title="Importer un template de mapping depuis un fichier JSON"/>
+                    <button name="action_duplicate" string="Dupliquer" type="object" class="btn-secondary"/>
+                    <button name="action_refresh_field_registry" string="🔄 Rafraîchir champs ODR/Supplierinfo" type="object" class="btn-info"
+                            title="Scanne les modèles Odoo et met à jour la liste des champs disponibles (ODR, Supplierinfo, etc.)"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="line_count" widget="statinfo" string="Mappings"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nom du template"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="provider_id"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lignes de mapping" name="lines">
+                            <div class="alert alert-info" role="alert" style="margin-bottom: 10px;">
+                                <strong>💡 Aide Concaténation:</strong><br/>
+                                Pour fusionner plusieurs colonnes en une seule valeur:<br/>
+                                1. Sélectionnez <b>"Concaténer avec autre colonne"</b> dans Transformation<br/>
+                                2. Dans <b>"Concat avec"</b>: mettez le nom exact de la colonne (ou plusieurs séparées par <code>;</code>)<br/>
+                                3. Dans <b>"Séparateur"</b>: le texte entre les valeurs (ex: <code> - </code> ou <code> à </code>)<br/>
+                                <em>Exemple: "Date début" concat avec "Date fin" séparateur " à " → "01/01/2025 à 31/12/2025"</em>
+                            </div>
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom" decoration-muted="active == False">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="source_column" placeholder="Ex: EAN, SKU, Description..." 
+                                           string="📄 Colonne CSV fournisseur"/>
+                                    <field name="target_field_id" 
+                                           widget="many2one"
+                                           string="🎯 Champ principal" 
+                                           placeholder="Tapez pour rechercher..."
+                                           options="{'no_create': true}"
+                                           optional="show"/>
+                                    <field name="target_field" column_invisible="1"/>
+                                    <field name="target_field_ids" widget="many2many_tags"
+                                           string="🎯 Champs multiples"
+                                           placeholder="Sélectionnez plusieurs champs..."/>
+                                    <field name="target_field_label" readonly="1" optional="hide"/>
+                                    <field name="field_type" readonly="1" optional="hide"/>
+                                    <field name="transform_type" string="🔄 Transformation"/>
+                                    <field name="transform_value" invisible="transform_type in ('none', 'strip', 'upper', 'lower', 'concat')" placeholder="Paramètre"/>
+                                    <field name="transform_value2" invisible="transform_type != 'replace'" placeholder="Remplacement"/>
+                                    <field name="concat_column" string="Concat avec" invisible="transform_type != 'concat'" placeholder="Col2;Col3"/>
+                                    <field name="concat_separator" string="Séparateur" invisible="transform_type != 'concat'" placeholder=" - "/>
+                                    <field name="skip_if_empty" string="⏭️ Ignorer vide"/>
+                                    <field name="required_field" string="⚠️ Requis"/>
+                                    <field name="active" widget="boolean_toggle" string="✅"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Aide et exemples" name="help">
+                            <group string="Transformations disponibles">
+                                <div colspan="2">
+                                    <ul>
+                                        <li><b>Aucune</b>: Valeur brute sans modification</li>
+                                        <li><b>Supprimer espaces</b>: Enlève les espaces au début et à la fin</li>
+                                        <li><b>Majuscules / Minuscules</b>: Convertit la casse</li>
+                                        <li><b>Remplacer</b>: Remplace "Valeur 1" par "Valeur 2"</li>
+                                        <li><b>Diviser par / Multiplier par</b>: Opération mathématique (ex: diviser centimes par 100)</li>
+                                        <li><b>Valeur par défaut si vide</b>: Si la colonne est vide, utilise la valeur spécifiée</li>
+                                        <li><b>Concaténer</b>: Fusionne plusieurs colonnes avec un séparateur</li>
+                                    </ul>
+                                </div>
+                            </group>
+                            <group string="Exemples de concaténation">
+                                <div colspan="2">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr><th>Colonne source</th><th>Concat avec</th><th>Séparateur</th><th>Résultat</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td>Période début (01/01/2025)</td><td>Période fin</td><td> à </td><td>01/01/2025 à 31/12/2025</td></tr>
+                                            <tr><td>Marque (Samsung)</td><td>Modèle</td><td> - </td><td>Samsung - Galaxy S24</td></tr>
+                                            <tr><td>Description1</td><td>Description2;Description3</td><td> </td><td>Description1 Description2 Description3</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Notes ou commentaires..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View for Mapping Template -->
+    <record id="view_ftp_mapping_template_search" model="ir.ui.view">
+        <field name="name">ftp.mapping.template.search</field>
+        <field name="model">ftp.mapping.template</field>
+        <field name="arch" type="xml">
+            <search string="Recherche Templates">
+                <field name="name"/>
+                <field name="provider_id"/>
+                <filter name="active" string="Actifs" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Inactifs" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Fournisseur" name="group_provider" context="{'group_by': 'provider_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Mapping Template -->
+    <record id="action_ftp_mapping_template" model="ir.actions.act_window">
+        <field name="name">Templates de mapping</field>
+        <field name="res_model">ftp.mapping.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un template de mapping
+            </p>
+            <p>
+                Les templates de mapping permettent de sauvegarder la correspondance entre
+                les colonnes d'un fichier CSV et les champs product.template Odoo.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================
+         FTP MAPPING TEMPLATE LINE - VIEWS
+         ============================================ -->
+
+    <!-- List View for Mapping Template Line -->
+    <record id="view_ftp_mapping_template_line_tree" model="ir.ui.view">
+        <field name="name">ftp.mapping.template.line.tree</field>
+        <field name="model">ftp.mapping.template.line</field>
+        <field name="arch" type="xml">
+            <list string="Lignes de mapping" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="template_id" invisible="1"/>
+                <field name="source_column"/>
+                <field name="target_field_id" widget="many2one" 
+                       string="🎯 Champ principal"
+                       placeholder="Tapez pour rechercher..."
+                       options="{'no_create': true}"/>
+                <field name="target_field" column_invisible="1"/>
+                <field name="target_field_label" readonly="1"/>
+                <field name="field_type" readonly="1"/>
+                <field name="transform_type"/>
+                <field name="transform_value"/>
+                <field name="skip_if_empty"/>
+                <field name="required_field"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="notes"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View for Mapping Template Line -->
+    <record id="view_ftp_mapping_template_line_form" model="ir.ui.view">
+        <field name="name">ftp.mapping.template.line.form</field>
+        <field name="model">ftp.mapping.template.line</field>
+        <field name="arch" type="xml">
+            <form string="Ligne de mapping">
+                <sheet>
+                    <group>
+                        <group string="Mapping">
+                            <field name="template_id"/>
+                            <field name="sequence"/>
+                            <field name="source_column"/>
+                            <field name="target_field_id" widget="many2one"
+                                   string="🎯 Champ principal"
+                                   placeholder="Tapez pour rechercher..."
+                                   options="{'no_create': true}"/>
+                            <field name="target_field" readonly="1" string="Nom technique"/>
+                            <field name="target_field_label" readonly="1"/>
+                            <field name="field_type" readonly="1"/>
+                        </group>
+                        <group string="Transformation">
+                            <field name="transform_type"/>
+                            <field name="transform_value" invisible="transform_type in ('none', 'strip', 'upper', 'lower')"/>
+                            <field name="transform_value2" invisible="transform_type != 'replace'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Options">
+                            <field name="skip_if_empty"/>
+                            <field name="required_field"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Menu entry is defined in menuitems.xml -->
+
+</odoo>

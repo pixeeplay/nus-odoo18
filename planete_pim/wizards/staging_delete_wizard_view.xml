@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue formulaire du wizard de suppression massive -->
+    <record id="view_planete_pim_staging_delete_wizard_form" model="ir.ui.view">
+        <field name="name">planete.pim.staging.delete.wizard.form</field>
+        <field name="model">planete.pim.staging.delete.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Supprimer tous les produits en quarantaine">
+                <div class="alert alert-warning" role="alert">
+                    <h4 class="alert-heading">⚠️ Attention : Suppression massive</h4>
+                    <p>
+                        Vous êtes sur le point de supprimer <strong><field name="total_count"/> produits</strong> de la quarantaine.
+                    </p>
+                    <p>
+                        Cette action est <strong>irréversible</strong> et utilise une suppression SQL directe par batch pour contourner la limite Odoo de 20,000 enregistrements.
+                    </p>
+                    <p class="mb-0">
+                        <strong>Êtes-vous sûr de vouloir continuer ?</strong>
+                    </p>
+                </div>
+                
+                <footer>
+                    <button name="action_confirm_delete" type="object" string="Oui, supprimer tout" class="btn-danger"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

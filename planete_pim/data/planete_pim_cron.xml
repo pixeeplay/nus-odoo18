@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cron FULL: création de nouveaux produits (1x/jour à l'heure configurée par provider) -->
+    <record id="ir_cron_planete_pim_full_daily" model="ir.cron">
+        <field name="name">[PIM FULL] Import création quotidien</field>
+        <field name="model_id" ref="model_planete_pim_importer"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_full_daily()</field>
+        <field name="interval_type">hours</field>
+        <field name="interval_number">1</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- Cron DELTA: mise à jour prix/stock uniquement (3x/jour aux heures configurées par provider) -->
+    <record id="ir_cron_planete_pim_delta_daily" model="ir.cron">
+        <field name="name">[PIM DELTA] Import prix/stock</field>
+        <field name="model_id" ref="model_planete_pim_importer"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_delta_daily()</field>
+        <field name="interval_type">hours</field>
+        <field name="interval_number">1</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- Cron de traitement des exécutions de planification PIM en file d'attente -->
+    <record id="ir_cron_planete_pim_plan_run_queue" model="ir.cron">
+        <field name="name">[PIM] Traitement des exécutions de planification</field>
+        <field name="model_id" ref="model_planete_pim_plan_run"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_pending_runs()</field>
+        <field name="interval_type">minutes</field>
+        <field name="interval_number">1</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- Cron runner for background PIM import jobs -->
+    <record id="ir_cron_planete_pim_import_job_runner" model="ir.cron">
+        <field name="name">[PIM] Import Job Runner</field>
+        <field name="model_id" ref="model_planete_pim_import_job"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_import_jobs()</field>
+        <field name="interval_type">minutes</field>
+        <field name="interval_number">1</field>
+        <field name="nextcall" eval="time.strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="active">True</field>
+    </record>
+
+    <!-- Cron: Reset supplier_stock à 0 si pas de MAJ depuis 26h (toutes les 6h) -->
+    <record id="ir_cron_expire_stale_supplier_stock" model="ir.cron">
+        <field name="name">[PIM] Expiration stock fournisseur (26h)</field>
+        <field name="model_id" ref="model_planete_pim_importer"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_stale_supplier_stock()</field>
+        <field name="interval_type">hours</field>
+        <field name="interval_number">6</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

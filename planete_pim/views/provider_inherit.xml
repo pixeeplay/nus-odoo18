@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ftp_provider_form_inherit_planete_pim" model="ir.ui.view">
+        <field name="name">ftp.provider.form.inherit.planete.pim</field>
+        <field name="model">ftp.provider</field>
+        <field name="inherit_id" ref="ftp_tariff_import.view_ftp_provider_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Cacher les champs inutiles de l'ancien système PIM -->
+            <xpath expr="//field[@name='schedule_pim_active']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='schedule_pim_level']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='schedule_pim_time']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='schedule_pim_interval_type']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='schedule_pim_interval_number']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='schedule_pim_timezone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Boutons d'action dans le header -->
+            <xpath expr="//form/header" position="inside">
+                <!-- Boutons FULL et DELTA séparés -->
+                <button name="action_pim_execute_full_now"
+                        type="object"
+                        string="🆕 Importer création (FULL)"
+                        class="btn-primary"
+                        invisible="pim_full_cron_running or pim_delta_cron_running"
+                        title="Lance un import FULL: création des nouveaux produits uniquement"/>
+                <button name="action_pim_execute_delta_now"
+                        type="object"
+                        string="🔄 Importer delta (Prix/Stock)"
+                        class="btn-secondary"
+                        invisible="pim_full_cron_running or pim_delta_cron_running"
+                        title="Lance un import DELTA: mise à jour prix et stock uniquement"/>
+                <button name="action_pim_refresh_content"
+                        type="object"
+                        string="🔃 Rafraîchir contenu"
+                        class="btn-info"
+                        invisible="pim_full_cron_running or pim_delta_cron_running"
+                        title="Ré-applique le mapping template sur tous les produits existants (sans modifier prix/stock)"/>
+                <button name="action_pim_stop_import"
+                        type="object"
+                        string="⏹️ Arrêter import"
+                        class="btn-danger"
+                        invisible="not (pim_full_cron_running or pim_delta_cron_running)"
+                        title="Arrête l'import en cours"/>
+                <!-- Bouton stats exécutions -->
+                <button name="action_open_pim_runs"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-tasks">
+                    <field name="pim_run_count" widget="statinfo" string="Exécutions PIM"/>
+                </button>
+                <button name="action_open_last_log"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o">
+                    <field name="last_file_data_name" widget="statinfo" string="Dernier log"/>
+                </button>
+            </xpath>
+
+            <!-- PIM: Regex delimiter field in CSV/Mapping page -->
+            <xpath expr="//page[@name='csv_mapping']/group" position="inside">
+                <separator string="PIM - Délimiteur regex (TXT multispace/tabulation)"/>
+                <field name="pim_delimiter_regex" placeholder="\s{2,}"/>
+                <div class="o_form_label">
+                    Exemples: \s{2,} = colonnes séparées par plusieurs espaces; \t = tabulation.
+                </div>
+            </xpath>
+
+            <!-- Section Planification PIM avec FULL et DELTA -->
+            <xpath expr="//field[@name='schedule_pim_level']" position="after">
+                <!-- Barre de progression (visible si import en cours) -->
+                <group string="📊 Progression import en cours" invisible="not (pim_full_cron_running or pim_delta_cron_running)">
+                    <field name="pim_progress_status" readonly="1" string="Statut"/>
+                    <field name="pim_progress" widget="progressbar" readonly="1" string="Progression"/>
+                    <group>
+                        <field name="pim_progress_current" readonly="1" string="Lignes traitées"/>
+                        <field name="pim_progress_total" readonly="1" string="Lignes totales"/>
+                    </group>
+                    <field name="pim_estimated_remaining" readonly="1" string="Temps restant estimé"/>
+                </group>
+
+                <separator string="🆕 [FULL] Import création produits (1x/jour)"/>
+                <group>
+                    <group string="Configuration FULL">
+                        <field name="schedule_pim_full_daily" 
+                               string="Activer import FULL quotidien"
+                               help="Activer pour lancer automatiquement un import FULL chaque jour à l'heure configurée"/>
+                        <field name="pim_full_hour" 
+                               string="Heure d'exécution (0-23)"
+                               help="Heure locale pour l'import FULL quotidien (ex: 4 = 04:00, 22 = 22:00). Le cron vérifie toutes les heures."/>
+                    </group>
+                    <group string="Statut FULL">
+                        <field name="pim_last_full_date" readonly="1" string="Dernier import FULL"/>
+                        <field name="pim_full_cron_running" readonly="1" 
+                               string="Import en cours"
+                               widget="boolean_toggle"
+                               help="Si bloqué à True depuis plus de 4min, sera reset automatiquement"/>
+                    </group>
+                </group>
+
+                <separator string="🔄 [DELTA] Import prix/stock (3x/jour)"/>
+                <group>
+                    <group string="Configuration DELTA">
+                        <field name="schedule_pim_delta_daily"
+                               string="Activer import DELTA quotidien"/>
+                        <field name="pim_delta_hours" 
+                               string="Heures d'exécution (séparées par virgule)"
+                               placeholder="9,13,17"
+                               help="Ex: 9,13,17 pour lancer à 09h, 13h et 17h"/>
+                    </group>
+                    <group string="Statut DELTA">
+                        <field name="pim_last_delta_date" readonly="1" string="Dernier import DELTA"/>
+                        <field name="pim_delta_cron_running" readonly="1" string="Import en cours"/>
+                    </group>
+                </group>
+
+                <separator string="⚙️ Options communes"/>
+                <group>
+                    <field name="pim_latest_only"/>
+                    <field name="pim_mapping_json" widget="text" 
+                           placeholder='{"ean": "EAN", "ref": "SKU", "name": "Description", "price": "PurchasePrice", "stock": "Stock"}'
+                           colspan="2"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

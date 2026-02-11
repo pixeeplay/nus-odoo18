@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Combined view - compatible Odoo 18+ (no states attribute) -->
+        <record id="view_ftp_export_wizard" model="ir.ui.view">
+            <field name="name">ftp.export.wizard</field>
+            <field name="model">ftp.export.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <!-- Prepare State -->
+                        <div>
+                            <div class="alert alert-info" role="alert">
+                                <strong>Sélectionnez le type d'export:</strong>
+                                <p>Vous pouvez exporter les Providers FTP, les Templates de mapping, ou les Marques avec leurs alias.</p>
+                            </div>
+                            <group>
+                                <field name="state" invisible="1"/>
+                                <field name="export_type" widget="radio" options="{'horizontal': true}"/>
+                            </group>
+                        </div>
+
+                        <!-- Download State -->
+                        <div class="alert alert-success" role="alert">
+                            <strong>✓ Fichier prêt à télécharger:</strong>
+                            <p>Cliquez sur le bouton ci-dessous pour télécharger votre fichier CSV.</p>
+                            <group>
+                                <field name="state" invisible="1"/>
+                                <field name="csv_filename" readonly="1" widget="char"/>
+                                <field name="csv_file" filename="csv_filename" widget="binary" readonly="1"/>
+                            </group>
+                        </div>
+                    </sheet>
+                    <footer>
+                        <button name="action_export" string="📥 Télécharger CSV" type="object" class="btn-primary"/>
+                        <button string="Fermer" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action to open Export Wizard -->
+        <record id="action_ftp_export_wizard" model="ir.actions.act_window">
+            <field name="name">Exporter les données</field>
+            <field name="res_model">ftp.export.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="view_id" ref="view_ftp_export_wizard"/>
+        </record>
+
+    </data>
+</odoo>

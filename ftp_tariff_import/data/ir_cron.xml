@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Daily cron at 07:00 (admin can adjust next execution time in Settings > Technical > Scheduled Actions) -->
+    <record id="ir_cron_ftp_tariff_import" model="ir.cron">
+        <field name="name">FTP/SFTP/IMAP Tariff Import (07:00)</field>
+        <field name="active">True</field>
+        <field name="model_id" ref="model_ftp_tariff_importer"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_process_providers()</field>
+        <field name="interval_type">days</field>
+        <field name="interval_number">1</field>
+        <!-- Run as superuser to see all providers; provider/company rules still restrict search -->
+        <field name="user_id" ref="base.user_root"/>
+        <!-- Note: Set 'nextcall' to desired 07:00 in UI after installation to respect server TZ -->
+    </record>
+</odoo>

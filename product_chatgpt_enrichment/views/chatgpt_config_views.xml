@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Menu in Settings > Technical -->
-        <menuitem id="menu_chatgpt_root"
-                  name="ChatGPT Configuration"
-                  parent="base.menu_custom"
-                  sequence="100"/>
-
-        <menuitem id="menu_chatgpt_config"
-                  name="Settings"
-                  parent="menu_chatgpt_root"
-                  action="action_chatgpt_config"
-                  sequence="10"/>
-
         <!-- Action for ChatGPT Configuration -->
         <record id="action_chatgpt_config" model="ir.actions.act_window">
             <field name="name">ChatGPT Configuration</field>
@@ -27,6 +15,18 @@
                 </p>
             </field>
         </record>
+
+        <!-- Menu in Settings > Technical -->
+        <menuitem id="menu_chatgpt_root"
+                  name="ChatGPT Configuration"
+                  parent="base.menu_custom"
+                  sequence="100"/>
+
+        <menuitem id="menu_chatgpt_config"
+                  name="Settings"
+                  parent="menu_chatgpt_root"
+                  action="action_chatgpt_config"
+                  sequence="10"/>
 
         <!-- Tree View -->
         <record id="view_chatgpt_config_tree" model="ir.ui.view">

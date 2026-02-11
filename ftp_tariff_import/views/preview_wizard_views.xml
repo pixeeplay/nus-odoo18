@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Preview Wizard Lines tree (editable list for file selection) -->
+    <record id="view_ftp_preview_wizard_line_tree" model="ir.ui.view">
+        <field name="name">ftp.preview.wizard.line.tree</field>
+        <field name="model">ftp.preview.wizard.line</field>
+        <field name="arch" type="xml">
+            <list string="Available Files" editable="bottom">
+                <field name="checked"/>
+                <field name="name"/>
+                <field name="remote_path"/>
+                <field name="size"/>
+                <field name="mtime"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Preview Wizard form -->
+    <record id="view_ftp_preview_wizard" model="ir.ui.view">
+        <field name="name">ftp.preview.wizard.form</field>
+        <field name="model">ftp.preview.wizard</field>
+        <field name="arch" type="xml">
+            <form string="FTP/SFTP/IMAP Files Preview" create="false">
+                <header>
+                    <button name="action_refresh" type="object" string="Rafraîchir" class="btn-primary"/>
+                    <button name="action_select_all" type="object" string="Tout sélectionner"/>
+                    <button name="action_unselect_all" type="object" string="Tout désélectionner"/>
+                    <button name="action_preview_selected" type="object" string="Aperçu du contenu"/>
+                    <button name="action_download_selected" type="object" string="Télécharger en local"/>
+                    <button name="action_preview_merged" type="object" string="📋 Aperçu fusion" class="btn-warning"/>
+                    <button name="action_download_merged" type="object" string="📥 Télécharger fusion" class="btn-success"/>
+                    <button name="action_download_and_process_selected" type="object" string="Télécharger + Traiter" class="btn-secondary"/>
+<button name="action_open_mapping" type="object" string="Configurer le mapping et importer" class="btn-secondary"/>
+                    <button name="action_back_to_provider" type="object" string="Retour fournisseur" class="btn-secondary"/>
+                    <button special="cancel" string="Fermer" class="btn-link"/>
+                </header>
+                <sheet>
+                    <group col="4">
+                        <field name="provider_id" options="{'no_create': true}"/>
+                        <field name="search_filter" placeholder="Filtrer par nom/chemin..."/>
+                        <field name="limit"/>
+                    </group>
+                    <!-- Script step: appears before mapping -->
+                    <group col="4" string="Script">
+                        <field name="script_text" placeholder="Ex.: ENABLE_DEDUP_IDENTICAL_ROWS=True&#10;ENABLE_CLEAR_DUP_BARCODES=True"/>
+                        <button name="action_apply_script" type="object" string="Appliquer le script" class="btn-secondary"/>
+                        <div class="o_form_label oe_grey">Étape obligatoire: appliquez le Script avec ENABLE_CLEAR_DUP_BARCODES=True avant le mapping.</div>
+                        <field name="script_applied" readonly="1"/>
+<field name="script_flags_json" readonly="1" placeholder="{}"/>
+                    </group>
+                    <group>
+                        <field name="line_ids" nolabel="1" mode="list,kanban">
+                            <list string="Files" editable="bottom">
+                                <field name="checked"/>
+                                <field name="name"/>
+                                <field name="remote_path"/>
+                                <field name="size"/>
+                                <field name="mtime"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group>
+                        <field name="preview_html" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

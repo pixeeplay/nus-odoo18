@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Product Quarantine (Staging): tree -->
+    <record id="view_planete_pim_product_staging_tree" model="ir.ui.view">
+        <field name="name">planete.pim.product.staging.tree</field>
+        <field name="model">planete.pim.product.staging</field>
+        <field name="arch" type="xml">
+            <list string="Produits en Quarantaine" create="0">
+                <header>
+                    <button name="action_delete_all_quarantine" type="object" string="🗑️ Supprimer tout" class="btn-danger" groups="base.group_system"/>
+                </header>
+                <field name="state" decoration-danger="state == 'pending'" decoration-warning="state == 'error'" decoration-success="state == 'applied'"/>
+                <field name="quarantine_reason" optional="show"/>
+                <field name="name"/>
+                <field name="ean13"/>
+                <field name="original_ean" optional="hide"/>
+                <field name="default_code"/>
+                <field name="brand_id"/>
+                <field name="categ_id" optional="hide"/>
+                <field name="list_price" optional="hide"/>
+                <field name="standard_price"/>
+                <field name="qty_available"/>
+                <field name="supplier_id"/>
+                <field name="provider_id"/>
+                <field name="file_name" optional="hide"/>
+                <field name="row_number" optional="hide"/>
+                <field name="log_id" optional="hide"/>
+                <field name="company_id" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Product Quarantine (Staging): form -->
+    <record id="view_planete_pim_product_staging_form" model="ir.ui.view">
+        <field name="name">planete.pim.product.staging.form</field>
+        <field name="model">planete.pim.product.staging</field>
+        <field name="arch" type="xml">
+            <form string="Produit en Quarantaine">
+                <header>
+                    <button name="action_apply_to_products"
+                            type="object"
+                            string="Appliquer au catalogue"
+                            class="btn-primary"
+                            invisible="state == 'applied'"/>
+                    <button name="action_create_product"
+                            type="object"
+                            string="Créer le produit"
+                            class="btn-secondary oe_highlight"
+                            groups="product.group_product_manager"
+                            invisible="state == 'applied' or product_tmpl_id"/>
+                </header>
+                <sheet>
+                    <!-- Alerte quarantaine -->
+                    <div class="alert alert-warning" role="alert" invisible="not quarantine_reason">
+                        <strong>⚠️ Produit en quarantaine:</strong>
+                        <field name="quarantine_reason" readonly="1"/>
+                        <br/>
+                        <field name="quarantine_details" readonly="1" invisible="not quarantine_details"/>
+                    </div>
+                    <group>
+                        <group string="Informations produit">
+                            <field name="state" widget="badge" decoration-danger="state == 'pending'" decoration-warning="state == 'error'" decoration-success="state == 'applied'"/>
+                            <field name="name"/>
+                            <field name="ean13"/>
+                            <field name="original_ean" readonly="1" invisible="not original_ean"/>
+                            <field name="default_code"/>
+                            <field name="brand_id"/>
+                            <field name="categ_id"/>
+                            <field name="product_tmpl_id" readonly="1"/>
+                        </group>
+                        <group string="Prix et stock">
+                            <field name="list_price"/>
+                            <field name="standard_price"/>
+                            <field name="qty_available"/>
+                            <field name="supplier_id"/>
+                            <field name="provider_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Source">
+                            <field name="file_name" readonly="1"/>
+                            <field name="row_number" readonly="1"/>
+                            <field name="log_id" readonly="1"/>
+                        </group>
+                        <group string="Erreurs" invisible="state != 'error'">
+                            <field name="error_message"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Vendeurs">
+                            <field name="staging_vendor_ids" nolabel="1" readonly="1" context="{'tree_view_ref': 'planete_pim.view_planete_pim_staging_vendor_tree'}"/>
+                        </page>
+                        <page string="Données source">
+                            <field name="data_json" nolabel="1" widget="json"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action: Product Quarantine -->
+    <record id="action_planete_pim_product_staging" model="ir.actions.act_window">
+        <field name="name">Produits en Quarantaine</field>
+        <field name="res_model">planete.pim.product.staging</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aucun produit en quarantaine</p>
+            <p>Les produits placés en quarantaine lors de l'import apparaissent ici.</p>
+            <p><strong>Raisons possibles:</strong></p>
+            <ul>
+                <li>Pas d'EAN valide</li>
+                <li>EAN en doublon (vidé automatiquement)</li>
+                <li>Référence en doublon</li>
+                <li>Données invalides</li>
+            </ul>
+            <p>Vous pouvez corriger les données puis appliquer au catalogue.</p>
+        </field>
+    </record>
+
+    <!-- Search view for quarantine -->
+    <record id="view_planete_pim_product_staging_search" model="ir.ui.view">
+        <field name="name">planete.pim.product.staging.search</field>
+        <field name="model">planete.pim.product.staging</field>
+        <field name="arch" type="xml">
+            <search string="Recherche Quarantaine">
+                <field name="name"/>
+                <field name="ean13"/>
+                <field name="default_code"/>
+                <field name="brand_id"/>
+                <field name="provider_id"/>
+                <field name="supplier_id"/>
+                <separator/>
+                <filter string="En attente" name="filter_pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Validés" name="filter_validated" domain="[('state', '=', 'validated')]"/>
+                <filter string="Appliqués" name="filter_applied" domain="[('state', '=', 'applied')]"/>
+                <filter string="Erreurs" name="filter_error" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter string="Sans EAN" name="filter_no_ean" domain="[('quarantine_reason', '=', 'no_ean')]"/>
+                <filter string="EAN doublon" name="filter_dup_ean" domain="[('quarantine_reason', '=', 'duplicate_ean')]"/>
+                <filter string="Réf. doublon" name="filter_dup_ref" domain="[('quarantine_reason', '=', 'duplicate_ref')]"/>
+                <separator/>
+                <group expand="0" string="Grouper par">
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Raison quarantaine" name="group_reason" context="{'group_by': 'quarantine_reason'}"/>
+                    <filter string="Provider" name="group_provider" context="{'group_by': 'provider_id'}"/>
+                    <filter string="Marque" name="group_brand" context="{'group_by': 'brand_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Import History: tree -->
+    <record id="view_planete_pim_import_history_tree" model="ir.ui.view">
+        <field name="name">planete.pim.import.history.tree</field>
+        <field name="model">planete.pim.import.history</field>
+        <field name="arch" type="xml">
+            <list string="Historique d'import" create="0">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="provider_id"/>
+                <field name="file_name"/>
+                <field name="total_lines"/>
+                <field name="success_count"/>
+                <field name="error_count"/>
+                <field name="created_count"/>
+                <field name="updated_count"/>
+                <field name="log_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Import History: form -->
+    <record id="view_planete_pim_import_history_form" model="ir.ui.view">
+        <field name="name">planete.pim.import.history.form</field>
+        <field name="model">planete.pim.import.history</field>
+        <field name="arch" type="xml">
+            <form string="Historique d'import">
+                <header>
+                    <button name="action_export_errors_csv" type="object" string="📥 Exporter erreurs CSV" class="btn-primary" invisible="error_line_count == 0"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_planete_pim_product_staging)d" type="action" class="oe_stat_button" icon="fa-exclamation-triangle" invisible="quarantined_count == 0">
+                            <field name="quarantined_count" widget="statinfo" string="Quarantaine"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-ban" invisible="skipped_existing_count == 0">
+                            <field name="skipped_existing_count" widget="statinfo" string="Ignorés"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-copy" invisible="deduped_count == 0">
+                            <field name="deduped_count" widget="statinfo" string="Dédupliqués"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="create_date" readonly="1"/>
+                            <field name="provider_id"/>
+                            <field name="file_name"/>
+                            <field name="log_id"/>
+                        </group>
+                        <group string="Résultats">
+                            <field name="total_lines"/>
+                            <field name="created_count"/>
+                            <field name="updated_count"/>
+                            <field name="error_count"/>
+                            <field name="error_line_count" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Nouvelles marques créées" invisible="new_brands_count == 0">
+                        <field name="new_brands_count"/>
+                        <field name="new_brands_created" nolabel="1" widget="text"/>
+                    </group>
+                    <notebook>
+                        <page string="Détails des anomalies" invisible="error_line_count == 0">
+                            <field name="error_line_ids" nolabel="1" readonly="1">
+                                <list>
+                                    <field name="row_number"/>
+                                    <field name="error_type"/>
+                                    <field name="ean"/>
+                                    <field name="reference"/>
+                                    <field name="product_name"/>
+                                    <field name="error_details"/>
+                                    <field name="action_taken"/>
+                                    <button name="action_view_product" type="object" icon="fa-external-link" string="Voir produit" invisible="not existing_product_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="message" placeholder="Notes sur cet import..." nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action: Import History -->
+    <record id="action_planete_pim_import_history" model="ir.actions.act_window">
+        <field name="name">Imports (historique)</field>
+        <field name="res_model">planete.pim.import.history</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Price History: tree -->
+    <record id="view_planete_pim_price_history_tree" model="ir.ui.view">
+        <field name="name">planete.pim.price.history.tree</field>
+        <field name="model">planete.pim.price.history</field>
+        <field name="arch" type="xml">
+            <list string="Historique des prix" create="0">
+                <field name="changed_at"/>
+                <field name="product_tmpl_id"/>
+                <field name="product_id"/>
+                <field name="ean13"/>
+                <field name="supplier_id"/>
+                <field name="old_price"/>
+                <field name="new_price"/>
+                <field name="currency_id"/>
+                <field name="log_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Price History: form -->
+    <record id="view_planete_pim_price_history_form" model="ir.ui.view">
+        <field name="name">planete.pim.price.history.form</field>
+        <field name="model">planete.pim.price.history</field>
+        <field name="arch" type="xml">
+            <form string="Historique de prix">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="changed_at"/>
+                            <field name="product_tmpl_id"/>
+                            <field name="product_id"/>
+                            <field name="ean13"/>
+                            <field name="supplier_id"/>
+                        </group>
+                        <group>
+                            <field name="old_price"/>
+                            <field name="new_price"/>
+                            <field name="currency_id"/>
+                            <field name="log_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action: Price History -->
+    <record id="action_planete_pim_price_history" model="ir.actions.act_window">
+        <field name="name">Historique des prix</field>
+        <field name="res_model">planete.pim.price.history</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <!-- Server Action: Apply selected quarantine rows -->
+    <record id="action_apply_staging_server" model="ir.actions.server">
+        <field name="name">Appliquer au catalogue</field>
+        <field name="model_id" ref="planete_pim.model_planete_pim_product_staging"/>
+        <field name="state">code</field>
+        <field name="code">
+res = records.action_apply_to_products()
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {"title": "Quarantaine", "message": "Application effectuée", "sticky": False},
+}
+        </field>
+        <field name="binding_model_id" ref="planete_pim.model_planete_pim_product_staging"/>
+        <field name="binding_type">action</field>
+    </record>
+
+    <!-- Server Action: Create Product for selected quarantine rows -->
+    <record id="action_create_product_server" model="ir.actions.server">
+        <field name="name">Créer le produit</field>
+        <field name="model_id" ref="planete_pim.model_planete_pim_product_staging"/>
+        <field name="state">code</field>
+        <field name="code">
+for rec in records:
+    try:
+        rec.action_create_product()
+    except Exception as e:
+        rec.write({'state': 'error', 'error_message': str(e)})
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {"title": "Quarantaine", "message": "Création exécutée", "sticky": False},
+}
+        </field>
+        <field name="binding_model_id" ref="planete_pim.model_planete_pim_product_staging"/>
+        <field name="binding_type">action</field>
+    </record>
+
+    <!-- Server Action: Apply ALL validated quarantine rows (no selection needed) -->
+    <record id="action_apply_all_validated_staging" model="ir.actions.server">
+        <field name="name">Appliquer tous les validés (quarantaine)</field>
+        <field name="model_id" ref="planete_pim.model_planete_pim_product_staging"/>
+        <field name="state">code</field>
+        <field name="code">
+recs = env['planete.pim.product.staging'].search([('state','=','validated')])
+res = recs.action_apply_to_products()
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {"title": "Quarantaine", "message": "Application des validés effectuée", "sticky": False},
+}
+        </field>
+    </record>
+    <!-- Vendor matrix tree view (used by staging_vendor_ids context) -->
+    <record id="view_planete_pim_staging_vendor_tree" model="ir.ui.view">
+        <field name="name">planete.pim.staging.vendor.tree</field>
+        <field name="model">planete.pim.staging.vendor</field>
+        <field name="arch" type="xml">
+            <list string="Vendors" create="0" edit="0" delete="0">
+                <field name="provider_id"/>
+                <field name="supplier_id"/>
+                <field name="quantity"/>
+                <field name="price"/>
+                <field name="currency_id"/>
+            </list>
+        </field>
+    </record>
+</odoo>

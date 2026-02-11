@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Parent menu under Products > Configuration -->
+    <menuitem id="menu_ftp_tariff_root"
+              name="FTP/SFTP/IMAP Tariff Import"
+              sequence="80"/>
+
+    <!-- Providers -->
+    <menuitem id="menu_ftp_providers"
+              name="Fournisseurs FTP/SFTP/IMAP"
+              parent="menu_ftp_tariff_root"
+              action="ftp_tariff_import.action_ftp_provider"
+              sequence="10"
+              groups="ftp_tariff_import.group_ftp_tariff_user,ftp_tariff_import.group_ftp_tariff_manager"/>
+
+    <!-- Logs -->
+    <menuitem id="menu_ftp_tariff_logs"
+              name="Journaux d'import"
+              parent="menu_ftp_tariff_root"
+              action="ftp_tariff_import.action_ftp_tariff_import_logs"
+              sequence="20"
+              groups="ftp_tariff_import.group_ftp_tariff_user,ftp_tariff_import.group_ftp_tariff_manager"/>
+    <!-- Mapping Logs -->
+    <menuitem id="menu_ftp_tariff_mapping_logs"
+              name="Journaux de mapping"
+              parent="menu_ftp_tariff_root"
+              action="ftp_tariff_import.action_ftp_tariff_mapping_logs"
+              sequence="30"
+              groups="ftp_tariff_import.group_ftp_tariff_user,ftp_tariff_import.group_ftp_tariff_manager"/>
+
+    <!-- Templates de mapping -->
+    <menuitem id="menu_ftp_mapping_template"
+              name="Templates de mapping"
+              parent="menu_ftp_tariff_root"
+              action="ftp_tariff_import.action_ftp_mapping_template"
+              sequence="50"
+              groups="ftp_tariff_import.group_ftp_tariff_user,ftp_tariff_import.group_ftp_tariff_manager"/>
+</odoo>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Kanban Overview for ftp.provider -->
+    <record id="view_ftp_provider_kanban_overview" model="ir.ui.view">
+        <field name="name">ftp.provider.kanban.overview</field>
+        <field name="model">ftp.provider</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column">
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="o_kanban_record o_kanban_global_click">
+                            <div class="o_kanban_record_title">
+                                <span class="o_text_overflow">
+                                    <field name="name"/>
+                                </span>
+                            </div>
+
+                            <div class="o_kanban_record_body">
+
+                                <div>
+                                    <span class="o_muted">Société</span>:
+                                    <field name="company_id"/>
+                                </div>
+
+                                <div>
+                                    <span class="o_muted">Planif.</span>:
+                                    <field name="auto_process"/> /
+                                    <field name="schedule_level"/>
+                                </div>
+
+                                <div>
+                                    <span class="o_muted">Dernière exécution</span>:
+                                    <field name="last_run_at"/>
+                                </div>
+
+                                <!-- *** Statut (CORRIGÉ – même affichage, plus de crash OWL) *** -->
+                                <div>
+                                    <span class="o_muted">Statut</span>:
+
+                                    <!-- Sécurisation minimale (ne change pas le rendu) -->
+                                    <t t-if="record.last_connection_status">
+                                        <span t-attf-class="o_tag #{record.last_connection_status.raw_value == 'ok' ? 'o_tag_success' : (record.last_connection_status.raw_value == 'failed' ? 'o_tag_danger' : '')}">
+                                            <t t-esc="record.last_connection_status.value"/>
+                                        </span>
+                                    </t>
+
+                                    <!-- Si pas de valeur, affiche N/A (déjà prévu dans ton code, mais sécurisé) -->
+                                    <t t-if="!record.last_connection_status">
+                                        <span class="o_tag">N/A</span>
+                                    </t>
+                                </div>
+
+                                <!-- Dernière erreur -->
+                                <div t-if="record.last_error &amp;&amp; record.last_error.value"
+                                     class="text-danger o_text_overflow"
+                                     title="Dernière erreur">
+                                    <i class="fa fa-exclamation-triangle"/>
+                                    <t t-esc="record.last_error.value"/>
+                                </div>
+
+                            </div>
+
+                            <div class="o_kanban_footer">
+                                <button type="object" name="action_import_now" class="btn btn-primary btn-sm">
+                                    Importer maintenant
+                                </button>
+                                <button type="object" name="action_view_logs" class="btn btn-secondary btn-sm">
+                                    Voir les logs
+                                </button>
+                            </div>
+
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action for Overview -->
+    <record id="action_planete_pim_overview" model="ir.actions.act_window">
+        <field name="name">Planète PIM - Overview</field>
+        <field name="res_model">ftp.provider</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="views" eval="[(ref('planete_pim.view_ftp_provider_kanban_overview'), 'kanban'), (False, 'list'), (False, 'form')]"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p>Vue d’ensemble des fournisseurs et de la planification.</p>
+        </field>
+    </record>
+</odoo>

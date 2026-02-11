@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Groups -->
+    <record id="group_ftp_tariff_user" model="res.groups">
+        <field name="name">FTP Tariff User</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+    </record>
+
+    <record id="group_ftp_tariff_manager" model="res.groups">
+        <field name="name">FTP Tariff Manager</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('ftp_tariff_import.group_ftp_tariff_user'))]"/>
+    </record>
+    <!-- Grant FTP groups to all internal users by default -->
+    <record id="base.group_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('ftp_tariff_import.group_ftp_tariff_user')), (4, ref('ftp_tariff_import.group_ftp_tariff_manager'))]"/>
+    </record>
+</odoo>

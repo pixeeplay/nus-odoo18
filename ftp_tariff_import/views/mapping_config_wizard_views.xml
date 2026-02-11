@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================
+         MAPPING CONFIG WIZARD - VIEWS
+         ============================================ -->
+
+    <!-- Form View for Mapping Config Wizard -->
+    <record id="view_ftp_mapping_config_wizard_form" model="ir.ui.view">
+        <field name="name">ftp.mapping.config.wizard.form</field>
+        <field name="model">ftp.mapping.config.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Configuration du mapping CSV">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="upload,mapping"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Configuration du mapping à partir d'un fichier CSV</h1>
+                    </div>
+
+                    <!-- Étape 1: Charger le fichier -->
+                    <group invisible="state != 'upload'">
+                        <group string="Fichier CSV exemple">
+                            <field name="provider_id" readonly="1"/>
+                            <field name="csv_file" filename="csv_filename"/>
+                            <field name="csv_filename" invisible="1"/>
+                            <field name="csv_encoding"/>
+                            <field name="csv_delimiter"/>
+                            <field name="csv_delimiter_custom" 
+                                   placeholder="Ex: || ou ::" 
+                                   invisible="csv_delimiter != 'custom'"/>
+                        </group>
+                        <group string="Template de mapping">
+                            <field name="template_id" domain="[('provider_id', 'in', [provider_id, False])]"/>
+                            <field name="template_name" placeholder="Nom du nouveau template (si création)" invisible="template_id"/>
+                        </group>
+                    </group>
+
+                    <!-- Étape 2: Configurer le mapping -->
+                    <group invisible="state != 'mapping'">
+                        <group string="Template">
+                            <field name="template_id" readonly="1" invisible="not template_id"/>
+                            <field name="template_name" invisible="template_id" placeholder="Saisir le nom du nouveau template" required="not template_id"/>
+                        </group>
+                    </group>
+
+                    <group invisible="state != 'mapping'" string="Colonnes détectées">
+                        <p class="text-muted">
+                            Cochez les colonnes à inclure dans le mapping et sélectionnez le champ Odoo correspondant.
+                            Les colonnes reconnues automatiquement sont pré-cochées.
+                        </p>
+                    </group>
+
+                    <!-- Champ de recherche pour filtrer les colonnes -->
+                    <group invisible="state != 'mapping'" col="1">
+                        <field name="search_filter" 
+                               placeholder="🔍 Tapez pour filtrer les colonnes ou champs Odoo..." 
+                               class="o_searchview_input"/>
+                    </group>
+
+                    <!-- Liste des colonnes avec filtre par visible -->
+                    <field name="column_ids" nolabel="1" invisible="state != 'mapping'">
+                        <list editable="bottom" create="0" delete="0" 
+                              decoration-muted="not visible"
+                              decoration-success="include and visible">
+                            <field name="visible" column_invisible="1"/>
+                            <field name="include" widget="boolean_toggle" readonly="not visible" string="✅ Inclure"/>
+                            <field name="source_column" readonly="1" string="📄 Colonne CSV fournisseur"/>
+                            <field name="sample_value" readonly="1" string="💡 Exemple de valeur"/>
+                            <field name="target_field_id" string="🎯 Champ Odoo" 
+                                   widget="many2one"
+                                   options="{'no_create': true, 'no_open': true}"
+                                   readonly="not visible"
+                                   placeholder="Tapez pour rechercher..."/>
+                            <field name="target_field" column_invisible="1"/>
+                            <field name="target_field_label" readonly="1" optional="hide" string="📝 Libellé"/>
+                            <field name="transform_type" readonly="not visible" string="🔄 Transformation"/>
+                            <field name="concat_column" string="➕ Concat avec" 
+                                   placeholder="Ex: Colonne2 ou Col1;Col2" 
+                                   invisible="transform_type != 'concat'"
+                                   readonly="not visible"/>
+                            <field name="concat_separator" string="↔️ Séparateur" 
+                                   placeholder=" à "
+                                   invisible="transform_type != 'concat'"
+                                   readonly="not visible"/>
+                            <field name="sequence" column_invisible="1"/>
+                        </list>
+                    </field>
+                    
+                    <!-- Message si recherche active -->
+                    <div invisible="state != 'mapping' or not search_filter" class="text-muted small mt-2">
+                        <em>💡 Les lignes grisées ne correspondent pas au filtre de recherche mais restent visibles pour contexte.</em>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_analyze_file" 
+                            string="📊 Analyser le fichier" 
+                            type="object" 
+                            class="btn-primary" 
+                            invisible="state != 'upload'"/>
+                    <button name="action_back" 
+                            string="⬅️ Retour" 
+                            type="object" 
+                            class="btn-secondary" 
+                            invisible="state != 'mapping'"/>
+                    <button name="action_create_template" 
+                            string="✅ Créer le template" 
+                            type="object" 
+                            class="btn-primary" 
+                            invisible="state != 'mapping'"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Mapping Config Wizard -->
+    <record id="action_ftp_mapping_config_wizard" model="ir.actions.act_window">
+        <field name="name">Configurer le mapping depuis CSV</field>
+        <field name="res_model">ftp.mapping.config.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_state': 'upload'}</field>
+    </record>
+
+</odoo>

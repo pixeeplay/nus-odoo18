@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Wizard Form View -->
+    <record id="view_planete_pim_file_import_wizard_form" model="ir.ui.view">
+        <field name="name">planete.pim.file.import.wizard.form</field>
+        <field name="model">planete.pim.file.import.wizard</field>
+        <!-- Ensure visibility for internal users and admins by default -->
+        <field name="groups_id" eval="[(4, ref('base.group_user')), (4, ref('base.group_system'))]"/>
+        <field name="arch" type="xml">
+            <form string="Import produits (Planète PIM)">
+                <sheet>
+                    <notebook>
+                        <page string="Scripts">
+                            <group>
+                                <field name="script_default" widget="text"/>
+                                <field name="script_2" widget="text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                    <group>
+                        <field name="file" filename="file_name" required="1"/>
+                        <field name="file_name" readonly="1"/>
+                    </group>
+                    <group string="Source">
+                        <field name="provider_id" required="1"/>
+                        <field name="supplier_id"/>
+                    </group>
+                    <group string="Mapping">
+                        <field name="mapping_template_id" 
+                               options="{'no_create': true}" 
+                               domain="['|', ('provider_id', '=', False), ('provider_id', '=', provider_id)]"
+                               help="Sélectionnez un template de mapping pour définir comment les colonnes du fichier correspondent aux champs Odoo. Si vide, le mapping par défaut sera utilisé."/>
+                    </group>
+                    <group string="Mode d'import">
+                        <field name="import_mode" widget="radio" required="1"/>
+                    </group>
+                    <group string="Fichier">
+                        <field name="has_header"/>
+                        <field name="encoding" placeholder="utf-8, cp1252, ..."/>
+                        <field name="delimiter" placeholder=", ; | &#9; (ou multi: ||)"/>
+                    </group>
+                    <group string="Options">
+                        <field name="write_direct"/>
+                        <field name="create_brands"/>
+                        <field name="create_categories"/>
+                        <field name="clear_duplicate_barcodes"/>
+                        <field name="update_stock"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_preview" type="object" class="btn btn-secondary" string="Prévisualiser"/>
+                    <button name="action_import" type="object" class="btn btn-primary" string="Importer"/>
+                    <button string="Fermer" class="btn btn-link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_planete_pim_file_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import produits (PIM)</field>
+        <field name="res_model">planete.pim.file.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="planete_pim.view_planete_pim_file_import_wizard_form"/>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

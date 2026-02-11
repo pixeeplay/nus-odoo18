@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- EET -->
+        <record id="ftp_provider_eet" model="ftp.provider">
+            <field name="name">EET</field>
+            <field name="protocol">sftp</field>
+            <field name="host">ftp.eetgroup.com</field>
+            <field name="port">22</field>
+            <field name="username">EspaceTechnologie</field>
+            <field name="password">18nbEP2Zi5Cwp7wrztkY</field>
+            <field name="remote_dir_in">/</field>
+            <field name="remote_dir_processed">/processed</field>
+            <field name="remote_dir_error">/error</field>
+            <field name="file_pattern">*.csv</field>
+            <field name="csv_delimiter">;</field>
+            <field name="csv_encoding">utf-8</field>
+            <field name="csv_has_header" eval="True"/>
+            <field name="keepalive">30</field>
+        </record>
+
+        <!-- COMLINE -->
+        <record id="ftp_provider_comline" model="ftp.provider">
+            <field name="name">COMLINE</field>
+            <field name="protocol">imap</field>
+            <field name="host">imap.planetetechnologie.net</field>
+            <field name="port">993</field>
+            <field name="username">biz.comline@planetetechnologie.biz</field>
+            <field name="password">HkIv4XX41;S3N8rRzX</field>
+            <field name="imap_use_ssl" eval="True"/>
+            <field name="file_pattern">*.csv</field>
+            <field name="csv_delimiter">;</field>
+            <field name="csv_encoding">utf-8</field>
+            <field name="csv_has_header" eval="True"/>
+        </record>
+
+        <!-- SIDEV -->
+        <record id="ftp_provider_sidev" model="ftp.provider">
+            <field name="name">SIDEV</field>
+            <field name="protocol">imap</field>
+            <field name="host">imap.planetetechnologie.net</field>
+            <field name="port">993</field>
+            <field name="username">biz.sidev@planetetechnologie.biz</field>
+            <field name="password">UTz9JCf6H1HNIvU</field>
+            <field name="imap_use_ssl" eval="True"/>
+            <field name="file_pattern">*.csv</field>
+            <field name="csv_delimiter">;</field>
+            <field name="csv_encoding">utf-8</field>
+            <field name="csv_has_header" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

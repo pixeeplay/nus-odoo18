@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mapping Wizard Form -->
+    <record id="view_ftp_mapping_wizard" model="ir.ui.view">
+        <field name="name">ftp.mapping.wizard.form</field>
+        <field name="model">ftp.mapping.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Configuration du mapping" create="false" edit="true">
+                <header>
+                    <!-- Step: select -->
+                    <button name="action_select_all" type="object" string="Tout sélectionner" class="btn-secondary" invisible="step != 'select'"/>
+                    <button name="action_unselect_all" type="object" string="Tout désélectionner" class="btn-secondary" invisible="step != 'select'"/>
+                    <button name="action_to_map_step" type="object" string="Continuer" class="btn-primary" invisible="step != 'select'"/>
+
+                    <!-- Step: map -->
+                    <button name="action_auto_detect" type="object" string="Auto-détecter" invisible="step != 'map'"/>
+                    <button name="action_load_template" type="object" string="Charger un template" invisible="step != 'map'"/>
+                    <button name="action_save_template" type="object" string="Sauvegarder en template" class="btn-secondary" invisible="step != 'map'"/>
+                    <button name="action_preview_mapping" type="object" string="Aperçu avec mapping" class="btn-primary" invisible="step != 'map'"/>
+
+                    <!-- Step: preview -->
+                    <button name="action_save_template" type="object" string="Sauvegarder en template" class="btn-secondary" invisible="step != 'preview'"/>
+                    <button name="action_import" type="object" string="Importer" class="btn-primary" invisible="step != 'preview'"/>
+
+                    <button special="cancel" string="Fermer" class="btn-link"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="provider_id" options="{'no_create': true}" readonly="1"/>
+                            <field name="step" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="template_id" invisible="step == 'select'"/>
+                            <field name="template_name" placeholder="Nom du template…" invisible="step == 'select'"/>
+                        </group>
+                    </group>
+
+                    <!-- Step 1: Sélection des colonnes -->
+                    <group string="Étape 1 : Sélectionner les colonnes à importer" invisible="step != 'select'">
+                        <field name="line_ids" nolabel="1" mode="list">
+                            <list string="Colonnes" editable="bottom">
+                                <field name="selected" string="Importer"/>
+                                <field name="name" string="Nom de colonne"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <!-- Step 2: Configuration du mapping -->
+                    <group string="Étape 2 : Configuration du mapping" invisible="step != 'map'">
+                        <group>
+                            <field name="product_name_col_id" options="{'no_create': true}"/>
+                            <field name="purchase_price_col_id" options="{'no_create': true}"/>
+                            <field name="ean_col_id" options="{'no_create': true}"/>
+                            <field name="vendor_ref_col_id" options="{'no_create': true}"/>
+                        </group>
+                        <group>
+                            <field name="stock_col_id" options="{'no_create': true}"/>
+                            <field name="vat_rate_col_id" options="{'no_create': true}"/>
+                            <field name="category_col_id" options="{'no_create': true}"/>
+                            <field name="brand_col_id" options="{'no_create': true}"/>
+                        </group>
+                        <div class="o_form_label">Astuce: utilisez le bouton 'Auto-détecter' pour pré-remplir le mapping à partir des entêtes.</div>
+                    </group>
+                    <group string="Résumé du mapping" invisible="not (step == 'map' or step == 'preview')">
+                        <field name="mapping_html" nolabel="1"/>
+                    </group>
+
+                    <group string="Champs supplémentaires" invisible="step != 'map'">
+                        <field name="extra_line_ids" nolabel="1" mode="list">
+                            <list string="Champs supplémentaires" editable="bottom">
+                                <field name="target_name" string="Nom du champ (target)"/>
+                                <field name="column_id" string="Colonne source"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <!-- Step 3: Aperçu -->
+                    <group string="Étape 3 : Aperçu avec mapping" invisible="step != 'preview'">
+                        <field name="preview_html" nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <!-- Step: select -->
+                    <button name="action_to_map_step" type="object" string="Continuer" class="btn-primary" invisible="step != 'select'"/>
+
+                    <!-- Step: map -->
+                    <button name="action_back_to_select" type="object" string="Retour" class="btn-secondary" invisible="step != 'map'"/>
+                    <button name="action_load_template" type="object" string="Charger un template" invisible="step != 'map'"/>
+                    <button name="action_save_template" type="object" string="Sauvegarder en template" class="btn-secondary" invisible="step != 'map'"/>
+                    <button name="action_preview_mapping" type="object" string="Aperçu avec mapping" class="btn-primary" invisible="step != 'map'"/>
+
+                    <!-- Step: preview -->
+                    <button name="action_back_to_map" type="object" string="Retour" class="btn-secondary" invisible="step != 'preview'"/>
+                    <button name="action_save_template" type="object" string="Sauvegarder en template" class="btn-secondary" invisible="step != 'preview'"/>
+                    <button name="action_import" type="object" string="Importer" class="btn-primary" invisible="step != 'preview'"/>
+
+                    <button name="action_back_to_preview_wizard" type="object" string="Retour fichiers" class="btn-secondary"/>
+                    <button special="cancel" string="Fermer" class="btn-link"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

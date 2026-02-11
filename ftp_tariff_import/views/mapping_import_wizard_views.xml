@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================
+         MAPPING IMPORT WIZARD - VIEWS
+         ============================================ -->
+
+    <!-- Form View for Import Wizard -->
+    <record id="view_ftp_mapping_import_wizard_form" model="ir.ui.view">
+        <field name="name">ftp.mapping.import.wizard.form</field>
+        <field name="model">ftp.mapping.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importer un template de mapping">
+                <group>
+                    <group>
+                        <field name="file_data" filename="file_name"/>
+                        <field name="file_name" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="provider_id"/>
+                    </group>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    <strong>💡 Aide :</strong><br/>
+                    Sélectionnez un fichier <b>.json</b> exporté depuis un template de mapping.<br/>
+                    Le fournisseur est optionnel : s'il n'est pas spécifié, il sera déduit du fichier JSON.
+                </div>
+                <footer>
+                    <button name="action_import" string="📥 Importer" type="object" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open Import Wizard -->
+    <record id="action_ftp_mapping_import_wizard" model="ir.actions.act_window">
+        <field name="name">Importer un template de mapping</field>
+        <field name="res_model">ftp.mapping.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ============================================
+         SERVER ACTION: Export selected templates (list view multi-select)
+         ============================================ -->
+    <record id="action_server_export_mapping_templates" model="ir.actions.server">
+        <field name="name">📤 Exporter en JSON</field>
+        <field name="model_id" ref="model_ftp_mapping_template"/>
+        <field name="binding_model_id" ref="model_ftp_mapping_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_export_json()
+        </field>
+    </record>
+
+</odoo>

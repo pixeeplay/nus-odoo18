@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Export Wizard Form -->
+    <record id="view_planete_pim_planning_export_wizard_form" model="ir.ui.view">
+        <field name="name">planete.pim.planning.export.wizard.form</field>
+        <field name="model">planete.pim.planning.export.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <h2>📊 Export Planification</h2>
+                    
+                    <div class="alert alert-info alert-dismissible" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <strong>ℹ️ Information:</strong>
+                        Cet export inclut:
+                        <ul>
+                            <li>📋 Liste de tous les providers avec leur statut de planification</li>
+                            <li>🔗 Templates de mapping liés à chaque provider</li>
+                            <li>⚙️ Détails complets de chaque template (champs, transformations)</li>
+                            <li>🔐 Optionnel: Mots de passe (⚠️ À utiliser avec prudence)</li>
+                        </ul>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="name" string="Nom du fichier"/>
+                            <field name="export_format"/>
+                        </group>
+                        <group>
+                            <field name="include_mapping_details" widget="boolean_toggle"/>
+                            <field name="include_passwords" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <div class="alert alert-warning" role="alert" 
+                         attrs="{'invisible': [('include_passwords', '=', False)]}">
+                        <strong>⚠️ Attention:</strong> Vous avez choisi d'inclure les mots de passe dans l'export. 
+                        Les mots de passe sont cryptés par Odoo et apparaîtront comme "**CRYPTÉ**" pour des raisons de sécurité.
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_export" type="object" string="📥 Télécharger" class="btn-primary"/>
+                    <button special="cancel" string="Annuler" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Export Action -->
+    <record id="action_planete_pim_planning_export" model="ir.actions.act_window">
+        <field name="name">Exporter Planification</field>
+        <field name="res_model">planete.pim.planning.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

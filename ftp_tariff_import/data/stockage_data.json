@@ -1,0 +1,19 @@
+[
+  {
+    "name": "EET",
+    "company": "My Company",
+    "protocol": "SFTP",
+    "host": "ftp.eetgroup.com",
+    "port": 22,
+    "username": "EspaceTechnologie",
+    "password": "18nbEP2Zi5Cwp7wrztkY",
+    "remote_dir_in": "/",
+    "remote_dir_processed": "/processed",
+    "remote_dir_error": "/error",
+    "file_pattern": "*.csv",
+    "timeout": 60,
+    "retries": 3,
+    "keepalive": 30,
+    "partner": "EET"
+  }
+]

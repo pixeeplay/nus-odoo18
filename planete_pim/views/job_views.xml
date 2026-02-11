@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Import Job: Tree View with progress -->
+    <record id="view_planete_pim_import_job_tree" model="ir.ui.view">
+        <field name="name">planete.pim.import.job.tree</field>
+        <field name="model">planete.pim.import.job</field>
+        <field name="arch" type="xml">
+            <list string="Jobs d'import" decoration-info="state == 'pending'" decoration-warning="state in ('running', 'retry_pending')" decoration-success="state == 'done'" decoration-danger="state == 'failed'" create="0">
+                <field name="name"/>
+                <field name="import_mode" widget="badge" decoration-info="import_mode == 'standard'" decoration-primary="import_mode == 'full'" decoration-warning="import_mode == 'delta'"/>
+                <field name="state" widget="badge" decoration-info="state == 'pending'" decoration-warning="state in ('running', 'retry_pending')" decoration-success="state == 'done'" decoration-danger="state == 'failed'"/>
+                <field name="retry_count" string="Retry"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="progress_status"/>
+                <field name="file_data_name" optional="hide"/>
+                <field name="provider_id"/>
+                <field name="user_id"/>
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="duration_seconds" widget="float_time" string="Durée"/>
+                <field name="created_count"/>
+                <field name="updated_count"/>
+                <field name="error_count"/>
+                <field name="checkpoint_row" string="Checkpoint" optional="hide"/>
+                <field name="log_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Import Job: Form View -->
+    <record id="view_planete_pim_import_job_form" model="ir.ui.view">
+        <field name="name">planete.pim.import.job.form</field>
+        <field name="model">planete.pim.import.job</field>
+        <field name="arch" type="xml">
+            <form string="Job d'import" create="0">
+                <header>
+                    <button name="run_job" type="object" string="Exécuter maintenant" class="btn-primary" invisible="state not in ('pending', 'retry_pending')"/>
+                    <button name="action_force_retry" type="object" string="Forcer le Retry" class="btn-warning" invisible="state not in ('failed', 'retry_pending')"/>
+                    <button name="action_cancel_job" type="object" string="Annuler" class="btn-secondary" invisible="state not in ('pending', 'retry_pending', 'running')" confirm="Êtes-vous sûr de vouloir annuler ce job ?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,retry_pending,running,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="run_job" icon="fa-play" invisible="state not in ('pending', 'retry_pending')">
+                            <span class="o_stat_text">Lancer</span>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="En attente de retry" bg_color="text-bg-warning" invisible="state != 'retry_pending'"/>
+                    <widget name="web_ribbon" title="Échec" bg_color="text-bg-danger" invisible="state != 'failed'"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Informations">
+                            <field name="import_mode" widget="badge" decoration-info="import_mode == 'standard'" decoration-primary="import_mode == 'full'" decoration-warning="import_mode == 'delta'"/>
+                            <field name="provider_id"/>
+                            <field name="file_data_name" invisible="import_mode != 'standard'"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Exécution">
+                            <field name="started_at"/>
+                            <field name="finished_at"/>
+                            <field name="duration_seconds" widget="float_time" string="Durée"/>
+                            <field name="log_id"/>
+                        </group>
+                    </group>
+                    <group string="Progression">
+                        <field name="progress" widget="progressbar" colspan="2"/>
+                        <field name="progress_status" colspan="2"/>
+                        <field name="progress_current"/>
+                        <field name="progress_total"/>
+                        <field name="checkpoint_row" string="Checkpoint (reprise)" invisible="checkpoint_row == 0"/>
+                    </group>
+                    <group string="Mécanisme de Retry" invisible="retry_count == 0 and state not in ('retry_pending', 'failed')">
+                        <field name="retry_count"/>
+                        <field name="max_retries"/>
+                        <field name="next_retry_at" invisible="state != 'retry_pending'"/>
+                        <field name="last_error" invisible="not last_error"/>
+                    </group>
+                    <group string="Résultats">
+                        <field name="created_count"/>
+                        <field name="updated_count"/>
+                        <field name="skipped_count"/>
+                        <field name="quarantined_count" invisible="quarantined_count == 0"/>
+                        <field name="error_count"/>
+                    </group>
+                    <group string="Commentaire">
+                        <field name="comment" nolabel="1" colspan="2" placeholder="Notes sur cet import..."/>
+                    </group>
+                    <group string="Erreur" invisible="not error">
+                        <field name="error" nolabel="1" colspan="2"/>
+                    </group>
+                    <!-- =====================================================================
+                         NOUVEAU: Affichage du rapport de diagnostic détaillé (Skips)
+                         ===================================================================== -->
+                    <group string="Diagnostic des Skips" invisible="not diagnosis_report">
+                        <field name="diagnosis_report" widget="text" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Diagnostic" name="diagnostic">
+                            <group>
+                                <field name="elapsed_time_display" widget="char" readonly="1"/>
+                                <field name="is_stuck" widget="boolean" readonly="1"/>
+                                <field name="stuck_duration_minutes" invisible="not is_stuck" readonly="1"/>
+                                <field name="processing_speed" readonly="1"/>
+                                <field name="estimated_remaining_time" readonly="1"/>
+                                <field name="retry_reason" invisible="state != 'retry_pending'" readonly="1"/>
+                            </group>
+                            <field name="diagnostic_summary" widget="text" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="Journal d'import" name="log" invisible="not log_id">
+                            <field name="log_id" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="Logs de diagnostic" invisible="not log_details" name="log_details">
+                            <field name="log_details" widget="text" nolabel="1"/>
+                        </page>
+                        <page string="Détails Checkpoint" groups="base.group_no_one" invisible="checkpoint_row == 0">
+                            <group>
+                                <field name="checkpoint_row"/>
+                                <field name="checkpoint_data"/>
+                            </group>
+                        </page>
+                        <page string="Options (JSON)" groups="base.group_no_one">
+                            <field name="options_json"/>
+                        </page>
+                        <page string="Fichier" groups="base.group_no_one">
+                            <field name="file_data" filename="file_data_name"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Import Job: Search View -->
+    <record id="view_planete_pim_import_job_search" model="ir.ui.view">
+        <field name="name">planete.pim.import.job.search</field>
+        <field name="model">planete.pim.import.job</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Jobs">
+                <field name="name"/>
+                <field name="file_data_name"/>
+                <field name="provider_id"/>
+                <field name="user_id"/>
+                <filter name="filter_pending" string="En attente" domain="[('state', 'in', ['pending', 'retry_pending'])]"/>
+                <filter name="filter_running" string="En cours" domain="[('state', '=', 'running')]"/>
+                <filter name="filter_retry_pending" string="En attente de retry" domain="[('state', '=', 'retry_pending')]"/>
+                <filter name="filter_done" string="Terminés" domain="[('state', '=', 'done')]"/>
+                <filter name="filter_failed" string="Échoués" domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="filter_mode_standard" string="Standard" domain="[('import_mode', '=', 'standard')]"/>
+                <filter name="filter_mode_full" string="FULL" domain="[('import_mode', '=', 'full')]"/>
+                <filter name="filter_mode_delta" string="DELTA" domain="[('import_mode', '=', 'delta')]"/>
+                <separator/>
+                <filter name="filter_today" string="Aujourd'hui" domain="[('started_at', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                <filter name="filter_with_retries" string="Avec retries" domain="[('retry_count', '>', 0)]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Mode" name="group_mode" context="{'group_by': 'import_mode'}"/>
+                    <filter string="Provider" name="group_provider" context="{'group_by': 'provider_id'}"/>
+                    <filter string="Utilisateur" name="group_user" context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Import Job: Kanban View for dashboard -->
+    <record id="view_planete_pim_import_job_kanban" model="ir.ui.view">
+        <field name="name">planete.pim.import.job.kanban</field>
+        <field name="model">planete.pim.import.job</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="0" group_create="0">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="import_mode"/>
+                <field name="progress"/>
+                <field name="progress_status"/>
+                <field name="file_data_name"/>
+                <field name="provider_id"/>
+                <field name="started_at"/>
+                <field name="created_count"/>
+                <field name="error_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong><field name="name"/></strong>
+                                <div>
+                                    <field name="import_mode" widget="badge" decoration-info="import_mode == 'standard'" decoration-primary="import_mode == 'full'" decoration-warning="import_mode == 'delta'"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'pending'" decoration-warning="state == 'running'" decoration-success="state == 'done'" decoration-danger="state == 'failed'"/>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <field name="progress" widget="progressbar"/>
+                            </div>
+                            <div class="text-muted small mb-2">
+                                <field name="progress_status"/>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span><i class="fa fa-file-o" title="Fichier d'import"/> <field name="file_data_name"/></span>
+                                <span t-if="record.provider_id.value"><i class="fa fa-server" title="Fournisseur"/> <field name="provider_id"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2 small">
+                                <span class="text-success" t-if="record.created_count.raw_value > 0"><i class="fa fa-plus" title="Produits créés"/> <field name="created_count"/> créés</span>
+                                <span class="text-danger" t-if="record.error_count.raw_value > 0"><i class="fa fa-exclamation-triangle" title="Erreurs détectées"/> <field name="error_count"/> erreurs</span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Import Job: Action -->
+    <record id="action_planete_pim_import_job" model="ir.actions.act_window">
+        <field name="name">Jobs d'import</field>
+        <field name="res_model">planete.pim.import.job</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_planete_pim_import_job_search"/>
+        <field name="context">{'search_default_filter_running': 1, 'search_default_filter_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun job d'import en cours
+            </p>
+            <p>
+                Les jobs d'import sont créés automatiquement lorsque vous importez un fichier via le wizard d'import.
+            </p>
+        </field>
+    </record>
+
+    <!-- Dashboard action: only running/pending/retry_pending jobs -->
+    <record id="action_planete_pim_import_job_dashboard" model="ir.actions.act_window">
+        <field name="name">Tableau de bord - Jobs</field>
+        <field name="res_model">planete.pim.import.job</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_planete_pim_import_job_search"/>
+        <field name="domain">[('state', 'in', ['pending', 'running', 'retry_pending'])]</field>
+        <field name="context">{'search_default_group_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune tâche en cours d'exécution
+            </p>
+            <p>
+                Toutes les tâches d'import ont été traitées.
+            </p>
+        </field>
+    </record>
+
+    <!-- Server action: Run selected jobs manually -->
+    <record id="action_run_selected_jobs" model="ir.actions.server">
+        <field name="name">Exécuter les jobs sélectionnés</field>
+        <field name="model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    records.filtered(lambda j: j.state in ('pending', 'retry_pending')).run_job()
+        </field>
+    </record>
+
+    <!-- Server action: Run all pending jobs -->
+    <record id="action_run_all_pending_jobs" model="ir.actions.server">
+        <field name="name">Exécuter tous les jobs en attente</field>
+        <field name="model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+pending_jobs = env['planete.pim.import.job'].search([('state', 'in', ['pending', 'retry_pending'])])
+if pending_jobs:
+    pending_jobs.run_job()
+        </field>
+    </record>
+
+    <!-- Server action: Force retry on selected failed jobs -->
+    <record id="action_force_retry_selected_jobs" model="ir.actions.server">
+        <field name="name">Forcer le retry (jobs sélectionnés)</field>
+        <field name="model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    records.filtered(lambda j: j.state in ('failed', 'retry_pending')).action_force_retry()
+        </field>
+    </record>
+
+    <!-- Server action: Cancel selected jobs -->
+    <record id="action_cancel_selected_jobs" model="ir.actions.server">
+        <field name="name">Annuler les jobs sélectionnés</field>
+        <field name="model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_model_id" ref="model_planete_pim_import_job"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    records.filtered(lambda j: j.state in ('pending', 'retry_pending', 'running')).action_cancel_job()
+        </field>
+    </record>
+</odoo>

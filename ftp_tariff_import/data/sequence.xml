@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_ftp_tariff_import_log" model="ir.sequence">
+        <field name="name">FTP Tariff Import Log</field>
+        <field name="code">ftp.tariff.import.log</field>
+        <field name="prefix">FTPLG/</field>
+        <field name="padding">6</field>
+        <field name="number_next">1</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

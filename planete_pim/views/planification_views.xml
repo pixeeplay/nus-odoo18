@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Runs: list -->
+    <record id="view_planete_pim_plan_run_tree" model="ir.ui.view">
+        <field name="name">planete.pim.plan.run.tree</field>
+        <field name="model">planete.pim.plan.run</field>
+        <field name="arch" type="xml">
+            <list string="Exécutions (Planification)" create="1">
+                <field name="provider_id"/>
+                <field name="started_at"/>
+                <field name="ended_at"/>
+                <field name="status"/>
+                <field name="files_downloaded"/>
+                <field name="files_imported"/>
+                <field name="duration_seconds"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Runs: form -->
+    <record id="view_planete_pim_plan_run_form" model="ir.ui.view">
+        <field name="name">planete.pim.plan.run.form</field>
+        <field name="model">planete.pim.plan.run</field>
+        <field name="arch" type="xml">
+            <form string="Exécution (Planification)">
+                <header>
+                    <button name="action_execute_now"
+                            type="object"
+                            string="Exécuter maintenant"
+                            class="btn-primary"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="provider_id" required="1"/>
+                            <field name="started_at"/>
+                            <field name="ended_at"/>
+                            <field name="duration_seconds" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="files_downloaded" readonly="1"/>
+                            <field name="files_imported" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Dernière exécution">
+                            <group>
+                                <field name="last_error"/>
+                            </group>
+                            <field name="log_html" nolabel="1"/>
+                        </page>
+                        <page string="Fichiers">
+                            <!-- Use default tree/form views of planete.pim.plan.attachment to avoid inline field resolution issues -->
+                            <field name="attachment_ids" mode="list,form"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Runs: action -->
+    <record id="action_planete_pim_plan_run" model="ir.actions.act_window">
+        <field name="name">Exécutions (Planification)</field>
+        <field name="res_model">planete.pim.plan.run</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Attachments: list -->
+    <record id="view_planete_pim_plan_attachment_tree" model="ir.ui.view">
+        <field name="name">planete.pim.plan.attachment.tree</field>
+        <field name="model">planete.pim.plan.attachment</field>
+        <field name="arch" type="xml">
+            <list string="Fichiers (Planification)" create="0">
+                <field name="run_id"/>
+                <field name="name"/>
+                <field name="kind"/>
+                <field name="state"/>
+                <field name="mimetype"/>
+                <field name="size"/>
+                <field name="attachment_id"/>
+                <field name="log_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Attachments: form -->
+    <record id="view_planete_pim_plan_attachment_form" model="ir.ui.view">
+        <field name="name">planete.pim.plan.attachment.form</field>
+        <field name="model">planete.pim.plan.attachment</field>
+        <field name="arch" type="xml">
+            <form string="Fichier (Planification)">
+                <header>
+                    <button name="action_import_to_catalog"
+                            type="object"
+                            string="Importer dans le catalogue"
+                            class="btn-primary"
+                            invisible="state != 'ready'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="run_id"/>
+                            <field name="kind"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="mimetype"/>
+                            <field name="size"/>
+                            <field name="attachment_id"/>
+                            <field name="log_id"/>
+                            <field name="provider_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Attachments: action -->
+    <record id="action_planete_pim_plan_attachment" model="ir.actions.act_window">
+        <field name="name">Fichiers (Planification)</field>
+        <field name="res_model">planete.pim.plan.attachment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

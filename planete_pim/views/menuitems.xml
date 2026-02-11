@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root menu -->
+    <menuitem id="menu_planete_pim_root"
+              name="Planète PIM"
+              sequence="20"
+              groups="base.group_user"/>
+
+    <!-- Colbee - Recherche produit -->
+    <menuitem id="menu_colbee_search"
+              name="Colbee"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_colbee_search"
+              sequence="5"
+              groups="base.group_user"/>
+
+    <!-- Overview menu -->
+    <menuitem id="menu_planete_pim_overview"
+              name="Overview"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_overview"
+              sequence="10"
+              groups="base.group_no_one"/>
+
+    <!-- Jobs monitoring dashboard -->
+    <menuitem id="menu_planete_pim_import_jobs"
+              name="Jobs d'import"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_import_job"
+              sequence="15"
+              groups="base.group_user"/>
+
+    <!-- Import wizard -->
+    <menuitem id="menu_planete_pim_import_wizard"
+              name="Importer (fichier)"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_file_import_wizard"
+              sequence="20"
+              groups="base.group_user"/>
+
+    <!-- Logs shortcut -->
+    <menuitem id="menu_planete_pim_logs"
+              name="Journaux d'import"
+              parent="planete_pim.menu_planete_pim_root"
+              action="ftp_tariff_import.action_ftp_tariff_import_logs"
+              sequence="30"
+              groups="base.group_user"/>
+    <!-- Quarantine menus -->
+    <menuitem id="menu_planete_pim_product_staging"
+              name="Produits en Quarantaine"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_product_staging"
+              sequence="40"
+              groups="base.group_user"/>
+
+    <!-- Brand validation -->
+    <menuitem id="menu_brand_pending"
+              name="Marques à vérifier"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_brand_pending"
+              sequence="42"
+              groups="base.group_user"/>
+
+    <menuitem id="menu_planete_pim_import_history"
+              name="Imports (historique)"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_import_history"
+              sequence="50"
+              groups="base.group_user"/>
+
+    <menuitem id="menu_planete_pim_price_history"
+              name="Historique des prix"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_price_history"
+              sequence="60"
+              groups="base.group_user"/>
+    <!-- Bulk apply validated quarantine rows -->
+    <menuitem id="menu_planete_pim_apply_all_validated"
+              name="Appliquer les validés (quarantaine)"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_apply_all_validated_staging"
+              sequence="45"
+              groups="base.group_user"/>
+    <!-- Planification: Runs and Files menus (REMOVED - actions do not exist)
+    <menuitem id="menu_planete_pim_plan_runs"
+              name="Exécutions"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_plan_run"
+              sequence="16"
+              groups="base.group_no_one"/>
+    <menuitem id="menu_planete_pim_plan_attachments"
+              name="Fichiers"
+              parent="planete_pim.menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_plan_attachment"
+              sequence="17"
+              groups="base.group_no_one"/>
+    -->
+</odoo>

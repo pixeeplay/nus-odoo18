@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Security Groups -->
+    <record id="group_planete_pim_user" model="res.groups">
+        <field name="name">PIM User</field>
+        <!-- Imply FTP Tariff Import user rights so PIM users can access related logs/actions -->
+        <field name="implied_ids" eval="[(4, ref('ftp_tariff_import.group_ftp_tariff_user'))]"/>
+        <field name="category_id" ref="base.module_category_tools"/>
+    </record>
+
+    <record id="group_planete_pim_manager" model="res.groups">
+        <field name="name">PIM Manager</field>
+        <!-- Managers imply PIM User and FTP Tariff Import Manager rights -->
+        <field name="implied_ids" eval="[(4, ref('planete_pim.group_planete_pim_user')), (4, ref('ftp_tariff_import.group_ftp_tariff_manager'))]"/>
+        <field name="category_id" ref="base.module_category_tools"/>
+    </record>
+</odoo>

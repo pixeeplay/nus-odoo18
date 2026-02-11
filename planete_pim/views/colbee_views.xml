@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- Colbee - Recherche produit multi-critères                    -->
+    <!-- ============================================================ -->
+
+    <!-- Vue Form du wizard de recherche -->
+    <record id="view_colbee_search_wizard_form" model="ir.ui.view">
+        <field name="name">colbee.search.wizard.form</field>
+        <field name="model">colbee.search.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Colbee - Recherche produit">
+                <sheet>
+                    <!-- Zone de recherche -->
+                    <div class="oe_title">
+                        <h1>
+                            <span class="fa fa-search"/> Colbee
+                        </h1>
+                        <h4 class="text-muted">Recherche multi-critères produit</h4>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="search_term" 
+                                   placeholder="Code-barres, référence, EAN ou nom..." 
+                                   string="🔍 Recherche"
+                                   class="oe_inline"
+                                   style="font-size: 1.2em;"/>
+                        </group>
+                        <group>
+                            <div class="btn-group">
+                                <button name="action_search" 
+                                        type="object" 
+                                        string="Rechercher" 
+                                        class="btn-primary"
+                                        icon="fa-search"/>
+                                <button name="action_clear" 
+                                        type="object" 
+                                        string="Effacer" 
+                                        class="btn-secondary"
+                                        icon="fa-eraser"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <field name="search_performed" invisible="1"/>
+                    <field name="no_result" invisible="1"/>
+                    
+                    <!-- Message aucun résultat -->
+                    <div invisible="not no_result" class="alert alert-warning" role="alert">
+                        <strong><i class="fa fa-warning"/> Aucun produit trouvé</strong>
+                        <p>Aucun produit ne correspond à votre recherche. Essayez avec un autre terme.</p>
+                    </div>
+
+                    <!-- Résultats de la recherche -->
+                    <div invisible="not product_id">
+                        <separator string="📦 Produit trouvé"/>
+                        
+                        <group>
+                            <group string="Identification">
+                                <field name="product_id" readonly="1" options="{'no_open': False}"/>
+                                <field name="product_barcode" readonly="1"/>
+                                <field name="product_default_code" readonly="1"/>
+                                <field name="product_brand" readonly="1"/>
+                            </group>
+                            <group string="Informations commerciales">
+                                <field name="product_list_price" readonly="1" widget="monetary"/>
+                                <field name="product_standard_price" readonly="1" widget="monetary"/>
+                                <field name="product_qty_available" readonly="1"/>
+                                <button name="action_open_product" 
+                                        type="object" 
+                                        string="Ouvrir le produit" 
+                                        class="btn-link"
+                                        icon="fa-external-link"/>
+                            </group>
+                        </group>
+
+                        <separator string="🏭 Fournisseurs"/>
+                        
+                        <field name="supplier_line_ids" readonly="1">
+                            <list editable="bottom" decoration-info="last_update" create="false" delete="false">
+                                <field name="supplier_name" string="Fournisseur"/>
+                                <field name="product_code" string="Réf. fournisseur" optional="show"/>
+                                <field name="price" string="Prix d'achat" widget="monetary"/>
+                                <field name="supplier_stock" string="Stock fourn."/>
+                                <field name="min_qty" string="Qté min." optional="hide"/>
+                                <field name="delay" string="Délai (j)" optional="hide"/>
+                                <field name="last_update" string="Dernière MAJ" widget="datetime"/>
+                                <button name="action_open_supplier" 
+                                        type="object" 
+                                        string="Voir" 
+                                        icon="fa-external-link"
+                                        class="btn-link"/>
+                            </list>
+                        </field>
+                        
+                        <div class="alert alert-info mt-3" invisible="supplier_line_ids" role="alert">
+                            <i class="fa fa-info-circle" title="Information"/> Aucun fournisseur configuré pour ce produit.
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action pour ouvrir Colbee -->
+    <record id="action_colbee_search" model="ir.actions.act_window">
+        <field name="name">Colbee</field>
+        <field name="res_model">colbee.search.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'form_view_initial_mode': 'edit'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Recherchez un produit par code-barres, référence ou nom
+            </p>
+            <p>
+                Colbee vous permet de rechercher rapidement un produit et de voir 
+                tous les prix et stocks de chaque fournisseur configuré.
+            </p>
+        </field>
+    </record>
+
+</odoo>
