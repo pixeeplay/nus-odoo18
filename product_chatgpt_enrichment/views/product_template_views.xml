@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Inherit Product Template Form View -->
+        <record id="view_product_template_form_chatgpt" model="ir.ui.view">
+            <field name="name">product.template.form.chatgpt</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add buttons in header -->
+                <xpath expr="//header" position="inside">
+                    <button name="action_enrich_with_chatgpt" 
+                            string="Enrich with ChatGPT" 
+                            type="object" 
+                            class="btn-primary"
+                            icon="fa-magic"
+                            help="Generate enhanced product description using ChatGPT"/>
+                    <button name="action_clear_enrichment" 
+                            string="Clear AI Content" 
+                            type="object" 
+                            class="btn-secondary"
+                            icon="fa-eraser"
+                            invisible="not chatgpt_enriched"
+                            help="Clear ChatGPT generated content"/>
+                </xpath>
+
+                <!-- Add enrichment status indicator -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button" 
+                            type="action" 
+                            icon="fa-robot"
+                            invisible="not chatgpt_enriched">
+                        <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_text">AI Enriched</span>
+                            <span class="o_stat_value">
+                                <field name="chatgpt_last_enrichment" widget="date"/>
+                            </span>
+                        </div>
+                    </button>
+                </xpath>
+
+                <!-- Add ChatGPT fields in a new notebook page -->
+                <xpath expr="//notebook" position="inside">
+                    <page string="AI Enrichment" name="chatgpt_enrichment">
+                        <group>
+                            <group>
+                                <field name="chatgpt_enriched" readonly="1"/>
+                                <field name="chatgpt_last_enrichment" readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="AI Generated Content">
+                            <field name="chatgpt_content" nolabel="1" readonly="1"/>
+                        </group>
+                        <div class="alert alert-info" role="alert" invisible="chatgpt_enriched">
+                            <p><strong>No AI enrichment yet.</strong></p>
+                            <p>Click the "Enrich with ChatGPT" button to automatically generate enhanced product content.</p>
+                        </div>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

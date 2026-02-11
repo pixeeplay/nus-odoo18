@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu in Settings > Technical -->
+        <menuitem id="menu_chatgpt_root"
+                  name="ChatGPT Configuration"
+                  parent="base.menu_custom"
+                  sequence="100"/>
+
+        <menuitem id="menu_chatgpt_config"
+                  name="Settings"
+                  parent="menu_chatgpt_root"
+                  action="action_chatgpt_config"
+                  sequence="10"/>
+
+        <!-- Action for ChatGPT Configuration -->
+        <record id="action_chatgpt_config" model="ir.actions.act_window">
+            <field name="name">ChatGPT Configuration</field>
+            <field name="res_model">chatgpt.config</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Configure ChatGPT API Settings
+                </p>
+                <p>
+                    Set up your OpenAI API key and preferences for automatic product enrichment.
+                </p>
+            </field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="view_chatgpt_config_tree" model="ir.ui.view">
+            <field name="name">chatgpt.config.tree</field>
+            <field name="model">chatgpt.config</field>
+            <field name="arch" type="xml">
+                <tree string="ChatGPT Configurations">
+                    <field name="model_name"/>
+                    <field name="auto_enrich"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_chatgpt_config_form" model="ir.ui.view">
+            <field name="name">chatgpt.config.form</field>
+            <field name="model">chatgpt.config</field>
+            <field name="arch" type="xml">
+                <form string="ChatGPT Configuration">
+                    <header>
+                        <button name="action_test_connection" 
+                                string="Test Connection" 
+                                type="object" 
+                                class="btn-primary"
+                                help="Test the connection to OpenAI API"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                        </div>
+                        <group>
+                            <group string="API Settings">
+                                <field name="api_key" password="True"/>
+                                <field name="api_endpoint"/>
+                                <field name="model_name"/>
+                            </group>
+                            <group string="Behavior">
+                                <field name="auto_enrich"/>
+                                <field name="max_tokens"/>
+                                <field name="temperature"/>
+                                <field name="active"/>
+                            </group>
+                        </group>
+                        <group string="Prompt Template">
+                            <field name="prompt_template" nolabel="1" widget="text"/>
+                        </group>
+                        <div class="alert alert-info" role="alert">
+                            <strong>Note:</strong> Use <code>{product_name}</code> in your prompt template as a placeholder for the product name.
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

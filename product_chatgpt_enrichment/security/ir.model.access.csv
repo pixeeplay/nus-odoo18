@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_chatgpt_config_user,chatgpt.config.user,model_chatgpt_config,base.group_user,1,0,0,0
+access_chatgpt_config_manager,chatgpt.config.manager,model_chatgpt_config,base.group_system,1,1,1,1
