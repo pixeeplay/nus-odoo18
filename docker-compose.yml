@@ -18,11 +18,41 @@ services:
       retries: 5
       start_period: 30s
     shm_size: 8gb
-
+    
   odoo:
     image: ofleet/odoo:18-20251215-enterprise
     entrypoint: ["/bin/sh", "-c"]
-    command: ["pip install --quiet paramiko && /usr/bin/odoo -c /etc/odoo/odoo.conf"]
+    command: |
+      sh -c '
+        echo "🔧 Installation de Git..." &&
+        apt-get update -qq && apt-get install -y -qq git openssh-client &&
+        
+        echo "🔑 Configuration SSH pour GitHub..." &&
+        mkdir -p /root/.ssh &&
+        chmod 700 /root/.ssh &&
+        echo "$$GITHUB_SSH_KEY" > /root/.ssh/id_rsa &&
+        chmod 600 /root/.ssh/id_rsa &&
+        ssh-keyscan -H github.com >> /root/.ssh/known_hosts 2>/dev/null &&
+        
+        echo "📦 Synchronisation des addons depuis GitHub..." &&
+        if [ -d /mnt/github-addons/.git ]; then
+          echo "📥 Pull des dernières modifications..." &&
+          cd /mnt/github-addons &&
+          git reset --hard HEAD &&
+          git pull origin main
+        else
+          echo "📥 Clone initial du repository..." &&
+          git clone $$GITHUB_REPO_URL /mnt/github-addons
+        fi &&
+        
+        echo "✅ Addons synchronisés avec succès" &&
+        echo "🚀 Démarrage Odoo..." &&
+        pip install --quiet paramiko &&
+        /usr/bin/odoo -c /etc/odoo/odoo.conf
+      '
+    environment:
+      - GITHUB_SSH_KEY=${GITHUB_SSH_KEY}
+      - GITHUB_REPO_URL=${GITHUB_REPO_URL}
     depends_on:
       db:
         condition: service_healthy
@@ -31,6 +61,7 @@ services:
     volumes:
       - odoo-web-data:/var/lib/odoo
       - odoo-addons:/mnt/extra-addons
+      - github-addons:/mnt/github-addons
       - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/config/odoo.conf:/etc/odoo/odoo.conf:ro
     restart: unless-stopped
     healthcheck:
@@ -39,7 +70,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-
+      
   ftp:
     image: stilliard/pure-ftpd
     ports:
@@ -60,8 +91,9 @@ services:
       timeout: 10s
       retries: 5
       start_period: 15s
-
+      
 volumes:
   odoo-web-data:
   odoo-db-data:
   odoo-addons:
+  github-addons:
