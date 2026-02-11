@@ -8,6 +8,8 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - odoo-db-data:/var/lib/postgresql/data/pgdata
+      - /data/coolify/applications/o40888kg0gcgoocwkskkkgk4/postgres-config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
@@ -15,7 +17,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    shm_size: 1024mb
+    shm_size: 8gb
 
   odoo:
     image: ofleet/odoo:18-20251215-enterprise
