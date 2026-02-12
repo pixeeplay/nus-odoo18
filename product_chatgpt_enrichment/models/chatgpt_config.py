@@ -40,10 +40,12 @@ class ChatGPTConfig(models.Model):
         help='API endpoint path after base URL'
     )
     
+    model_id = fields.Many2one('chatgpt.model', string='AI Model', help='Select a discovered model or enter one manually')
+    
+    # Kept for backward compatibility and manual overrides
     ai_model_name = fields.Char(
-        string='Model Name',
-        default='gpt-4o-mini',
-        help='Enter the model name (e.g. gpt-4o, claude-3-5-sonnet, or the local model name)'
+        string='Model Name (Manual)',
+        help='Manual override if model discovery fails'
     )
     
     auto_enrich = fields.Boolean(
@@ -106,30 +108,65 @@ class ChatGPTConfig(models.Model):
 
     def action_discover_models(self):
         self.ensure_one()
-        if self.provider == 'ollama':
-            url = f"{self.base_url or 'http://localhost:11434'}/api/tags"
-            try:
+        models_data = []
+        
+        try:
+            if self.provider == 'ollama':
+                url = f"{self.base_url or 'http://localhost:11434'}/api/tags"
                 response = requests.get(url, timeout=10)
                 if response.status_code == 200:
-                    models = [m['name'] for m in response.json().get('models', [])]
-                    self.model_discovery_results = "\n".join(models)
-                    return True
-            except Exception as e:
-                raise UserError(_("Could not reach Ollama: %s") % str(e))
-        elif self.provider in ['llamacpp', 'openai']:
-            # Llama.cpp usually supports /v1/models if using server
-            url = f"{self.base_url or 'http://localhost:8080'}/v1/models"
-            try:
+                    models_data = [{'name': m['name'], 'code': m['name']} for m in response.json().get('models', [])]
+            
+            elif self.provider in ['llamacpp', 'openai', 'perplexity']:
+                # OpenAI compatible /v1/models
+                base = self.base_url or (
+                    'https://api.openai.com' if self.provider == 'openai' else 
+                    'https://api.perplexity.ai' if self.provider == 'perplexity' else 
+                    'http://localhost:8080'
+                )
+                url = f"{base}/v1/models"
                 headers = {'Authorization': f'Bearer {self.api_key}'} if self.api_key else {}
                 response = requests.get(url, headers=headers, timeout=10)
                 if response.status_code == 200:
-                    models = [m['id'] for m in response.json().get('data', [])]
-                    self.model_discovery_results = "\n".join(models)
-                    return True
-            except Exception as e:
-                raise UserError(_("Could not reach server: %s") % str(e))
+                    models_data = [{'name': m['id'], 'code': m['id']} for m in response.json().get('data', [])]
+            
+            elif self.provider == 'anthropic':
+                # Anthropic /v1/models
+                url = "https://api.anthropic.com/v1/models"
+                headers = {
+                    'x-api-key': self.api_key,
+                    'anthropic-version': '2023-06-01'
+                }
+                response = requests.get(url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    models_data = [{'name': m['display_name'], 'code': m['id']} for m in response.json().get('data', [])]
+            
+            elif self.provider == 'gemini':
+                # Gemini models
+                url = f"https://generativelanguage.googleapis.com/v1beta/models?key={self.api_key}"
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    models_data = [{'name': m['displayName'], 'code': m['name'].split('/')[-1]} for m in response.json().get('models', [])]
+
+            if models_data:
+                # Update chatgpt.model table
+                Model = self.env['chatgpt.model']
+                for m in models_data:
+                    existing = Model.search([('code', '=', m['code']), ('provider', '=', self.provider)], limit=1)
+                    if not existing:
+                        Model.create({
+                            'name': m['name'],
+                            'code': m['code'],
+                            'provider': self.provider
+                        })
+                
+                self.model_discovery_results = f"Found {len(models_data)} models."
+                return True
+            
+        except Exception as e:
+            raise UserError(_("Discovery failed: %s") % str(e))
         
-        raise UserError(_("Model discovery not implemented for this provider yet."))
+        raise UserError(_("No models found or discovery not supported for this provider yet."))
 
     def _search_with_serpapi(self, query):
         if not self.serpapi_key:
@@ -279,3 +316,24 @@ class ChatGPTProductPrompt(models.Model):
     ], string='Language', default='fr_FR')
 
     active = fields.Boolean(default=True)
+
+
+class ChatGPTModel(models.Model):
+    _name = 'chatgpt.model'
+    _description = 'AI Model Discovery'
+    _order = 'provider, name'
+
+    name = fields.Char(required=True)
+    code = fields.Char(required=True)
+    provider = fields.Selection([
+        ('openai', 'OpenAI'),
+        ('gemini', 'Google Gemini'),
+        ('anthropic', 'Anthropic Claude'),
+        ('perplexity', 'Perplexity (Web Search)'),
+        ('ollama', 'Ollama (Local)'),
+        ('llamacpp', 'Llama.cpp (Local)'),
+    ], string='Provider', required=True)
+
+    _sql_constraints = [
+        ('code_provider_unique', 'unique(code, provider)', 'Model code must be unique per provider!')
+    ]
