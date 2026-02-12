@@ -1,30 +1,26 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'ChatGPT Product Enrichment',
+    'name': 'Odoo AI Enrichment',
     'version': '18.0.1.0.0',
     'category': 'Sales/Products',
-    'summary': 'Enrich product information automatically using ChatGPT AI',
+    'summary': 'Unified AI Enrichment (OpenAI, Gemini, Claude, Ollama, Perplexity)',
     'description': """
-ChatGPT Product Enrichment
-===========================
-This module integrates OpenAI's ChatGPT to automatically enrich product information.
+Odoo AI Enrichment
+==================
+Complete AI integration for Odoo Products.
 
 Features:
 ---------
-* Automatic product description enhancement
-* SEO-friendly content generation
-* Product category and tag suggestions
-* Manual enrichment button for existing products
-* Configurable API settings
-
-Requirements:
--------------
-* OpenAI API key (configure in Settings > Technical > ChatGPT Configuration)
+* Multi-Provider Support (OpenAI, Gemini, Anthropic, Ollama, etc.)
+* Deep Enrichment via SerpApi & ScrapingBee
+* Automated Media & Image Import
+* Dynamic Field Mapping
+* Bulk Enrichment from List View
     """,
     'author': 'Pixeeplay',
     'website': 'https://github.com/pixeeplay/nus-odoo18',
     'license': 'LGPL-3',
-    'depends': ['product', 'base'],
+    'depends': ['product', 'base', 'web'],
     'data': [
         'security/ir.model.access.csv',
         'data/chatgpt_config_data.xml',
@@ -33,6 +29,6 @@ Requirements:
     ],
     'images': ['static/description/icon.png'],
     'installable': True,
-    'application': False,
+    'application': True,
     'auto_install': False,
 }

@@ -22,23 +22,85 @@
             </field>
         </record>
 
-        <!-- Menu in Settings > Technical -->
-        <menuitem id="menu_chatgpt_root"
-                  name="ChatGPT Configuration"
-                  parent="base.menu_custom"
+        <!-- Action for All Products -->
+        <record id="action_ai_products_all" model="ir.actions.act_window">
+            <field name="name">All Products</field>
+            <field name="res_model">product.template</field>
+            <field name="view_mode">list,form,kanban</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Manage your products and enrich them with AI
+                </p>
+            </field>
+        </record>
+
+        <!-- Action for Enriched Products Only -->
+        <record id="action_ai_products_enriched" model="ir.actions.act_window">
+            <field name="name">Enriched Products</field>
+            <field name="res_model">product.template</field>
+            <field name="view_mode">list,form,kanban</field>
+            <field name="domain">[('chatgpt_enriched', '=', True)]</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Products already enriched by AI
+                </p>
+            </field>
+        </record>
+
+        <!-- Action for Prompts -->
+        <record id="action_chatgpt_prompt" model="ir.actions.act_window">
+            <field name="name">AI Prompts</field>
+            <field name="res_model">chatgpt.product.prompt</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Root Menu (App on Home Screen) -->
+        <menuitem id="menu_ai_enrichment_root"
+                  name="AI Enrichment"
+                  web_icon="product_chatgpt_enrichment,static/description/icon.png"
                   sequence="100"/>
 
-        <menuitem id="menu_chatgpt_config"
+        <!-- Products Menu Section -->
+        <menuitem id="menu_ai_products"
+                  name="Products"
+                  parent="menu_ai_enrichment_root"
+                  sequence="10"/>
+
+        <menuitem id="menu_ai_products_all"
+                  name="All Products"
+                  parent="menu_ai_products"
+                  action="action_ai_products_all"
+                  sequence="10"/>
+
+        <menuitem id="menu_ai_products_enriched"
+                  name="Enriched Products"
+                  parent="menu_ai_products"
+                  action="action_ai_products_enriched"
+                  sequence="20"/>
+
+        <!-- Configuration Menu Section -->
+        <menuitem id="menu_ai_config_root"
                   name="Settings"
-                  parent="menu_chatgpt_root"
+                  parent="menu_ai_enrichment_root"
+                  sequence="100"/>
+
+        <menuitem id="menu_ai_config"
+                  name="AI Providers"
+                  parent="menu_ai_config_root"
                   action="action_chatgpt_config"
                   sequence="10"/>
 
+        <menuitem id="menu_ai_prompt"
+                  name="AI Prompts"
+                  parent="menu_ai_config_root"
+                  action="action_chatgpt_prompt"
+                  sequence="20"/>
+
         <menuitem id="menu_chatgpt_model"
                   name="AI Models"
-                  parent="menu_chatgpt_root"
+                  parent="menu_ai_config_root"
                   action="action_chatgpt_model"
-                  sequence="20"/>
+                  sequence="30"/>
 
         <!-- Tree View -->
         <record id="view_chatgpt_config_tree" model="ir.ui.view">
