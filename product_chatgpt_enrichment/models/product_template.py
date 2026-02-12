@@ -85,23 +85,40 @@ class ProductTemplate(models.Model):
         enriched_content = config.call_chatgpt_api(prompt)
         
         # Update product with enriched content
-        self.write({
-            'description_sale': enriched_content,
+        vals = {
             'chatgpt_content': enriched_content,
             'chatgpt_enriched': True,
             'chatgpt_last_enrichment': fields.Datetime.now(),
-        })
+        }
+        
+        # Map to standard Odoo fields if they exist
+        if 'description_sale' in self._fields:
+            vals['description_sale'] = enriched_content
+        if 'description' in self._fields:
+            vals['description'] = enriched_content
+        if 'website_description' in self._fields:
+            vals['website_description'] = enriched_content
+            
+        self.write(vals)
         
         _logger.info('Product %s enriched successfully', self.name)
 
     def action_clear_enrichment(self):
         """Clear ChatGPT enrichment data"""
         self.ensure_one()
-        self.write({
+        vals = {
             'chatgpt_enriched': False,
             'chatgpt_content': False,
             'chatgpt_last_enrichment': False,
-        })
+        }
+        if 'description_sale' in self._fields:
+            vals['description_sale'] = False
+        if 'description' in self._fields:
+            vals['description'] = False
+        if 'website_description' in self._fields:
+            vals['website_description'] = False
+            
+        self.write(vals)
         
         return {
             'type': 'ir.actions.client',

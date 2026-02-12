@@ -51,15 +51,17 @@ class ChatGPTConfig(models.Model):
     
     prompt_template = fields.Text(
         string='Prompt Template',
-        default="""You are a product marketing expert. Based on the product name "{product_name}", generate:
+        default="""You are a product marketing expert. Based on the product name "{product_name}", generate a high-quality, SEO-optimized product description in HTML format.
 
-1. A compelling product description (2-3 paragraphs)
-2. Key features (bullet points)
-3. SEO-friendly keywords
+The content should include:
+1. A catchy title (h2)
+2. A compelling introduction (p)
+3. Main features and benefits (ul/li)
+4. A concluding paragraph (p)
 
 Product Name: {product_name}
 
-Please provide a professional, engaging description that would help sell this product.""",
+Please return ONLY the HTML content, without any extra text or markdown code blocks.""",
         help='Template for the ChatGPT prompt. Use {product_name} as placeholder.'
     )
     
