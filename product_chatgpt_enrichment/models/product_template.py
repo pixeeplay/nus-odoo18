@@ -27,6 +27,12 @@ class ProductTemplate(models.Model):
         readonly=True,
         help='Date and time of last ChatGPT enrichment'
     )
+    
+    chatgpt_media_urls = fields.Text(
+        string='AI Discovered Media',
+        readonly=True,
+        help='URLs of official images and videos found by AI'
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -70,38 +76,78 @@ class ProductTemplate(models.Model):
         }
 
     def _enrich_with_chatgpt(self):
-        """Internal method to enrich product using ChatGPT"""
+        """Internal method to enrich product using multiple prompts from config"""
         self.ensure_one()
         
         # Get active configuration
         config = self.env['chatgpt.config'].get_active_config()
         
-        # Prepare the prompt
-        prompt = config.prompt_template.format(product_name=self.name)
+        if not config.prompt_ids:
+            raise UserError(_('No prompts configured in ChatGPT Configuration.'))
         
-        _logger.info('Enriching product: %s', self.name)
+        _logger.info('Enriching product: %s with %s prompts', self.name, len(config.prompt_ids))
         
-        # Call ChatGPT API
-        enriched_content = config.call_chatgpt_api(prompt)
-        
-        # Update product with enriched content
         vals = {
-            'chatgpt_content': enriched_content,
             'chatgpt_enriched': True,
             'chatgpt_last_enrichment': fields.Datetime.now(),
         }
         
-        # Map to standard Odoo fields if they exist
-        if 'description_sale' in self._fields:
-            vals['description_sale'] = enriched_content
-        if 'description' in self._fields:
-            vals['description'] = enriched_content
-        if 'website_description' in self._fields:
-            vals['website_description'] = enriched_content
+        all_content = []
+        
+        for p in config.prompt_ids:
+            if not p.active:
+                continue
+                
+            # Prepare the prompt with language instruction
+            lang_name = dict(p._fields['language'].selection).get(p.language, 'French')
+            prompt = f"Answer in {lang_name}. "
+            if config.media_discovery:
+                prompt += "Include official media URLs (images/videos) if found. "
+            if config.use_web_search:
+                prompt += "Use web search to find the latest technical specifications. "
+                
+            prompt += p.prompt_template.format(product_name=self.name)
             
+            # Call ChatGPT API
+            enriched_content = config.call_chatgpt_api(prompt)
+            
+            if p.target_field in self._fields:
+                vals[p.target_field] = enriched_content
+            
+            # Extract URLs for media discovery if enabled
+            if config.media_discovery:
+                import re
+                urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', enriched_content)
+                if urls:
+                    existing_urls = vals.get('chatgpt_media_urls', '')
+                    new_urls = "\n".join(list(set(urls)))
+                    vals['chatgpt_media_urls'] = (existing_urls + "\n" + new_urls).strip()
+            
+            all_content.append(f"<h3>{p.name}</h3>\n{enriched_content}")
+            
+        vals['chatgpt_content'] = "\n".join(all_content)
         self.write(vals)
         
         _logger.info('Product %s enriched successfully', self.name)
+
+    def action_enrich_batch(self):
+        """Action for batch enrichment of multiple products"""
+        for record in self:
+            try:
+                record._enrich_with_chatgpt()
+            except Exception as e:
+                _logger.error('Batch enrichment failed for %s: %s', record.name, str(e))
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Batch Enrichment'),
+                'message': _('Enrichment process completed for selected products.'),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def action_clear_enrichment(self):
         """Clear ChatGPT enrichment data"""
@@ -110,6 +156,7 @@ class ProductTemplate(models.Model):
             'chatgpt_enriched': False,
             'chatgpt_content': False,
             'chatgpt_last_enrichment': False,
+            'chatgpt_media_urls': False,
         }
         if 'description_sale' in self._fields:
             vals['description_sale'] = False

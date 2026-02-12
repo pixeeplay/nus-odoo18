@@ -53,6 +53,9 @@
                         <group string="AI Generated Content">
                             <field name="chatgpt_content" nolabel="1" readonly="1"/>
                         </group>
+                        <group string="Discovered Media" invisible="not chatgpt_media_urls">
+                            <field name="chatgpt_media_urls" nolabel="1" readonly="1" widget="text"/>
+                        </group>
                         <div class="alert alert-info" role="alert" invisible="chatgpt_enriched">
                             <p><strong>No AI enrichment yet.</strong></p>
                             <p>Click the "Enrich with ChatGPT" button to automatically generate enhanced product content.</p>
@@ -60,6 +63,19 @@
                     </page>
                 </xpath>
 
+            </field>
+        </record>
+        
+        <!-- Batch Enrichment Action -->
+        <record id="action_product_enrich_batch" model="ir.actions.server">
+            <field name="name">Enrich with ChatGPT</field>
+            <field name="model_id" ref="product.model_product_template"/>
+            <field name="binding_model_id" ref="product.model_product_template"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    action = records.action_enrich_batch()
             </field>
         </record>
 

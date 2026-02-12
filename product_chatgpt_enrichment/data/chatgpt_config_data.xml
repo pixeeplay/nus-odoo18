@@ -4,13 +4,34 @@
         
         <!-- Default ChatGPT Configuration -->
         <record id="default_chatgpt_config" model="chatgpt.config">
-            <field name="model_name">gpt-3.5-turbo</field>
+            <field name="model_name">gpt-4o-mini</field>
             <field name="api_key">YOUR_API_KEY_HERE</field>
             <field name="api_endpoint">https://api.openai.com/v1/chat/completions</field>
             <field name="auto_enrich" eval="False"/>
-            <field name="max_tokens">500</field>
+            <field name="max_tokens">1000</field>
             <field name="temperature">0.7</field>
             <field name="active" eval="True"/>
+        </record>
+
+        <!-- Default Prompts -->
+        <record id="prompt_long_description" model="chatgpt.product.prompt">
+            <field name="name">Long Website Description</field>
+            <field name="sequence">10</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
+            <field name="language">fr_FR</field>
+            <field name="target_field">website_description</field>
+            <field name="prompt_template">Generate a high-quality, SEO-optimized product description for {product_name}. 
+Include a catchy title (h2), compelling introduction (p), main features (ul/li), and technical benefits. 
+Return ONLY clean HTML without markdown code blocks.</field>
+        </record>
+
+        <record id="prompt_sales_description" model="chatgpt.product.prompt">
+            <field name="name">Sales Description</field>
+            <field name="sequence">20</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
+            <field name="language">fr_FR</field>
+            <field name="target_field">description_sale</field>
+            <field name="prompt_template">Generate a concise sales pitch (2-3 sentences) for {product_name}. No HTML.</field>
         </record>
 
     </data>
