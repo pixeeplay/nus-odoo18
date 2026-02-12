@@ -113,3 +113,7 @@ class ProductTemplate(models.Model):
                 'sticky': False,
             }
         }
+
+    def action_view_chatgpt_enrichment(self):
+        """Dummy action for stat button to satisfy Odoo requirements"""
+        return True
