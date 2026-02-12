@@ -202,6 +202,12 @@ class ChatGPTConfig(models.Model):
             _logger.error("ScrapingBee error: %s", str(e))
             return ""
 
+    def _get_model_name(self):
+        """Helper to get model code from Many2one or manual field"""
+        if self.model_id:
+            return self.model_id.code
+        return self.ai_model_name or 'gpt-4o-mini'
+
     def call_ai_api(self, prompt, max_tokens=None, temperature=None):
         self.ensure_one()
         if self.provider == 'openai':
@@ -220,17 +226,25 @@ class ChatGPTConfig(models.Model):
         headers = {'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json'}
         url = self.base_url or 'https://api.openai.com/v1/chat/completions'
         data = {
-            'model': self.ai_model_name,
+            'model': self._get_model_name(),
             'messages': [{'role': 'system', 'content': 'Expert product marketer. HTML output.'}, {'role': 'user', 'content': prompt}],
             'max_tokens': max_tokens or self.max_tokens,
             'temperature': temperature or self.temperature,
         }
-        res = requests.post(url, headers=headers, json=data, timeout=60).json()
-        return self._format_response(res['choices'][0]['message']['content'])
+        try:
+            res = requests.post(url, headers=headers, json=data, timeout=60).json()
+            if 'error' in res:
+                raise UserError(_("OpenAI Error: %s") % res['error'].get('message', 'Unknown Error'))
+            return self._format_response(res['choices'][0]['message']['content'])
+        except (KeyError, IndexError):
+            raise UserError(_("Invalid response from OpenAI. Please check your API Key and Model settings."))
 
     def _call_gemini(self, prompt, max_tokens, temperature):
         # Gemini API call (Simplified for AI Studio)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.ai_model_name}:generateContent?key={self.api_key}"
+        model = self._get_model_name()
+        if '/' not in model:
+            model = f"models/{model}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={self.api_key}"
         data = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
@@ -238,8 +252,13 @@ class ChatGPTConfig(models.Model):
                 "temperature": temperature or self.temperature,
             }
         }
-        res = requests.post(url, json=data, timeout=60).json()
-        return self._format_response(res['candidates'][0]['content']['parts'][0]['text'])
+        try:
+            res = requests.post(url, json=data, timeout=60).json()
+            if 'error' in res:
+                raise UserError(_("Gemini Error: %s") % res['error'].get('message', 'Unknown Error'))
+            return self._format_response(res['candidates'][0]['content']['parts'][0]['text'])
+        except (KeyError, IndexError):
+            raise UserError(_("Invalid response from Gemini. Please check your API Key and Model settings."))
 
     def _call_anthropic(self, prompt, max_tokens, temperature):
         headers = {
@@ -249,36 +268,51 @@ class ChatGPTConfig(models.Model):
         }
         url = 'https://api.anthropic.com/v1/messages'
         data = {
-            'model': self.ai_model_name,
+            'model': self._get_model_name(),
             'max_tokens': max_tokens or self.max_tokens,
             'messages': [{'role': 'user', 'content': prompt}]
         }
-        res = requests.post(url, headers=headers, json=data, timeout=60).json()
-        return self._format_response(res['content'][0]['text'])
+        try:
+            res = requests.post(url, headers=headers, json=data, timeout=60).json()
+            if 'error' in res:
+                raise UserError(_("Anthropic Error: %s") % res['error'].get('message', 'Unknown Error'))
+            return self._format_response(res['content'][0]['text'])
+        except (KeyError, IndexError):
+            raise UserError(_("Invalid response from Anthropic. Please check your API Key and Model settings."))
 
     def _call_perplexity(self, prompt, max_tokens, temperature):
         headers = {'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json'}
         url = 'https://api.perplexity.ai/chat/completions'
         data = {
-            'model': self.ai_model_name or 'llama-3.1-sonar-small-128k-online',
+            'model': self._get_model_name() or 'llama-3.1-sonar-small-128k-online',
             'messages': [{'role': 'system', 'content': 'Expert researcher. HTML output.'}, {'role': 'user', 'content': prompt}],
             'max_tokens': max_tokens or self.max_tokens,
         }
-        res = requests.post(url, headers=headers, json=data, timeout=60).json()
-        return self._format_response(res['choices'][0]['message']['content'])
+        try:
+            res = requests.post(url, headers=headers, json=data, timeout=60).json()
+            if 'error' in res:
+                raise UserError(_("Perplexity Error: %s") % res['error'].get('message', 'Unknown Error'))
+            return self._format_response(res['choices'][0]['message']['content'])
+        except (KeyError, IndexError):
+            raise UserError(_("Invalid response from Perplexity. Please check your API Key and Model settings."))
 
     def _call_local_ai(self, prompt, max_tokens, temperature):
         # Local AI via OpenAI-compatible API or Ollama native
         if self.provider == 'ollama':
             url = f"{self.base_url or 'http://localhost:11434'}/api/generate"
             data = {
-                'model': self.ai_model_name,
+                'model': self._get_model_name(),
                 'prompt': prompt,
                 'stream': False,
                 'options': {'num_predict': max_tokens or self.max_tokens, 'temperature': temperature or self.temperature}
             }
-            res = requests.post(url, json=data, timeout=120).json()
-            return self._format_response(res['response'])
+            try:
+                res = requests.post(url, json=data, timeout=120).json()
+                if 'error' in res:
+                    raise UserError(_("Ollama Error: %s") % res.get('error', 'Unknown Error'))
+                return self._format_response(res['response'])
+            except (KeyError, IndexError):
+                raise UserError(_("Invalid response from Ollama. Please ensure Ollama is running and the model is downloaded."))
         else:
             # Llama.cpp with OpenAI compatible server
             return self._call_openai(prompt, max_tokens, temperature)
