@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-from odoo import models, fields, api, _
-from odoo.exceptions import UserError
 import logging
-
-_logger = logging.getLogger(__name__)
+import re
+import json
+import base64
+import requests
+from odoo import models, fields, api, _
 
 
 class ProductTemplate(models.Model):
@@ -85,12 +85,21 @@ class ProductTemplate(models.Model):
         if not config.prompt_ids:
             raise UserError(_('No prompts configured in ChatGPT Configuration.'))
         
-        _logger.info('Enriching product: %s with %s prompts', self.name, len(config.prompt_ids))
+        _logger.info('Enriching product: %s', self.name)
         
         vals = {
             'chatgpt_enriched': True,
             'chatgpt_last_enrichment': fields.Datetime.now(),
         }
+        
+        # 1. Scraping Layer (Deep Enrichment)
+        scraped_data = ""
+        if config.use_deep_enrichment:
+            _logger.info('Running Deep Enrichment for %s', self.name)
+            urls = config._search_with_serpapi(self.name)
+            for url in urls:
+                scraped_data += f"\n--- Content from {url} ---\n"
+                scraped_data += config._scrape_with_scrapingbee(url)
         
         all_content = []
         
@@ -98,28 +107,54 @@ class ProductTemplate(models.Model):
             if not p.active:
                 continue
                 
-            # Prepare the prompt with language instruction
+            # Prepare the prompt
             lang_name = dict(p._fields['language'].selection).get(p.language, 'French')
             prompt = f"Answer in {lang_name}. "
-            if config.media_discovery:
-                prompt += "Include official media URLs (images/videos) if found. "
-            if config.use_web_search:
-                prompt += "Use web search to find the latest technical specifications. "
-                
+            
+            if config.use_deep_enrichment and scraped_data:
+                prompt += "Use the following scraped data to provide accurate and technical details for the product. "
+                prompt += f"CONTEXT DATA:\n{scraped_data}\n"
+            else:
+                if config.media_discovery:
+                    prompt += "Include official media URLs (images/videos) if found. "
+                if config.use_web_search:
+                    prompt += "Use web search to find the latest technical specifications. "
+            
             prompt += p.prompt_template.format(product_name=self.name)
+            
+            # Request JSON if needed
+            if "JSON" in prompt.upper() or "STRUCTURED" in prompt.upper():
+                prompt += "\nReturn ONLY a valid JSON object without markdown formatting."
             
             # Call AI API
             enriched_content = config.call_ai_api(prompt)
             
+            # Try to parse JSON if content looks like JSON
+            try:
+                if enriched_content.strip().startswith('{'):
+                    json_data = json.loads(enriched_content)
+                    # Batch map JSON fields if target_field_id is not set or custom
+                    for key, value in json_data.items():
+                        # Automatic mapping for common fields
+                        if key in self._fields and not vals.get(key):
+                            vals[key] = value
+                        # Image URLs specifically
+                        if key in ['image_urls', 'images', 'media'] and isinstance(value, list):
+                            self._import_media_from_urls(value)
+                    
+                    enriched_content = json.dumps(json_data, indent=2, ensure_ascii=False)
+            except Exception as e:
+                _logger.warning('Failed to parse AI response as JSON: %s', str(e))
+
             if p.target_field_id and p.target_field_id.name in self._fields:
                 vals[p.target_field_id.name] = enriched_content
             
-            # Extract URLs for media discovery if enabled
-            if config.media_discovery:
-                import re
+            # Extract URLs for media discovery
+            if config.media_discovery or config.use_deep_enrichment:
                 urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', enriched_content)
                 if urls:
-                    existing_urls = vals.get('chatgpt_media_urls', '')
+                    self._import_media_from_urls(urls)
+                    existing_urls = vals.get('chatgpt_media_urls', '') or ''
                     new_urls = "\n".join(list(set(urls)))
                     vals['chatgpt_media_urls'] = (existing_urls + "\n" + new_urls).strip()
             
@@ -127,8 +162,51 @@ class ProductTemplate(models.Model):
             
         vals['chatgpt_content'] = "\n".join(all_content)
         self.write(vals)
-        
         _logger.info('Product %s enriched successfully', self.name)
+
+    def _import_media_from_urls(self, urls):
+        """Download images from URLs and import them into Odoo"""
+        if not urls:
+            return
+            
+        processed_urls = []
+        for url in urls:
+            if not any(ext in url.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                continue
+            if url in processed_urls:
+                continue
+            
+            try:
+                _logger.info('Importing image: %s', url)
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    image_data = base64.b64encode(response.content)
+                    
+                    # Set main image if not already set
+                    if not self.image_1920:
+                        self.image_1920 = image_data
+                        _logger.info('Set main product image from %s', url)
+                    else:
+                        # Add to extra media
+                        # Check if already exists
+                        existing = self.env['product.image'].search([
+                            ('product_tmpl_id', '=', self.id),
+                            ('name', 'ilike', url.split('/')[-1][:10])
+                        ], limit=1)
+                        
+                        if not existing:
+                            self.env['product.image'].create({
+                                'name': url.split('/')[-1] or 'AI Discovered Image',
+                                'product_tmpl_id': self.id,
+                                'image_1920': image_data,
+                            })
+                            _logger.info('Added extra media from %s', url)
+                
+                processed_urls.append(url)
+                if len(processed_urls) >= 5: # Limit to 5 images per product to avoid bloat
+                    break
+            except Exception as e:
+                _logger.warning('Failed to import image from %s: %s', url, str(e))
 
     def action_enrich_batch(self):
         """Action for batch enrichment of multiple products"""

@@ -57,6 +57,15 @@ class ChatGPTConfig(models.Model):
         help='If enabled, Perplexity or specific search-enabled models will be used.'
     )
 
+    use_deep_enrichment = fields.Boolean(
+        string='Deep Enrichment (SerpApi + ScrapingBee)',
+        default=False,
+        help='Use SerpApi to find products and ScrapingBee to extract deep content before AI processing.'
+    )
+
+    serpapi_key = fields.Char(string='SerpApi Key', help='For product and image search')
+    scrapingbee_key = fields.Char(string='ScrapingBee Key', help='For bypass anti-bot and extract clean data')
+
     media_discovery = fields.Boolean(
         string='Discover Media',
         default=False,
@@ -121,6 +130,40 @@ class ChatGPTConfig(models.Model):
                 raise UserError(_("Could not reach server: %s") % str(e))
         
         raise UserError(_("Model discovery not implemented for this provider yet."))
+
+    def _search_with_serpapi(self, query):
+        if not self.serpapi_key:
+            return []
+        url = "https://serpapi.com/search"
+        params = {
+            "q": query,
+            "engine": "google",
+            "api_key": self.serpapi_key,
+            "num": 3
+        }
+        try:
+            res = requests.get(url, params=params, timeout=10).json()
+            return [r.get('link') for r in res.get('organic_results', []) if r.get('link')]
+        except Exception as e:
+            _logger.error("SerpApi error: %s", str(e))
+            return []
+
+    def _scrape_with_scrapingbee(self, url):
+        if not self.scrapingbee_key:
+            return ""
+        sb_url = "https://app.scrapingbee.com/api/v1"
+        params = {
+            "api_key": self.scrapingbee_key,
+            "url": url,
+            "render_js": "false",
+            "extract_rules": '{"content": "body"}'
+        }
+        try:
+            res = requests.get(sb_url, params=params, timeout=30).json()
+            return res.get('content', '')[:10000] # Limit size for AI
+        except Exception as e:
+            _logger.error("ScrapingBee error: %s", str(e))
+            return ""
 
     def call_ai_api(self, prompt, max_tokens=None, temperature=None):
         self.ensure_one()

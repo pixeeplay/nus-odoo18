@@ -78,10 +78,23 @@
                             <group string="Behavior">
                                 <field name="auto_enrich"/>
                                 <field name="use_web_search"/>
+                                <field name="use_deep_enrichment"/>
                                 <field name="media_discovery"/>
                                 <field name="max_tokens"/>
                                 <field name="temperature"/>
                                 <field name="active"/>
+                            </group>
+                        </group>
+                        <group string="External Services" invisible="not use_deep_enrichment">
+                            <group>
+                                <field name="serpapi_key" password="True" required="use_deep_enrichment"/>
+                                <field name="scrapingbee_key" password="True" required="use_deep_enrichment"/>
+                            </group>
+                            <group>
+                                <div class="alert alert-info" role="alert">
+                                    <p>Deep Enrichment uses <strong>SerpApi</strong> to find products and <strong>ScrapingBee</strong> to extract content from web pages.</p>
+                                    <p>Ensure your prompt explicitly asks for <strong>JSON</strong> output if you want automatic field mapping of scrapped measurements and weight.</p>
+                                </div>
                             </group>
                         </group>
                         <notebook>
