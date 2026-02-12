@@ -36,7 +36,7 @@
                 <list string="AI Configurations">
                     <field name="name"/>
                     <field name="provider"/>
-                    <field name="model_name"/>
+                    <field name="ai_model_name"/>
                     <field name="auto_enrich"/>
                     <field name="active"/>
                 </list>
@@ -73,7 +73,7 @@
                                 <field name="provider"/>
                                 <field name="api_key" password="True" invisible="provider in ['ollama', 'llamacpp'] and not api_key"/>
                                 <field name="base_url" placeholder="e.g. http://localhost:11434" invisible="provider not in ['ollama', 'llamacpp', 'openai']"/>
-                                <field name="model_name" placeholder="e.g. gpt-4o, llama3, etc."/>
+                                <field name="ai_model_name" placeholder="e.g. gpt-4o, llama3, etc."/>
                             </group>
                             <group string="Behavior">
                                 <field name="auto_enrich"/>

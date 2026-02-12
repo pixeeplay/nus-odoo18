@@ -40,10 +40,9 @@ class ChatGPTConfig(models.Model):
         help='API endpoint path after base URL'
     )
     
-    model_name = fields.Char(
+    ai_model_name = fields.Char(
         string='Model Name',
         default='gpt-4o-mini',
-        required=True,
         help='Enter the model name (e.g. gpt-4o, claude-3-5-sonnet, or the local model name)'
     )
     
@@ -141,7 +140,7 @@ class ChatGPTConfig(models.Model):
         headers = {'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json'}
         url = self.base_url or 'https://api.openai.com/v1/chat/completions'
         data = {
-            'model': self.model_name,
+            'model': self.ai_model_name,
             'messages': [{'role': 'system', 'content': 'Expert product marketer. HTML output.'}, {'role': 'user', 'content': prompt}],
             'max_tokens': max_tokens or self.max_tokens,
             'temperature': temperature or self.temperature,
@@ -151,7 +150,7 @@ class ChatGPTConfig(models.Model):
 
     def _call_gemini(self, prompt, max_tokens, temperature):
         # Gemini API call (Simplified for AI Studio)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.ai_model_name}:generateContent?key={self.api_key}"
         data = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
@@ -170,7 +169,7 @@ class ChatGPTConfig(models.Model):
         }
         url = 'https://api.anthropic.com/v1/messages'
         data = {
-            'model': self.model_name,
+            'model': self.ai_model_name,
             'max_tokens': max_tokens or self.max_tokens,
             'messages': [{'role': 'user', 'content': prompt}]
         }
@@ -181,7 +180,7 @@ class ChatGPTConfig(models.Model):
         headers = {'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json'}
         url = 'https://api.perplexity.ai/chat/completions'
         data = {
-            'model': self.model_name or 'llama-3.1-sonar-small-128k-online',
+            'model': self.ai_model_name or 'llama-3.1-sonar-small-128k-online',
             'messages': [{'role': 'system', 'content': 'Expert researcher. HTML output.'}, {'role': 'user', 'content': prompt}],
             'max_tokens': max_tokens or self.max_tokens,
         }
@@ -193,7 +192,7 @@ class ChatGPTConfig(models.Model):
         if self.provider == 'ollama':
             url = f"{self.base_url or 'http://localhost:11434'}/api/generate"
             data = {
-                'model': self.model_name,
+                'model': self.ai_model_name,
                 'prompt': prompt,
                 'stream': False,
                 'options': {'num_predict': max_tokens or self.max_tokens, 'temperature': temperature or self.temperature}

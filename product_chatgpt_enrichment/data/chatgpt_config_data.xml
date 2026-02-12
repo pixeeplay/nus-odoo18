@@ -7,7 +7,7 @@
         <record id="default_chatgpt_config" model="chatgpt.config">
             <field name="name">Default OpenAI Config</field>
             <field name="provider">openai</field>
-            <field name="model_name">gpt-4o-mini</field>
+            <field name="ai_model_name">gpt-4o-mini</field>
             <field name="api_key">YOUR_API_KEY_HERE</field>
             <field name="api_endpoint">/v1/chat/completions</field>
             <field name="auto_enrich" eval="False"/>
