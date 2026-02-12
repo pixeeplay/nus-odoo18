@@ -16,10 +16,11 @@
             </field>
         </record>
 
-        <!-- Menu in Settings > Technical -->
+        <!-- Menu in Settings -->
         <menuitem id="menu_chatgpt_root"
-                  name="ChatGPT Configuration"
-                  parent="base.menu_custom"
+                  name="ChatGPT"
+                  parent="base.menu_administration"
+                  groups="base.group_system"
                   sequence="100"/>
 
         <menuitem id="menu_chatgpt_config"
