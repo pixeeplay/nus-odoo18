@@ -10,38 +10,52 @@ _logger = logging.getLogger(__name__)
 
 class ChatGPTConfig(models.Model):
     _name = 'chatgpt.config'
-    _description = 'ChatGPT Configuration'
-    _rec_name = 'model_name'
+    _description = 'AI Configuration'
+    _rec_name = 'name'
 
+    name = fields.Char(string='Config Name', default='Main AI Configuration', required=True)
+    
+    provider = fields.Selection([
+        ('openai', 'OpenAI'),
+        ('gemini', 'Google Gemini'),
+        ('anthropic', 'Anthropic Claude'),
+        ('perplexity', 'Perplexity (Web Search)'),
+        ('ollama', 'Ollama (Local)'),
+        ('llamacpp', 'Llama.cpp (Local)'),
+    ], string='AI Provider', default='openai', required=True)
+    
     api_key = fields.Char(
-        string='OpenAI API Key',
-        required=True,
-        help='Your OpenAI API key from https://platform.openai.com/api-keys'
+        string='API Key / Token',
+        help='Your API key or token for the selected provider.'
     )
+    
+    base_url = fields.Char(
+        string='Base URL',
+        help='Custom API endpoint (e.g. for Ollama: http://localhost:11434)'
+    )
+    
     api_endpoint = fields.Char(
-        string='API Endpoint',
-        default='https://api.openai.com/v1/chat/completions',
-        required=True,
-        help='OpenAI API endpoint URL'
+        string='API Endpoint Path',
+        default='/v1/chat/completions',
+        help='API endpoint path after base URL'
     )
-    model_name = fields.Selection([
-        ('gpt-4o', 'GPT-4o (Most Capable)'),
-        ('gpt-4o-mini', 'GPT-4o Mini (Fast & Economical)'),
-        ('gpt-4-turbo', 'GPT-4 Turbo'),
-        ('gpt-3.5-turbo', 'GPT-3.5 Turbo (Legacy)'),
-    ], string='Model', default='gpt-4o-mini', required=True,
-        help='Select the ChatGPT model to use for enrichment')
+    
+    model_name = fields.Char(
+        string='Model Name',
+        default='gpt-4o-mini',
+        required=True,
+        help='Enter the model name (e.g. gpt-4o, claude-3-5-sonnet, or the local model name)'
+    )
     
     auto_enrich = fields.Boolean(
         string='Auto-Enrich New Products',
-        default=True,
-        help='Automatically enrich products when they are created'
+        default=False
     )
 
     use_web_search = fields.Boolean(
         string='Use Web Search',
         default=False,
-        help='Allow ChatGPT to search the web for up-to-date information (if model supports it)'
+        help='If enabled, Perplexity or specific search-enabled models will be used.'
     )
 
     media_discovery = fields.Boolean(
@@ -50,147 +64,170 @@ class ChatGPTConfig(models.Model):
         help='Try to find official product image and video URLs'
     )
     
-    max_tokens = fields.Integer(
-        string='Max Tokens',
-        default=1000,
-        help='Maximum number of tokens in the response'
-    )
+    max_tokens = fields.Integer(string='Max Tokens', default=2000)
+    temperature = fields.Float(string='Temperature', default=0.7)
     
-    temperature = fields.Float(
-        string='Temperature',
-        default=0.7,
-        help='Controls randomness: 0 is focused, 1 is creative'
-    )
-    
-    prompt_ids = fields.One2many(
-        'chatgpt.product.prompt', 'config_id', 
-        string='Prompts'
-    )
-    
+    prompt_ids = fields.One2many('chatgpt.product.prompt', 'config_id', string='Prompts')
     active = fields.Boolean(default=True)
+    
+    model_discovery_results = fields.Text(string='Discovered Models', readonly=True)
 
     @api.model
     def get_active_config(self):
-        """Get the active configuration"""
         config = self.search([('active', '=', True)], limit=1)
         if not config:
-            raise UserError(_('No active ChatGPT configuration found. Please configure the module in Settings > ChatGPT.'))
+            raise UserError(_('No active AI configuration found. Please configure the module in Settings > ChatGPT.'))
         return config
 
     def action_test_connection(self):
-        """Test the API connection"""
         self.ensure_one()
         try:
-            headers = {
-                'Authorization': f'Bearer {self.api_key}',
-                'Content-Type': 'application/json',
-            }
-            
-            data = {
-                'model': self.model_name,
-                'messages': [
-                    {'role': 'user', 'content': 'Hello, this is a test message.'}
-                ],
-                'max_tokens': 50,
-            }
-            
-            response = requests.post(
-                self.api_endpoint,
-                headers=headers,
-                json=data,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
+            res = self.call_ai_api("Hello, this is a test connection message.", max_tokens=10)
+            if res:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
                         'title': _('Success'),
-                        'message': _('Connection to ChatGPT API successful!'),
+                        'message': _('Connection to %s successful!') % self.provider,
                         'type': 'success',
-                        'sticky': False,
                     }
                 }
-            else:
-                raise UserError(_('API Error: %s - %s') % (response.status_code, response.text))
-                
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             raise UserError(_('Connection failed: %s') % str(e))
 
-    def call_chatgpt_api(self, prompt, max_tokens=None, temperature=None):
-        """Call the ChatGPT API with the given prompt"""
+    def action_discover_models(self):
         self.ensure_one()
+        if self.provider == 'ollama':
+            url = f"{self.base_url or 'http://localhost:11434'}/api/tags"
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    models = [m['name'] for m in response.json().get('models', [])]
+                    self.model_discovery_results = "\n".join(models)
+                    return True
+            except Exception as e:
+                raise UserError(_("Could not reach Ollama: %s") % str(e))
+        elif self.provider in ['llamacpp', 'openai']:
+            # Llama.cpp usually supports /v1/models if using server
+            url = f"{self.base_url or 'http://localhost:8080'}/v1/models"
+            try:
+                headers = {'Authorization': f'Bearer {self.api_key}'} if self.api_key else {}
+                response = requests.get(url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    models = [m['id'] for m in response.json().get('data', [])]
+                    self.model_discovery_results = "\n".join(models)
+                    return True
+            except Exception as e:
+                raise UserError(_("Could not reach server: %s") % str(e))
         
-        try:
-            headers = {
-                'Authorization': f'Bearer {self.api_key}',
-                'Content-Type': 'application/json',
+        raise UserError(_("Model discovery not implemented for this provider yet."))
+
+    def call_ai_api(self, prompt, max_tokens=None, temperature=None):
+        self.ensure_one()
+        if self.provider == 'openai':
+            return self._call_openai(prompt, max_tokens, temperature)
+        elif self.provider == 'gemini':
+            return self._call_gemini(prompt, max_tokens, temperature)
+        elif self.provider == 'anthropic':
+            return self._call_anthropic(prompt, max_tokens, temperature)
+        elif self.provider == 'perplexity':
+            return self._call_perplexity(prompt, max_tokens, temperature)
+        elif self.provider in ['ollama', 'llamacpp']:
+            return self._call_local_ai(prompt, max_tokens, temperature)
+        return False
+
+    def _call_openai(self, prompt, max_tokens, temperature):
+        headers = {'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json'}
+        url = self.base_url or 'https://api.openai.com/v1/chat/completions'
+        data = {
+            'model': self.model_name,
+            'messages': [{'role': 'system', 'content': 'Expert product marketer. HTML output.'}, {'role': 'user', 'content': prompt}],
+            'max_tokens': max_tokens or self.max_tokens,
+            'temperature': temperature or self.temperature,
+        }
+        res = requests.post(url, headers=headers, json=data, timeout=60).json()
+        return self._format_response(res['choices'][0]['message']['content'])
+
+    def _call_gemini(self, prompt, max_tokens, temperature):
+        # Gemini API call (Simplified for AI Studio)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
+        data = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "maxOutputTokens": max_tokens or self.max_tokens,
+                "temperature": temperature or self.temperature,
             }
-            
+        }
+        res = requests.post(url, json=data, timeout=60).json()
+        return self._format_response(res['candidates'][0]['content']['parts'][0]['text'])
+
+    def _call_anthropic(self, prompt, max_tokens, temperature):
+        headers = {
+            'x-api-key': self.api_key,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json'
+        }
+        url = 'https://api.anthropic.com/v1/messages'
+        data = {
+            'model': self.model_name,
+            'max_tokens': max_tokens or self.max_tokens,
+            'messages': [{'role': 'user', 'content': prompt}]
+        }
+        res = requests.post(url, headers=headers, json=data, timeout=60).json()
+        return self._format_response(res['content'][0]['text'])
+
+    def _call_perplexity(self, prompt, max_tokens, temperature):
+        headers = {'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json'}
+        url = 'https://api.perplexity.ai/chat/completions'
+        data = {
+            'model': self.model_name or 'llama-3.1-sonar-small-128k-online',
+            'messages': [{'role': 'system', 'content': 'Expert researcher. HTML output.'}, {'role': 'user', 'content': prompt}],
+            'max_tokens': max_tokens or self.max_tokens,
+        }
+        res = requests.post(url, headers=headers, json=data, timeout=60).json()
+        return self._format_response(res['choices'][0]['message']['content'])
+
+    def _call_local_ai(self, prompt, max_tokens, temperature):
+        # Local AI via OpenAI-compatible API or Ollama native
+        if self.provider == 'ollama':
+            url = f"{self.base_url or 'http://localhost:11434'}/api/generate"
             data = {
                 'model': self.model_name,
-                'messages': [
-                    {'role': 'system', 'content': 'You are a product marketing expert. Always provide output in clean HTML without markdown code blocks unless requested.'},
-                    {'role': 'user', 'content': prompt}
-                ],
-                'max_tokens': max_tokens or self.max_tokens,
-                'temperature': temperature or self.temperature,
+                'prompt': prompt,
+                'stream': False,
+                'options': {'num_predict': max_tokens or self.max_tokens, 'temperature': temperature or self.temperature}
             }
-            
-            _logger.info('Calling ChatGPT API with model: %s', self.model_name)
-            
-            response = requests.post(
-                self.api_endpoint,
-                headers=headers,
-                json=data,
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                content = result['choices'][0]['message']['content']
-                # Strip markdown code blocks if present
-                if content.startswith('```html'):
-                    content = content[7:]
-                if content.startswith('```'):
-                    content = content[3:]
-                if content.endswith('```'):
-                    content = content[:-3]
-                _logger.info('ChatGPT API call successful')
-                return content.strip()
-            else:
-                error_msg = f'API Error: {response.status_code} - {response.text}'
-                _logger.error(error_msg)
-                raise UserError(_(error_msg))
-                
-        except requests.exceptions.RequestException as e:
-            error_msg = f'Connection failed: {str(e)}'
-            _logger.error(error_msg)
-            raise UserError(_(error_msg))
+            res = requests.post(url, json=data, timeout=120).json()
+            return self._format_response(res['response'])
+        else:
+            # Llama.cpp with OpenAI compatible server
+            return self._call_openai(prompt, max_tokens, temperature)
+
+    def _format_response(self, content):
+        if not content: return ""
+        # Strip markdown and ensure clean HTML
+        content = content.replace('```html', '').replace('```', '').strip()
+        return content
 
 
 class ChatGPTProductPrompt(models.Model):
     _name = 'chatgpt.product.prompt'
-    _description = 'ChatGPT Product Prompt'
+    _description = 'AI Product Prompt'
     _order = 'sequence, id'
 
-    name = fields.Char(string='Name', required=True, help="e.g. Long Description, Technical Specs")
+    name = fields.Char(string='Description', required=True)
     sequence = fields.Integer(default=10)
     config_id = fields.Many2one('chatgpt.config', string='Configuration', ondelete='cascade')
     
-    prompt_template = fields.Text(
-        string='Prompt Template',
-        required=True,
-        help='Template for the ChatGPT prompt. Use {product_name} as placeholder.'
-    )
+    prompt_template = fields.Text(string='Prompt Template', required=True)
     
-    target_field = fields.Selection([
-        ('website_description', 'Website Description (HTML)'),
-        ('description_sale', 'Sales Description (Text)'),
-        ('description', 'Internal Notes (Text)'),
-        ('chatgpt_content', 'AI Enrichment Log (HTML)'),
-    ], string='Target Field', default='website_description', required=True)
+    target_field_id = fields.Many2one(
+        'ir.model.fields', 
+        string='Target Field',
+        domain="[('model', '=', 'product.template'), ('ttype', 'in', ['char', 'text', 'html'])]",
+        required=True
+    )
     
     language = fields.Selection([
         ('fr_FR', 'French'),

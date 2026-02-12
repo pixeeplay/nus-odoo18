@@ -108,11 +108,11 @@ class ProductTemplate(models.Model):
                 
             prompt += p.prompt_template.format(product_name=self.name)
             
-            # Call ChatGPT API
-            enriched_content = config.call_chatgpt_api(prompt)
+            # Call AI API
+            enriched_content = config.call_ai_api(prompt)
             
-            if p.target_field in self._fields:
-                vals[p.target_field] = enriched_content
+            if p.target_field_id and p.target_field_id.name in self._fields:
+                vals[p.target_field_id.name] = enriched_content
             
             # Extract URLs for media discovery if enabled
             if config.media_discovery:
