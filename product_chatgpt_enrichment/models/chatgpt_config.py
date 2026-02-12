@@ -22,7 +22,8 @@ class ChatGPTConfig(models.Model):
         ('perplexity', 'Perplexity (Web Search)'),
         ('ollama', 'Ollama (Local)'),
         ('llamacpp', 'Llama.cpp (Local)'),
-    ], string='AI Provider', default='openai', required=True)
+    ], string='AI Provider', default='openai', required=True, 
+       help="Choose your AI intelligence source. Cloud providers (OpenAI...) are easier to set up, Local providers (Ollama...) run on your own machine.")
     
     api_key = fields.Char(
         string='API Key / Token',
@@ -62,7 +63,7 @@ class ChatGPTConfig(models.Model):
     use_deep_enrichment = fields.Boolean(
         string='Deep Enrichment (SerpApi + ScrapingBee)',
         default=False,
-        help='Use SerpApi to find products and ScrapingBee to extract deep content before AI processing.'
+        help='Advanced mode: Odoo will search Google for the product and scrape content from top websites to give the AI real, up-to-date context.'
     )
 
     serpapi_key = fields.Char(string='SerpApi Key', help='For product and image search')
@@ -71,7 +72,7 @@ class ChatGPTConfig(models.Model):
     media_discovery = fields.Boolean(
         string='Discover Media',
         default=False,
-        help='Try to find official product image and video URLs'
+        help='Odoo will analyze the AI response to find image/video URLs and automatically download/attach them to the product.'
     )
     
     max_tokens = fields.Integer(string='Max Tokens', default=2000)
@@ -333,12 +334,17 @@ class ChatGPTProductPrompt(models.Model):
     sequence = fields.Integer(default=10)
     config_id = fields.Many2one('chatgpt.config', string='Configuration', ondelete='cascade')
     
-    prompt_template = fields.Text(string='Prompt Template', required=True)
+    prompt_template = fields.Text(
+        string='Prompt Template', 
+        required=True,
+        help="Use {product_name} as a placeholder. Add 'Answer in JSON' if you want automatic field mapping of technical specs."
+    )
     
     target_field_id = fields.Many2one(
         'ir.model.fields', 
         string='Target Field',
-        domain="[('model', '=', 'product.template'), ('ttype', 'in', ['char', 'text', 'html'])]"
+        domain="[('model', '=', 'product.template'), ('ttype', 'in', ['char', 'text', 'html'])]",
+        help="Select which Odoo field should receive the AI-generated content."
     )
     
     language = fields.Selection([
