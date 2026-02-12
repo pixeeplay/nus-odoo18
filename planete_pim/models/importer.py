@@ -5854,9 +5854,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ean:
             return False
         
-        try:
-            # Utiliser un savepoint pour isoler les erreurs
-            with self.env.cr.savepoint():
+        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
+        with self.env.cr.savepoint():
+            try:
                 # Vérifier dans product_product (le champ barcode est sur product_product, pas product_template)
                 self.env.cr.execute(
                     "SELECT 1 FROM product_product WHERE barcode = %s LIMIT 1",
@@ -5864,11 +5864,10 @@ class PlanetePimImporter(models.AbstractModel):
                 )
                 if self.env.cr.fetchone():
                     return True
-            
-            return False
-        except Exception as e:
-            _logger.warning("Error checking EAN existence (isolated): %s", e)
-            return False
+                return False
+            except Exception as e:
+                _logger.warning("Error checking EAN existence (isolated): %s", e)
+                return False
 
     def _ref_exists_in_db(self, ref):
         """Vérifie si une référence (default_code) existe déjà dans la base de données via SQL direct.
@@ -5880,9 +5879,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ref:
             return False
         
-        try:
-            # Utiliser un savepoint pour isoler les erreurs
-            with self.env.cr.savepoint():
+        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
+        with self.env.cr.savepoint():
+            try:
                 # Vérifier dans product_product (default_code)
                 self.env.cr.execute(
                     "SELECT 1 FROM product_product WHERE default_code = %s LIMIT 1",
@@ -5890,11 +5889,10 @@ class PlanetePimImporter(models.AbstractModel):
                 )
                 if self.env.cr.fetchone():
                     return True
-            
-            return False
-        except Exception as e:
-            _logger.warning("Error checking reference existence (isolated): %s", e)
-            return False
+                return False
+            except Exception as e:
+                _logger.warning("Error checking reference existence (isolated): %s", e)
+                return False
 
     @api.model
     def _clean_brand_name(self, raw_name):
@@ -5985,9 +5983,9 @@ class PlanetePimImporter(models.AbstractModel):
         if brand_key in cache:
             return cache[brand_key]
 
-        try:
-            # Utiliser un savepoint pour isoler les erreurs
-            with self.env.cr.savepoint():
+        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
+        with self.env.cr.savepoint():
+            try:
                 # 1. Chercher par nom exact normalisé côté SQL (TRIM + LOWER)
                 self.env.cr.execute(
                     "SELECT id, name FROM product_brand WHERE LOWER(TRIM(name)) = LOWER(%s) LIMIT 1",
@@ -6033,9 +6031,9 @@ class PlanetePimImporter(models.AbstractModel):
 
                 return False
 
-        except Exception as e:
-            _logger.warning("Error finding/creating brand '%s' (isolated): %s", brand_name, e)
-            return False
+            except Exception as e:
+                _logger.warning("Error finding/creating brand '%s' (isolated): %s", brand_name, e)
+                return False
 
     def _create_supplierinfo(self, template_id, supplier_id, price, supplier_stock):
         """Crée ou met à jour un supplierinfo via SQL direct + ORM avec savepoint pour isoler les erreurs.
@@ -6045,9 +6043,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not template_id or not supplier_id:
             return
         
-        try:
-            # Utiliser un savepoint pour isoler les erreurs
-            with self.env.cr.savepoint():
+        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
+        with self.env.cr.savepoint():
+            try:
                 SupplierInfo = self.env["product.supplierinfo"].sudo()
                 
                 # Chercher un supplierinfo existant via SQL direct (pas de .search() dans la boucle!)
@@ -6072,9 +6070,9 @@ class PlanetePimImporter(models.AbstractModel):
                         "min_qty": 1.0,
                     })
                     SupplierInfo.create(si_vals)
-                
-        except Exception as e:
-            _logger.warning("Error creating supplierinfo (isolated): %s", e)
+                    
+            except Exception as e:
+                _logger.warning("Error creating supplierinfo (isolated): %s", e)
 
     # =========================================================================
     # Cron: Expiration du stock fournisseur
@@ -6408,8 +6406,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ref:
             return None, None
         
-        try:
-            with self.env.cr.savepoint():
+        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
+        with self.env.cr.savepoint():
+            try:
                 # Chercher dans product_product.default_code
                 self.env.cr.execute(
                     "SELECT id, product_tmpl_id FROM product_product WHERE default_code = %s LIMIT 1",
@@ -6419,11 +6418,10 @@ class PlanetePimImporter(models.AbstractModel):
                 if result:
                     _logger.debug("[REF-MATCH] Found product by default_code: REF=%s -> product_id=%s, tmpl_id=%s", ref, result[0], result[1])
                     return result[0], result[1]
-            
-            return None, None
-        except Exception as e:
-            _logger.warning("Error finding product by ref (isolated): %s", e)
-            return None, None
+                return None, None
+            except Exception as e:
+                _logger.warning("Error finding product by ref (isolated): %s", e)
+                return None, None
 
     def _find_product_by_ean(self, ean):
         """Trouve un produit par EAN via SQL direct.
@@ -6441,9 +6439,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ean:
             return None, None
         
-        try:
-            # Utiliser un savepoint pour isoler les erreurs
-            with self.env.cr.savepoint():
+        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
+        with self.env.cr.savepoint():
+            try:
                 # 1. Chercher dans product_product.barcode (le plus courant)
                 self.env.cr.execute(
                     "SELECT id, product_tmpl_id FROM product_product WHERE barcode = %s LIMIT 1",
@@ -6487,9 +6485,10 @@ class PlanetePimImporter(models.AbstractModel):
                     if result:
                         _logger.debug("[EAN-MATCH] Found product by template.barcode: EAN=%s -> product_id=%s, tmpl_id=%s", ean, result[0], result[1])
                         return result[0], result[1]
-            
-            _logger.debug("[EAN-MATCH] Product NOT FOUND for EAN=%s", ean)
-            return None, None
-        except Exception as e:
-            _logger.warning("Error finding product by EAN (isolated): %s", e)
-            return None, None
+                
+                _logger.debug("[EAN-MATCH] Product NOT FOUND for EAN=%s", ean)
+                return None, None
+            except Exception as e:
+                _logger.warning("Error finding product by EAN (isolated): %s", e)
+                return None, None
+
