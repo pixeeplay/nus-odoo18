@@ -13,7 +13,7 @@ class ChatGPTConfig(models.Model):
     _description = 'AI Configuration'
     _rec_name = 'name'
 
-    name = fields.Char(string='Config Name', default='Main AI Configuration', required=True)
+    name = fields.Char(string='Config Name', default='Main AI Configuration')
     
     provider = fields.Selection([
         ('openai', 'OpenAI'),
@@ -225,8 +225,7 @@ class ChatGPTProductPrompt(models.Model):
     target_field_id = fields.Many2one(
         'ir.model.fields', 
         string='Target Field',
-        domain="[('model', '=', 'product.template'), ('ttype', 'in', ['char', 'text', 'html'])]",
-        required=True
+        domain="[('model', '=', 'product.template'), ('ttype', 'in', ['char', 'text', 'html'])]"
     )
     
     language = fields.Selection([
