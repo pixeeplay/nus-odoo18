@@ -2,14 +2,14 @@
 <odoo>
 
     <record id="ir_cron_prestashop_sync" model="ir.cron">
-        <name>PrestaShop: Hourly Order Sync</name>
-        <model_id ref="model_prestashop_instance"/>
-        <state>code</state>
-        <code>model._cron_sync_orders()</code>
-        <user_id ref="base.user_root"/>
-        <interval_number>1</interval_number>
-        <interval_type>hours</interval_type>
-        <numbercall>-1</numbercall>
-        <active>True</active>
+        <field name="name">PrestaShop: Hourly Order Sync</field>
+        <field name="model_id" ref="model_prestashop_instance"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_orders()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="False"/>
     </record>
 </odoo>

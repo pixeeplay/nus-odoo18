@@ -16,6 +16,8 @@
         'security/ir.model.access.csv',
         'views/prestashop_instance_views.xml',
         'views/prestashop_sync_log_views.xml',
+        'views/prestashop_order_preview_views.xml',
+        'wizard/views/prestashop_import_wizard_views.xml',
         'views/sale_order_views.xml',
         'views/menus.xml',
         'data/ir_cron_data.xml',

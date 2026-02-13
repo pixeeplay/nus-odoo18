@@ -15,10 +15,14 @@ class PrestaShopInstance(models.Model):
     api_key = fields.Char(string='API Key', required=True)
     active = fields.Boolean(default=True)
     last_sync_date = fields.Datetime(string='Last Sync Date')
-    auto_sync = fields.Boolean(string='Hourly Auto-Sync', default=False)
+    auto_sync = fields.Boolean(string='Hourly Auto-Sync', default=False,
+        help="Enable automatic hourly synchronization. Orders will be imported automatically without preview.")
     
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
+
+    # Preview Orders Relation
+    preview_order_ids = fields.One2many('prestashop.order.preview', 'instance_id', string='Preview Orders')
 
     def action_test_connection(self):
         self.ensure_one()
@@ -106,79 +110,151 @@ class PrestaShopInstance(models.Model):
             })
         return product
 
-    def action_sync_now(self):
-        """Main entry point for synchronization"""
+    def action_fetch_orders_preview(self):
+        """Fetch orders from PrestaShop and store in preview table"""
         self.ensure_one()
-        _logger.info("Starting PrestaShop Sync for %s", self.name)
-        
-        # 1. Determine filter date (Last 2 months if first sync, else last sync date)
-        from datetime import datetime, timedelta
-        if not self.last_sync_date:
-            date_filter = (datetime.now() - timedelta(days=60)).strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            date_filter = self.last_sync_date.strftime('%Y-%m-%d %H:%M:%S')
+        _logger.info("Fetching PrestaShop orders for preview: %s", self.name)
 
-        # 2. Fetch orders
+        from datetime import datetime, timedelta
+
+        # Determine date filter (last 30 days by default)
+        date_filter = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+
+        # Fetch orders
         params = {
             'display': 'full',
             'filter[date_add]': f"[{date_filter},%]"
         }
         xml = self._api_get('orders', params=params)
-        if xml is None: return False
-        
+        if xml is None:
+            raise UserError(_("Failed to connect to PrestaShop API. Check credentials."))
+
         orders = xml.findall('.//order')
+        new_count = 0
+        updated_count = 0
+
         for ord_data in orders:
             ps_order_id = ord_data.find('id').text
-            
-            # Check if exists
-            existing = self.env['sale.order'].search([
+
+            # Check if already in preview
+            existing_preview = self.env['prestashop.order.preview'].search([
                 ('prestashop_order_id', '=', ps_order_id),
-                ('prestashop_instance_id', '=', self.id)
+                ('instance_id', '=', self.id)
             ], limit=1)
-            if existing: continue
-            
-            try:
-                # Sync Customer
-                customer_id = ord_data.find('id_customer').text
-                partner = self._find_or_create_customer(customer_id)
-                
-                # Create Sale Order
-                so_vals = {
-                    'partner_id': partner.id,
-                    'prestashop_instance_id': self.id,
-                    'prestashop_order_id': ps_order_id,
-                    'prestashop_source': 'prestashop',
-                    'warehouse_id': self.warehouse_id.id,
-                    'company_id': self.company_id.id,
-                    'origin': f"PS#{ps_order_id}",
+
+            # Skip if already imported
+            if existing_preview and existing_preview.state == 'imported':
+                continue
+
+            # Extract order data
+            customer_id = ord_data.find('id_customer').text
+            order_ref = ord_data.find('reference').text or f"PS-{ps_order_id}"
+            order_date_str = ord_data.find('date_add').text
+            order_date = fields.Datetime.to_datetime(order_date_str) if order_date_str else False
+
+            total_paid = float(ord_data.find('total_paid').text or 0.0)
+            payment_method = ord_data.find('payment').text or 'Unknown'
+            order_state_id = ord_data.find('current_state').text
+
+            # Get customer details
+            customer_xml = self._api_get('customers', customer_id)
+            if customer_xml is not None:
+                cust_data = customer_xml.find('customer')
+                customer_email = cust_data.find('email').text
+                first_name = cust_data.find('firstname').text or ''
+                last_name = cust_data.find('lastname').text or ''
+                customer_name = f"{first_name} {last_name}".strip()
+            else:
+                customer_email = 'unknown@example.com'
+                customer_name = 'Unknown Customer'
+
+            # Get order lines
+            lines_xml = ord_data.findall('.//order_row')
+            line_vals = []
+
+            for line in lines_xml:
+                ps_prod_id = line.find('product_id').text
+                prod_name = line.find('product_name').text or 'Unknown Product'
+                prod_ref = line.find('product_reference').text or ''
+                qty = float(line.find('product_quantity').text or 0.0)
+                unit_price = float(line.find('unit_price_tax_excl').text or 0.0)
+                total = float(line.find('total_price_tax_excl').text or 0.0)
+
+                line_vals.append((0, 0, {
+                    'prestashop_product_id': ps_prod_id,
+                    'product_name': prod_name,
+                    'product_reference': prod_ref,
+                    'quantity': qty,
+                    'unit_price': unit_price,
+                    'total_price': total,
+                }))
+
+            # Create or update preview
+            preview_vals = {
+                'name': order_ref,
+                'instance_id': self.id,
+                'prestashop_order_id': ps_order_id,
+                'prestashop_order_date': order_date,
+                'customer_name': customer_name,
+                'customer_email': customer_email,
+                'prestashop_customer_id': customer_id,
+                'total_amount': total_paid,
+                'payment_method': payment_method,
+                'order_state': order_state_id,
+                'raw_data': ET.tostring(ord_data, encoding='unicode'),
+                'line_ids': [(5, 0, 0)] + line_vals,  # Clear existing lines and add new
+                'state': 'pending',
+            }
+
+            if existing_preview:
+                existing_preview.write(preview_vals)
+                updated_count += 1
+            else:
+                self.env['prestashop.order.preview'].create(preview_vals)
+                new_count += 1
+
+        # Show result notification
+        message = _("Fetched %d new orders, updated %d orders") % (new_count, updated_count)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Fetch Complete'),
+                'message': message,
+                'type': 'success',
+                'sticky': False,
+                'next': {
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'prestashop.order.preview',
+                    'view_mode': 'list,form',
+                    'domain': [('instance_id', '=', self.id), ('state', '=', 'pending')],
                 }
-                order = self.env['sale.order'].create(so_vals)
-                
-                # Sync Order Lines
-                lines_xml = ord_data.findall('.//order_row')
-                for line in lines_xml:
-                    ps_prod_id = line.find('product_id').text
-                    product = self._find_or_create_product(ps_prod_id)
-                    qty = float(line.find('product_quantity').text or 0.0)
-                    price = float(line.find('unit_price_tax_excl').text or 0.0)
-                    
-                    self.env['sale.order.line'].create({
-                        'order_id': order.id,
-                        'product_id': product.id,
-                        'product_uom_qty': qty,
-                        'price_unit': price,
-                    })
-                
-                _logger.info("Successfully synced PrestaShop Order %s", ps_order_id)
+            }
+        }
+
+    def action_sync_now(self):
+        """Main entry point for synchronization - AUTO MODE (backwards compatible)"""
+        self.ensure_one()
+        _logger.info("Starting PrestaShop Sync for %s (AUTO MODE)", self.name)
+
+        # First fetch to preview
+        self.action_fetch_orders_preview()
+
+        # Then auto-import all pending
+        pending_previews = self.env['prestashop.order.preview'].search([
+            ('instance_id', '=', self.id),
+            ('state', '=', 'pending')
+        ])
+
+        for preview in pending_previews:
+            try:
+                preview._import_to_odoo()
             except Exception as e:
-                _logger.error("Error syncing PrestaShop Order %s: %s", ps_order_id, str(e))
-                self.env['prestashop.sync.log'].create({
-                    'instance_id': self.id,
-                    'name': f"Order {ps_order_id}",
-                    'status': 'error',
-                    'message': str(e),
-                })
-        
+                _logger.error("Auto-import failed for order %s: %s",
+                             preview.prestashop_order_id, str(e))
+                continue
+
         self.last_sync_date = fields.Datetime.now()
         return True
 

@@ -44,8 +44,8 @@
     </record>
 
     <record id="action_prestashop_sync_log" model="ir.actions.act_window">
-        <name>Sync Logs</name>
-        <res_model>prestashop.sync.log</res_model>
-        <view_mode>list,form</view_mode>
-</record>
+        <field name="name">Sync Logs</field>
+        <field name="res_model">prestashop.sync.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
 </odoo>

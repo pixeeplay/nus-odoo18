@@ -20,8 +20,15 @@
         <arch type="xml">
             <form>
                 <header>
-                    <button name="action_test_connection" string="Test Connection" type="object" class="btn-info"/>
-                    <button name="action_sync_now" string="Sync Orders (Manual)" type="object" class="btn-primary" invisible="not id"/>
+                    <button name="action_test_connection" string="Test Connection"
+                            type="object" class="btn-info"/>
+                    <button name="action_fetch_orders_preview" string="Fetch Orders to Preview"
+                            type="object" class="btn-primary"
+                            invisible="not id"/>
+                    <button name="action_sync_now" string="Auto-Sync Now (Import All)"
+                            type="object" class="btn-warning"
+                            invisible="not id"
+                            confirm="This will automatically import ALL pending orders without preview. Continue?"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -42,6 +49,17 @@
                         </group>
                     </group>
                     <notebook>
+                        <page name="preview" string="Order Preview">
+                            <field name="preview_order_ids" readonly="1">
+                                <list create="false" edit="false">
+                                    <field name="prestashop_order_date"/>
+                                    <field name="name"/>
+                                    <field name="customer_name"/>
+                                    <field name="total_amount"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
                         <page name="info" string="Sync Information">
                             <group>
                                 <field name="last_sync_date" readonly="1"/>
@@ -54,8 +72,8 @@
     </record>
 
     <record id="action_prestashop_instance" model="ir.actions.act_window">
-        <name>PrestaShop Instances</name>
-        <res_model>prestashop.instance</res_model>
-        <view_mode>list,form</view_mode>
-</record>
+        <field name="name">PrestaShop Instances</field>
+        <field name="res_model">prestashop.instance</field>
+        <field name="view_mode">list,form</field>
+    </record>
 </odoo>
