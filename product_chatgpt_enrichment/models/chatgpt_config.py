@@ -82,6 +82,18 @@ class ChatGPTConfig(models.Model):
     
     prompt_ids = fields.One2many('chatgpt.product.prompt', 'config_id', string='Prompts')
     active = fields.Boolean(default=True)
+
+    price_alignment_strategy = fields.Selection([
+        ('none', 'No Alignment'),
+        ('lowest', 'Match Lowest Competitor'),
+        ('average', 'Match Average Competitor')
+    ], string='Price Alignment Strategy', default='none', 
+       help="Strategy to automatically suggest or apply a new price based on competitors.")
+    
+    price_alignment_offset = fields.Float(
+        string='Price Offset', default=0.0,
+        help="Amount to add/subtract from the target competitor price (e.g., -0.01 to be 1 cent cheaper)."
+    )
     
     model_discovery_results = fields.Text(string='Discovered Models', readonly=True)
 

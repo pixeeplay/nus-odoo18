@@ -165,18 +165,20 @@
                                 <field name="active"/>
                             </group>
                         </group>
-                        <group string="External Services" invisible="not use_deep_enrichment">
+                        <group string="Market Analysis &amp; Price Alignment" invisible="not use_deep_enrichment and not use_web_search">
                             <group>
+                                <field name="price_alignment_strategy" widget="radio"/>
+                                <field name="price_alignment_offset" invisible="price_alignment_strategy == 'none'"/>
+                            </group>
+                            <group invisible="not use_deep_enrichment">
                                 <field name="serpapi_key" password="True" required="use_deep_enrichment"/>
                                 <field name="scrapingbee_key" password="True" required="use_deep_enrichment"/>
                             </group>
-                            <group>
-                                <div class="alert alert-info" role="alert">
-                                    <p><strong>Deep Enrichment</strong> uses <strong>SerpApi</strong> to find products and <strong>ScrapingBee</strong> to extract content from web pages.</p>
-                                    <p>Ensure your prompt explicitly asks for <strong>JSON</strong> output if you want automatic field mapping of scrapped measurements and weight.</p>
-                                </div>
-                            </group>
                         </group>
+                        <div class="alert alert-info mt-2" role="alert" invisible="not use_deep_enrichment">
+                            <p><strong>Deep Enrichment</strong> uses <strong>SerpApi</strong> to find products and <strong>ScrapingBee</strong> to extract content from web pages.</p>
+                            <p>Ensure your prompt explicitly asks for <strong>JSON</strong> output if you want automatic field mapping of scrapped measurements and weight.</p>
+                        </div>
                         
                         <div class="alert alert-light border shadow-sm p-4 mb-4" role="alert">
                             <h4 class="alert-heading text-primary"><i class="fa fa-graduation-cap mr-2"/> Detailed User Guide</h4>
