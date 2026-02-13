@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default AI Prompts -->
+        
+        <record id="prompt_marketing_description" model="chatgpt.product.prompt">
+            <field name="name">Marketing HTML Description</field>
+            <field name="sequence">10</field>
+            <field name="language">fr_FR</field>
+            <field name="prompt_template">Generate a professional, SEO-optimized product description for {product_name}. 
+Include a catchy title (h2), a compelling introduction, and a list of key benefits. 
+Return ONLY clean HTML.</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="prompt_technical_specs_json" model="chatgpt.product.prompt">
+            <field name="name">Technical Specifications (JSON)</field>
+            <field name="sequence">20</field>
+            <field name="language">fr_FR</field>
+            <field name="prompt_template">Extract all technical specifications for {product_name}. 
+Return the result ONLY as a JSON object with the following keys:
+- 'weight': numeric value in kg
+- 'description_sale': short text summary
+- 'image_urls': list of found image URLs</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="prompt_seo_meta" model="chatgpt.product.prompt">
+            <field name="name">SEO Meta Data (Titles &amp; Meta)</field>
+            <field name="sequence">30</field>
+            <field name="language">fr_FR</field>
+            <field name="prompt_template">Generate SEO meta-title and meta-description for {product_name}. 
+Maximize click-through rate from Google.
+Format: 
+Title: [title]
+Meta: [description]</field>
+            <field name="active" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

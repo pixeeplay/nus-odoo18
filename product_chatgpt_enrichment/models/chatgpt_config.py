@@ -27,7 +27,7 @@ class ChatGPTConfig(models.Model):
     
     api_key = fields.Char(
         string='API Key / Token',
-        help='Your API key or token for the selected provider.'
+        help="The 'password' required to access your AI provider. Without this, Odoo cannot connect to the intelligence source."
     )
     
     base_url = fields.Char(
@@ -57,7 +57,7 @@ class ChatGPTConfig(models.Model):
     use_web_search = fields.Boolean(
         string='Use Web Search',
         default=False,
-        help='If enabled, Perplexity or specific search-enabled models will be used.'
+        help="When enabled, the AI will perform its own quick web search (Perplexity style). Useful for generic products, but less precise than 'Deep Enrichment'."
     )
 
     use_deep_enrichment = fields.Boolean(
@@ -75,8 +75,10 @@ class ChatGPTConfig(models.Model):
         help='Odoo will analyze the AI response to find image/video URLs and automatically download/attach them to the product.'
     )
     
-    max_tokens = fields.Integer(string='Max Tokens', default=2000)
-    temperature = fields.Float(string='Temperature', default=0.7)
+    max_tokens = fields.Integer(string='Max Tokens', default=2000, 
+        help="Limit the length of the AI response. High values allow for longer descriptions but may increase API costs.")
+    temperature = fields.Float(string='Temperature', default=0.7,
+        help="Creativity level (0.0 to 1.0). 0.0 is very formal and consistent, 1.0 is creative and diverse.")
     
     prompt_ids = fields.One2many('chatgpt.product.prompt', 'config_id', string='Prompts')
     active = fields.Boolean(default=True)

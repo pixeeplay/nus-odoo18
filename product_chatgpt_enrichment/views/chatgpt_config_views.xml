@@ -179,19 +179,31 @@
                         </group>
                         
                         <div class="alert alert-light border shadow-sm p-4 mb-4" role="alert">
-                            <h4 class="alert-heading text-primary"><i class="fa fa-info-circle mr-2"/> How it works</h4>
+                            <h4 class="alert-heading text-primary"><i class="fa fa-graduation-cap mr-2"/> Detailed User Guide</h4>
                             <div class="row">
-                                <div class="col-md-4">
-                                    <h5>1. Choice of Intelligence</h5>
-                                    <p class="text-muted small">Choose between cloud (OpenAI, Gemini...) or local (Ollama) providers. Click <strong>Discover Models</strong> to list available configurations.</p>
+                                <div class="col-md-6">
+                                    <h5 class="text-info"><i class="fa fa-cogs mr-1"/> Logic &amp; Consequences</h5>
+                                    <ul class="small list-unstyled">
+                                        <li><strong>1. AI Provider &amp; Model:</strong> This is the 'Brain'.
+                                            <br/><i class="text-muted">Consequence: Smarter models (GPT-4) are more accurate but increase API costs.</i>
+                                        </li>
+                                        <li class="mt-2"><strong>2. Web Search vs Deep Enrichment:</strong>
+                                            <br/>- <i>Web Search:</i> AI looks for info itself (fast, generic).
+                                            <br/>- <i>Deep Enrichment:</i> Odoo searches Google + Scrapes sites (Slow, ultra-precise, technical).
+                                            <br/><i class="text-muted">Consequence: Requires SerpApi &amp; ScrapingBee credits.</i>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <div class="col-md-4 border-left">
-                                    <h5>2. Deep Enrichment</h5>
-                                    <p class="text-muted small">Enable this to let Odoo search the web for your product specs. It uses real website content as context for the AI.</p>
-                                </div>
-                                <div class="col-md-4 border-left">
-                                    <h5>3. Automation (JSON)</h5>
-                                    <p class="text-muted small">If you ask for a <strong>JSON</strong> format in your prompt, Odoo will try to map the data (weight, dimensions) directly to fields.</p>
+                                <div class="col-md-6 border-left">
+                                    <h5 class="text-info"><i class="fa fa-magic mr-1"/> Automation (JSON)</h5>
+                                    <p class="small">If you ask the AI for a <strong>JSON format</strong> in your prompt:</p>
+                                    <ul class="small">
+                                        <li>Odoo automatically scans the result for keys like <code>weight</code>, <code>volume</code>, <code>description_sale</code>.</li>
+                                        <li>If found, it <strong>immediately updates</strong> the product fields without you having to copy-paste.</li>
+                                    </ul>
+                                    <div class="bg-warning-light p-2 small border rounded">
+                                        <i class="fa fa-info-circle mr-1"/> <strong>Note:</strong> Settings like "Deep Enrichment" or "Discover Media" are <i>Global Options</i>. They don't appear as buttons on the product page because they are automatically used when you click "Enrich with AI" if enabled here.
+                                    </div>
                                 </div>
                             </div>
                         </div>
