@@ -91,9 +91,32 @@ class ChatGPTConfig(models.Model):
        help="Strategy to automatically suggest or apply a new price based on competitors.")
     
     price_alignment_offset = fields.Float(
-        string='Price Offset', default=0.0,
-        help="Amount to add/subtract from the target competitor price (e.g., -0.01 to be 1 cent cheaper)."
-    )
+        string='Price Offset (Fixed)', default=0.0,
+        help="Amount to add/subtract from the target competitor price (e.g., -0.01 to be 1 cent cheaper).")
+    
+    price_alignment_offset_type = fields.Selection([
+        ('fixed', 'Fixed Amount'),
+        ('percentage', 'Percentage')
+    ], string='Offset Type', default='fixed')
+
+    price_alignment_offset_pct = fields.Float(
+        string='Price Offset (%)', default=0.0,
+        help="Percentage to add/subtract from the target competitor price (e.g., -5.0 to be 5% cheaper).")
+
+    target_competitors = fields.Text(
+        string='Target Competitors', 
+        placeholder="amazon.fr\nfnac.com\ndarty.com",
+        help="List of domains to prioritize during search (one per line).")
+
+    prompt_technical_research = fields.Text(
+        string='Technical Research Prompt',
+        default="Research ONLY technical specifications, specs, and features for {product_name}. DO NOT include prices. Return a clean HTML summary.",
+        help="Prompt used for the 'Web Search' phase.")
+    
+    prompt_deep_enrichment = fields.Text(
+        string='Deep Enrichment Prompt',
+        default="System: You are an expert analyst. Answer in {language}. Use CONTEXT DATA to find French prices, youtube videos, and technical specs. Return ONLY JSON.",
+        help="Internal system base prompt for deep enrichment.")
     
     model_discovery_results = fields.Text(string='Discovered Models', readonly=True)
 

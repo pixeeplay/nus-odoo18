@@ -124,8 +124,9 @@ class ProductTemplate(models.Model):
         scraped_data = ""
         if config.use_web_search:
             vals['chatgpt_web_search_log'] = f"<p><i class='fa fa-microchip'/> Researching technical characteristics...</p>"
-            research_prompt = f"Research ONLY technical specifications, specs, and features for {self.name}. DO NOT include prices. Return a clean HTML summary."
-            research_res = config.call_ai_api(research_prompt)
+            # Use custom technical prompt if available
+            tech_prompt = (config.prompt_technical_research or "Research ONLY technical specifications for {product_name}.").format(product_name=self.name)
+            research_res = config.call_ai_api(tech_prompt)
             research_res = re.sub(r'```(html|json|xml)?', '', research_res).replace('```', '').strip()
             vals['chatgpt_web_search_log'] += f"<div class='research-results'>{research_res}</div>"
             scraped_data += f"\n--- Technical Web Research ---\n{research_res}\n"
@@ -133,8 +134,16 @@ class ProductTemplate(models.Model):
         # 2. Scraping Layer (Deep Enrichment) - INCLUDES PRICES
         if config.use_deep_enrichment:
             deep_log = f"<p><i class='fa fa-deep-enrichment'/> Running Deep Scraping phase...</p><ul>"
-            raw_serp = "<div class='serp-results'><h5><i class='fa fa-google mr-2 text-primary'/> Market Data Discovery</h5><div class='list-group list-group-flush border rounded'>"
-            search_results = config._search_with_serpapi(self.name)
+            raw_serp = "<div class='serp-results'><h5><i class='fa fa-google mr-2 text-primary'/> Market Data Discovery</h5>"
+            if config.target_competitors:
+                raw_serp += f"<div class='alert alert-info py-1 mb-2'>Targeting: {config.target_competitors.replace('\\n', ', ')}</div>"
+            raw_serp += "<div class='list-group list-group-flush border rounded'>"
+            
+            search_query = self.name
+            if config.target_competitors:
+                search_query += " (" + " OR ".join(config.target_competitors.splitlines()) + ")"
+                
+            search_results = config._search_with_serpapi(search_query)
             for res in search_results:
                 url = res.get('link')
                 title = res.get('title', 'Unknown Title')
@@ -220,13 +229,32 @@ class ProductTemplate(models.Model):
 
                     for key, value in json_data.items():
                         if key in self._fields and not vals.get(key) and key not in ['chatgpt_competitor_price_ids', 'chatgpt_video_ids']:
-                            if key == 'description_sale' and isinstance(value, str):
-                                # Clean any JSON-like headers labels
-                                clean_val = re.sub(r'^\{?"description_sale":\s*"?', '', value)
-                                clean_val = re.sub(r'"?\}?$', '', clean_val).strip()
-                                vals[key] = clean_val
-                            else:
-                                vals[key] = value
+                            field = self._fields[key]
+                            
+                            # ROBUST TYPE CONVERSION (Fixes RPC_ERROR ValueError)
+                            if value in [None, 'N/A', 'n/a', '', 'None']:
+                                continue
+                                
+                            try:
+                                if field.type in ['float', 'monetary']:
+                                    # Extract number even if it has currency symbols
+                                    if isinstance(value, str):
+                                        nums = re.findall(r'(\d+[.,]\d+|\d+)', value)
+                                        value = float(nums[0].replace(',', '.')) if nums else 0.0
+                                    vals[key] = float(value)
+                                elif field.type == 'integer':
+                                    vals[key] = int(float(value)) if value else 0
+                                elif field.type == 'boolean':
+                                    vals[key] = bool(value)
+                                elif key == 'description_sale' and isinstance(value, str):
+                                    clean_val = re.sub(r'^\{?"description_sale":\s*"?', '', value)
+                                    clean_val = re.sub(r'"?\}?$', '', clean_val).strip()
+                                    vals[key] = clean_val
+                                else:
+                                    vals[key] = value
+                            except (ValueError, TypeError, IndexError):
+                                _logger.warning("Failed to convert value %s for field %s", value, key)
+                                continue
                     
                     # If we mapped a description, use it as the clean content for the dashboard
                     if 'description_sale' in json_data:
@@ -284,7 +312,10 @@ class ProductTemplate(models.Model):
                         target = sum(prices) / len(prices)
                     
                     if target > 0:
-                        record.chatgpt_suggested_price = target + config.price_alignment_offset
+                        offset = config.price_alignment_offset
+                        if config.price_alignment_offset_type == 'percentage':
+                            offset = (target * config.price_alignment_offset_pct) / 100.0
+                        record.chatgpt_suggested_price = target + offset
         
         _logger.info('Product %s enriched successfully', self.name)
 
