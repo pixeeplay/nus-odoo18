@@ -5,7 +5,7 @@
         <record id="view_product_template_form_chatgpt" model="ir.ui.view">
             <field name="name">product.template.form.chatgpt</field>
             <field name="model">product.template</field>
-            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
             <field name="arch" type="xml">
                 
                 <!-- Add buttons in header -->
