@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+<data noupdate="1">
     <record id="ir_cron_prestashop_sync" model="ir.cron">
         <name>PrestaShop: Hourly Order Sync</name>
         <model_id ref="model_prestashop_instance"/>

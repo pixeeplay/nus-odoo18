@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-    <record id="view_order_form_inherit_prestashop" model="ir.ui.view">
+<record id="view_order_form_inherit_prestashop" model="ir.ui.view">
         <name>sale.order.form.inherit.prestashop</name>
         <model>sale.order</model>
         <inherit_id ref="sale.view_order_form"/>
@@ -12,6 +10,5 @@
                 <field name="prestashop_order_id" invisible="not prestashop_order_id"/>
             </xpath>
         </arch>
-    </record>
-    </data>
+</record>
 </odoo>

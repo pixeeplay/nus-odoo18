@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Use noupdate="0" to ensure these prompts are loaded/updated on the next module upgrade -->
-    <data noupdate="0">
+<data noupdate="0">
         <!-- 1. SEO eCommerce Description -->
         <record id="prompt_ecommerce_description_long" model="chatgpt.product.prompt">
             <field name="name">SEO eCommerce Description (Long)</field>

@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-    <record id="view_prestashop_instance_tree" model="ir.ui.view">
+<record id="view_prestashop_instance_tree" model="ir.ui.view">
         <name>prestashop.instance.tree</name>
         <model>prestashop.instance</model>
         <arch type="xml">
@@ -58,6 +56,5 @@
         <name>PrestaShop Instances</name>
         <res_model>prestashop.instance</res_model>
         <view_mode>list,form</view_mode>
-    </record>
-    </data>
+</record>
 </odoo>
