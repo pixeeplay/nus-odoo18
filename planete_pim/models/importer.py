@@ -11,9 +11,25 @@ import unicodedata
 import time
 import uuid
 import threading
+import signal
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+# =========================================================================
+# SHUTDOWN DETECTION: Global flag to detect SIGTERM/SIGINT gracefully
+# =========================================================================
+_shutdown_requested = False
+
+def _signal_handler(signum, frame):
+    """Handle SIGTERM/SIGINT to set shutdown flag before cursor closes."""
+    global _shutdown_requested
+    _shutdown_requested = True
+    _logger.warning("[SHUTDOWN] Signal %s received, setting shutdown flag", signum)
+
+# Register signal handlers
+signal.signal(signal.SIGTERM, _signal_handler)
+signal.signal(signal.SIGINT, _signal_handler)
 
 _logger = logging.getLogger(__name__)
 
@@ -83,10 +99,10 @@ class DatabaseKeepalive:
     def _do_ping(self):
         """Effectue un ping léger de la base de données."""
         try:
-            # Ping ultra-léger: SELECT 1 (pas d'ORM, pas de cache)
-            with self.env.cr.savepoint():
-                self.env.cr.execute("SELECT 1")
-                _result = self.env.cr.fetchone()
+            # ✅ FIX: Pas de savepoint pour éviter les conflits de transaction
+            # Un simple SELECT 1 ne modifie rien et garde la connexion active
+            self.env.cr.execute("SELECT 1")
+            _result = self.env.cr.fetchone()
             
             self._ping_count += 1
             self._last_ping = time.time()
@@ -98,6 +114,37 @@ class DatabaseKeepalive:
         except Exception as e:
             _logger.error("[KEEPALIVE] Ping failed (connection may be dead): %s", e)
             raise
+
+
+# NOTE: DatabaseKeepalive thread is intentionally kept for backward compatibility
+# but should NOT be used in imports. Use _safe_inline_db_ping() instead.
+
+
+def _safe_inline_db_ping(env, last_ping_ts, interval_sec=30):
+    """Ping DB *in the current thread* to keep the worker/cursor alive.
+
+    Why:
+        The previous DatabaseKeepalive used a background thread and called
+        env.cr.execute() concurrently with the import loop. Odoo cursors are
+        not thread-safe => can lead to "cursor already closed" / transaction
+        issues.
+
+    Returns:
+        float: updated last_ping_ts
+    """
+    try:
+        now = time.time()
+        if last_ping_ts and (now - last_ping_ts) < float(interval_sec or 0):
+            return last_ping_ts
+        # Execute a lightweight query, isolated.
+        with env.cr.savepoint():
+            env.cr.execute("SELECT 1")
+            env.cr.fetchone()
+        return now
+    except Exception as e:
+        # Never block an import on keepalive.
+        _logger.debug("[KEEPALIVE] Inline ping failed (ignored): %s", e)
+        return last_ping_ts
 
 
 class PlanetePimImporter(models.AbstractModel):
@@ -1564,9 +1611,11 @@ class PlanetePimImporter(models.AbstractModel):
         # Create Log (reuse ftp.tariff.import.log)
         Log = self.env["ftp.tariff.import.log"]
         safe_filename = self._strip_nul(filename or "")
+        # NOTE: provider_id is important for planning UI (provider_planning._compute_last_log)
         log = Log.create({
             "name": _("PIM Product Import"),
             "file_name": safe_filename,
+            "provider_id": provider_id_opt,
         })
         log.mark_started()
 
@@ -1821,6 +1870,16 @@ class PlanetePimImporter(models.AbstractModel):
                     # Get job_id for progress tracking
                     job_id = options.get("job_id")
                     total_rows_count = len(rows_all)
+
+                    # -----------------------------------------------------------------
+                    # Brand workflow (direct import + staging):
+                    # - auto-create missing product.brand so imports never block
+                    # - keep/append planete.pim.brand.pending (state=new_brand)
+                    # - store examples at import time via pending_brand_agg
+                    # -----------------------------------------------------------------
+                    brand_cache = {}
+                    new_brands_created = []
+                    pending_brand_agg = {}
                     
                     # Initial progress update
                     if job_id:
@@ -2022,18 +2081,9 @@ class PlanetePimImporter(models.AbstractModel):
                                         self._update_digital_flags(tmpl, is_digital_source=True)
                                         _logger.debug("[IMPORT] Product %s created by Digital provider, flags set", tmpl.id)
                                 # Map brand/category from CSV and update product template (direct write path)
-                                # ✅ FIX: pour Digital, autoriser la création automatique de marques
-                                # ✅ FIX: normaliser les noms de colonnes (accents) + nettoyer raw_brand (unicode invisibles)
+                                # ✅ Marque: auto-create + pending(new_brand) + exemples
                                 brand_rec = None
                                 brand_id_val = False
-                                try:
-                                    # Si l'option est explicitement passée, elle prime
-                                    create_brands_opt = bool(options.get("create_brands"))
-                                except Exception:
-                                    create_brands_opt = False
-                                # Politique: Digital = maître -> créer si absent (sinon la marque reste vide)
-                                if not create_brands_opt and is_digital_provider:
-                                    create_brands_opt = True
 
                                 brand_candidates_ext = [
                                     "libellé marque", "libelle marque", "brand", "marque", "brand_id",
@@ -2051,11 +2101,13 @@ class PlanetePimImporter(models.AbstractModel):
                                 raw_brand = self._clean_brand_name(raw_brand)
 
                                 if raw_brand:
-                                    # Utiliser le helper Many2one (gère: nettoyage, alias, création conditionnelle)
-                                    brand_id_val = self._find_many2one_record(
-                                        "product.brand",
+                                    brand_id_val = self._find_or_create_brand(
                                         raw_brand,
-                                        options={"create_brands": create_brands_opt},
+                                        brand_cache,
+                                        new_brands_created,
+                                        provider_id=provider_id_opt,
+                                        pending_brand_agg=pending_brand_agg,
+                                        sample={"ean": barcode_val, "ref": ref_mod, "name": name_val},
                                     )
                                     if brand_id_val:
                                         brand_rec = self.env["product.brand"].sudo().browse(brand_id_val)
@@ -2123,6 +2175,26 @@ class PlanetePimImporter(models.AbstractModel):
                                 # Récupérer le mapping depuis les options (construit par le wizard)
                                 dynamic_mapping = options.get("mapping")
                                 mapping_lines = options.get("mapping_lines")
+                                
+                                # ✅ FIX BUG EXERTIS/INGRAM: Si le mapping est vide, RECHARGER depuis le provider
+                                # Cela évite que tous les produits aillent en quarantaine si le wizard oublie de passer le mapping
+                                if not dynamic_mapping and provider_id_opt:
+                                    _logger.warning("[MAPPING] ⚠️ Mapping vide dans options, rechargement depuis provider...")
+                                    try:
+                                        provider_rec = self.env["ftp.provider"].sudo().browse(provider_id_opt)
+                                        mapping_result = self._build_mapping_from_template(provider_rec)
+                                        if mapping_result.get("has_template"):
+                                            dynamic_mapping = mapping_result.get("mapping", {})
+                                            mapping_lines = mapping_result.get("mapping_lines", [])
+                                            # Mettre à jour les options pour cohérence
+                                            options["mapping"] = dynamic_mapping
+                                            options["mapping_lines"] = mapping_lines
+                                            _logger.info("[MAPPING] ✅ Mapping rechargé depuis template: %d champs: %s", 
+                                                        len(dynamic_mapping), list(dynamic_mapping.keys())[:10])
+                                        else:
+                                            _logger.error("[MAPPING] ❌ Provider %s n'a pas de template configuré!", provider_id_opt)
+                                    except Exception as reload_err:
+                                        _logger.error("[MAPPING] Erreur rechargement mapping: %s", reload_err)
                                 
                                 _logger.info("[MAPPING] Template mapping check: dynamic_mapping=%s, mapping_lines=%s, tmpl_rec=%s", 
                                             bool(dynamic_mapping), bool(mapping_lines), bool(tmpl_rec))
@@ -2258,18 +2330,6 @@ class PlanetePimImporter(models.AbstractModel):
                             safe_data_json = self._strip_nul_in({"headers": headers, "row": row, "reference_modified": ref_mod})
                             # Brand mapping (staging only)
                             brand_id_val = False
-                            try:
-                                create_brands_opt = bool(options.get("create_brands"))
-                            except Exception:
-                                create_brands_opt = False
-                            # Digital: autoriser création des marques pour éviter brand vide en staging aussi
-                            try:
-                                provider_rec = self.env["ftp.provider"].sudo().browse(provider_id_opt) if provider_id_opt else None
-                                if provider_rec and self._is_digital_provider(provider_rec):
-                                    if not create_brands_opt:
-                                        create_brands_opt = True
-                            except Exception:
-                                pass
                             brand_candidates_ext = ["libellé marque", "libelle marque", "brand", "marque", "brand_id", "fabricant", "manufacturer", "brand name", "brand_name", "code marque"]
                             raw_brand = ""
                             for nm in brand_candidates_ext:
@@ -2281,10 +2341,13 @@ class PlanetePimImporter(models.AbstractModel):
                             raw_brand = self._strip_nul(raw_brand)
                             raw_brand = self._clean_brand_name(raw_brand)
                             if raw_brand:
-                                brand_id_val = self._find_many2one_record(
-                                    "product.brand",
+                                brand_id_val = self._find_or_create_brand(
                                     raw_brand,
-                                    options={"create_brands": create_brands_opt},
+                                    brand_cache,
+                                    new_brands_created,
+                                    provider_id=provider_id_opt,
+                                    pending_brand_agg=pending_brand_agg,
+                                    sample={"ean": barcode_val, "ref": ref_mod, "name": safe_name},
                                 )
                             vals = {
                                 "name": safe_name,
@@ -2317,6 +2380,13 @@ class PlanetePimImporter(models.AbstractModel):
                             else:
                                 Staging.create(vals)
                                 created_count += 1
+
+                    # Flush aggregated pending brands (examples stored at import time)
+                    try:
+                        self._flush_pending_brand_agg(pending_brand_agg)
+                        pending_brand_agg = {}
+                    except Exception:
+                        pass
             except Exception as e:
                 _logger.exception("PIM import validation failed: %s", e)
                 raise UserError(_("Lecture du fichier échouée: %s") % str(e))
@@ -2799,16 +2869,27 @@ class PlanetePimImporter(models.AbstractModel):
         for provider in providers:
             try:
                 # ============================================================
-                # RESET AUTOMATIQUE: Si le guard est bloqué depuis plus de 2h
+                # RESET AUTOMATIQUE: Si le guard est bloqué depuis trop longtemps
+                # Timeout configurable via ir.config_parameter
                 # ============================================================
                 if provider.pim_full_cron_running:
                     if provider.pim_last_full_date:
                         last_run = fields.Datetime.from_string(provider.pim_last_full_date)
                         stuck_duration = now - last_run
-                        if stuck_duration > timedelta(minutes=120):
+                        # Récupérer le timeout depuis les paramètres système (défaut: 5 minutes)
+                        try:
+                            guard_timeout_minutes = int(
+                                self.env["ir.config_parameter"].sudo().get_param(
+                                    "planete_pim.job_guard_timeout_minutes", "5"
+                                )
+                            )
+                        except Exception:
+                            guard_timeout_minutes = 5
+                        
+                        if stuck_duration > timedelta(minutes=guard_timeout_minutes):
                             _logger.warning(
-                                "[FULL] Provider %s: Guard stuck for %s, auto-resetting after 2h",
-                                provider.id, stuck_duration
+                                "[FULL] Provider %s: Guard stuck for %s, auto-resetting after %d min",
+                                provider.id, stuck_duration, guard_timeout_minutes
                             )
                             provider.sudo().write({
                                 "pim_full_cron_running": False,
@@ -2895,6 +2976,19 @@ class PlanetePimImporter(models.AbstractModel):
             provider = self.env["ftp.provider"].browse(provider)
         if provider:
             provider = provider.sudo().ensure_one()
+
+        # Keep ftp.provider status fields in sync with job-based PIM imports
+        # (planning badge + "Dernière exécution" in planning views)
+        try:
+            now = fields.Datetime.now()
+            provider.sudo().write({
+                "last_connection_status": "running",
+                "last_error": False,
+                "last_run_at": now,
+            })
+            self.env.cr.commit()
+        except Exception:
+            pass
         
         options = options or {}
         
@@ -2992,10 +3086,33 @@ class PlanetePimImporter(models.AbstractModel):
                 self.env.cr.commit()
             
             _logger.info("[FULL] Completed from file: %s", result)
+
+            # Mark provider as ok for job-based run
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "ok",
+                    "last_error": False,
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             return result
             
         except Exception as e:
             _logger.exception("[FULL] Failed from file: %s", e)
+            # Mark provider failure for job-based run
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "failed",
+                    "last_error": str(e)[:500],
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             if provider:
                 provider.write({
                     "pim_full_cron_running": False,
@@ -3031,6 +3148,18 @@ class PlanetePimImporter(models.AbstractModel):
         if isinstance(provider, int):
             provider = self.env["ftp.provider"].browse(provider)
         provider = provider.sudo().ensure_one()
+
+        # Keep ftp.provider status fields in sync with job-based PIM imports
+        try:
+            now = fields.Datetime.now()
+            provider.sudo().write({
+                "last_connection_status": "running",
+                "last_error": False,
+                "last_run_at": now,
+            })
+            self.env.cr.commit()
+        except Exception:
+            pass
         
         # Récupérer le job si fourni
         job = None
@@ -3044,6 +3173,7 @@ class PlanetePimImporter(models.AbstractModel):
         # =====================================================================
         # NOUVEAU: Détection et split automatique des gros fichiers
         # =====================================================================
+        tmp_path = None
         try:
             tmp_path, file_info = self._download_provider_file(provider)
             if not tmp_path:
@@ -3058,8 +3188,8 @@ class PlanetePimImporter(models.AbstractModel):
             _logger.info("[FULL] File size: %d lines", file_line_count)
             
             # DÉCISION: Split ou non?
-            LARGE_FILE_THRESHOLD = 30000   # Split si > 30k lignes (réduit pour éviter timeouts)
-            MAX_LINES_PER_JOB = 25000       # Max 25k lignes par job (réduit pour marge de sécurité)
+            LARGE_FILE_THRESHOLD = 12000   # Split si > 12k lignes (réduit pour éviter OOM)
+            MAX_LINES_PER_JOB = 8000        # Max 8k lignes par job (réduit pour éviter OOM sur Odoo.sh)
             
             if file_line_count > LARGE_FILE_THRESHOLD:
                 # Fichier gros -> Split en jobs multiples
@@ -3070,10 +3200,22 @@ class PlanetePimImporter(models.AbstractModel):
                     file_line_count, LARGE_FILE_THRESHOLD, num_jobs_needed, MAX_LINES_PER_JOB
                 )
                 
-                return self._process_full_import_split(
+                result = self._process_full_import_split(
                     provider, tmp_path, file_info, job_id,
                     num_jobs_needed=num_jobs_needed, max_lines_per_job=MAX_LINES_PER_JOB
                 )
+                # Success status for provider
+                try:
+                    now = fields.Datetime.now()
+                    provider.sudo().write({
+                        "last_connection_status": "ok",
+                        "last_error": False,
+                        "last_run_at": now,
+                    })
+                    self.env.cr.commit()
+                except Exception:
+                    pass
+                return result
             else:
                 # Fichier petit -> Import normal en un seul job
                 _logger.info("[FULL] Small file: %d lines < %d threshold. Processing as single job", 
@@ -3159,10 +3301,33 @@ class PlanetePimImporter(models.AbstractModel):
                             _logger.warning("[FULL] Could not sync job stats: %s", job_sync_err)
                     
                     _logger.info("[FULL] Completed for provider %s: %s", provider.id, result)
+
+                    # Success status for provider
+                    try:
+                        now = fields.Datetime.now()
+                        provider.sudo().write({
+                            "last_connection_status": "ok",
+                            "last_error": False,
+                            "last_run_at": now,
+                        })
+                        self.env.cr.commit()
+                    except Exception:
+                        pass
                     return result
                     
                 except Exception as e:
                     _logger.exception("[FULL] Failed for provider %s: %s", provider.id, e)
+                    # Failure status for provider
+                    try:
+                        now = fields.Datetime.now()
+                        provider.sudo().write({
+                            "last_connection_status": "failed",
+                            "last_error": str(e)[:500],
+                            "last_run_at": now,
+                        })
+                        self.env.cr.commit()
+                    except Exception:
+                        pass
                     try:
                         if not getattr(self.env.cr, 'closed', False):
                             provider.write({
@@ -3182,15 +3347,34 @@ class PlanetePimImporter(models.AbstractModel):
         
         except Exception as e:
             _logger.exception("[FULL] Split detection failed: %s", e)
+            # Failure status for provider
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "failed",
+                    "last_error": str(e)[:500],
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             # Fallback: continuer avec la logique existante
             raise
+
+        finally:
+            # Ensure we cleanup downloaded file in ALL cases (split path returned early previously)
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
     @api.model
     def _process_full_import_split(self, provider, tmp_path, file_info, parent_job_id=None, num_jobs_needed=2, max_lines_per_job=35000):
         """[FULL-SPLIT] Traite un gros fichier en le divisant en plusieurs jobs.
         
         ALGORITHME:
-        1. Créer N jobs enfants
-        2. Diviser le fichier en N portions
+        1. Chercher les splits existants (évite duplication après shutdown)
+        2. Si trouvés → réutiliser, sinon → créer
         3. Exécuter chaque job en séquence
         4. Agréger les stats finales
         5. Supprimer les jobs enfants après fusion
@@ -3217,18 +3401,102 @@ class PlanetePimImporter(models.AbstractModel):
         # Compter les lignes totales
         total_lines = self._count_csv_lines(tmp_path, has_header=has_header, encoding=reader_params.get("encoding"))
         
-        # Créer les jobs enfants
+        # =====================================================================
+        # ✅ FIX: Chercher les splits existants AVANT de créer de nouveaux
+        # Évite la duplication après shutdown ou erreurs
+        # 
+        # STRATÉGIE DE RECHERCHE:
+        # 1. Chercher tous les jobs du même provider en mode "full"
+        # 2. Filtrer ceux qui correspondent au pattern "[FULL-SPLIT X/Y]"
+        # 3. Vérifier qu'on a EXACTEMENT le bon nombre (num_jobs_needed)
+        # 4. Si oui → réutiliser, sinon → créer de nouveaux
+        # =====================================================================
+        from datetime import timedelta
+        cutoff_date = fields.Datetime.now() - timedelta(hours=24)
+        
+        # ✅ CORRECTION: Recherche plus robuste avec pattern correct
+        # Le nom des splits est: "[FULL-SPLIT 1/3] ProviderName"
+        # On cherche tous les jobs qui contiennent "[FULL-SPLIT" pour ce provider
+        existing_splits = Job.search([
+            ("provider_id", "=", provider.id),
+            ("import_mode", "=", "full"),
+            ("name", "ilike", "[FULL-SPLIT%"),  # Pattern simplifié pour matcher tous les splits
+            ("state", "in", ["pending", "running", "failed"]),
+            ("create_date", ">=", cutoff_date)
+        ], order="name ASC")
+        
+        _logger.info(
+            "[FULL-SPLIT] Search for existing splits: provider=%d, found=%d, need=%d",
+            provider.id, len(existing_splits), num_jobs_needed
+        )
+        
+        # ✅ VALIDATION: Vérifier que les splits trouvés correspondent bien au bon découpage
+        # Extraire le "X/Y" du nom pour vérifier la cohérence
+        valid_splits = []
+        if existing_splits:
+            for split in existing_splits:
+                # Pattern: "[FULL-SPLIT 1/3] ProviderName"
+                # Extraire le "Y" (nombre total) pour vérifier la cohérence
+                match = re.search(r'\[FULL-SPLIT \d+/(\d+)\]', split.name)
+                if match:
+                    split_total = int(match.group(1))
+                    if split_total == num_jobs_needed:
+                        valid_splits.append(split)
+                        _logger.debug("[FULL-SPLIT] Valid split found: %s (id=%d)", split.name, split.id)
+                    else:
+                        _logger.debug("[FULL-SPLIT] Invalid split (wrong total %d != %d): %s", 
+                                     split_total, num_jobs_needed, split.name)
+        
+        # Si on a exactement le bon nombre de splits valides, les réutiliser
         child_jobs = []
-        for i in range(num_jobs_needed):
-            child_job = Job.create({
-                "name": _("[FULL-SPLIT %d/%d] %s") % (i+1, num_jobs_needed, provider.name),
-                "provider_id": provider.id,
-                "import_mode": "full",
-                "state": "pending",
-                "progress_status": _("En attente..."),
-            })
-            child_jobs.append((i, child_job.id))
-            _logger.info("[FULL-SPLIT] Created child job %d/%d: id=%d", i+1, num_jobs_needed, child_job.id)
+        if len(valid_splits) == num_jobs_needed:
+            _logger.warning(
+                "[FULL-SPLIT] ✅ REUSING %d existing split jobs (avoiding duplicates after shutdown/error)",
+                len(valid_splits)
+            )
+            for i, split in enumerate(valid_splits):
+                # Réinitialiser l'état à "pending" si nécessaire
+                old_state = split.state
+                if split.state in ["running", "failed"]:
+                    split.write({
+                        "state": "pending",
+                        "progress_status": _("En attente (retry après %s)...") % old_state,
+                        "progress": 0.0,
+                        "progress_current": 0,
+                    })
+                    _logger.info("[FULL-SPLIT] Reset split job %d/%d: id=%d (was: %s → pending)", 
+                                i+1, num_jobs_needed, split.id, old_state)
+                else:
+                    _logger.info("[FULL-SPLIT] Reusing split job %d/%d: id=%d (state: %s)", 
+                                i+1, num_jobs_needed, split.id, split.state)
+                child_jobs.append((i, split.id))
+        else:
+            # Pas de splits valides OU nombre incorrect → créer de nouveaux
+            if existing_splits:
+                _logger.warning(
+                    "[FULL-SPLIT] Found %d existing splits (%d valid) but need %d, creating new ones",
+                    len(existing_splits), len(valid_splits), num_jobs_needed
+                )
+                # ✅ CLEANUP: Supprimer les splits invalides/orphelins pour éviter la confusion
+                for split in existing_splits:
+                    try:
+                        _logger.info("[FULL-SPLIT] Deleting orphan split job: %s (id=%d)", split.name, split.id)
+                        split.unlink()
+                    except Exception as del_err:
+                        _logger.warning("[FULL-SPLIT] Could not delete orphan split %d: %s", split.id, del_err)
+            else:
+                _logger.info("[FULL-SPLIT] No existing splits found, creating %d new jobs", num_jobs_needed)
+            
+            for i in range(num_jobs_needed):
+                child_job = Job.create({
+                    "name": _("[FULL-SPLIT %d/%d] %s") % (i+1, num_jobs_needed, provider.name),
+                    "provider_id": provider.id,
+                    "import_mode": "full",
+                    "state": "pending",
+                    "progress_status": _("En attente..."),
+                })
+                child_jobs.append((i, child_job.id))
+                _logger.info("[FULL-SPLIT] Created child job %d/%d: id=%d", i+1, num_jobs_needed, child_job.id)
         
         self.env.cr.commit()
         
@@ -3508,14 +3776,22 @@ class PlanetePimImporter(models.AbstractModel):
         
         # Tracker pour les nouvelles marques créées (pour notification)
         new_brands_created = []
+
+        # Agrégation des upserts brand.pending (évite 1 write par ligne)
+        pending_brand_agg = {}
         
         # =====================================================================
         # PASSE 1: Détection des doublons EAN et références dans le fichier
         #
-        # IMPORTANT PERF:
+        # IMPORTANT PERF / MÉMOIRE:
         # - Sur très gros fichiers (Jacob 1M), une Pass 1 stricte peut consommer
         #   tout le budget temps. On la désactive au-delà d'un seuil.
+        # - ✅ FIX OOM: Si c'est un job SPLIT (start_line/end_line fournis),
+        #   TOUJOURS désactiver la Passe 1 pour économiser 200-300 MB de RAM.
+        #   Chaque job split scannait tout le fichier → accumulation RAM → OOM.
         # =====================================================================
+        is_split_job = (start_line is not None or end_line is not None)
+        
         try:
             pass1_strict_max_lines = int(self.env["ir.config_parameter"].sudo().get_param(
                 "planete_pim.full_pass1_strict_max_lines"
@@ -3523,10 +3799,19 @@ class PlanetePimImporter(models.AbstractModel):
         except Exception:
             pass1_strict_max_lines = 150000
 
-        do_pass1_strict = total_rows <= pass1_strict_max_lines
+        # ✅ DÉSACTIVER la Passe 1 pour les jobs split (économie RAM massive)
+        if is_split_job:
+            do_pass1_strict = False
+            _logger.warning(
+                "[FULL] SPLIT JOB detected (lines %d-%d) - SKIPPING Pass 1 to save 200-300 MB RAM",
+                start_line or 0, end_line or total_rows
+            )
+        else:
+            do_pass1_strict = total_rows <= pass1_strict_max_lines
         duplicate_eans = {}
         duplicate_refs = {}
-        all_eans_in_file = set()  # sera alimenté en Pass 1 (strict) ou en Pass 2 (fast)
+        all_eans_in_file = set()  # alimenté en Pass 1 (strict) ou Pass 2 (fast)
+        all_refs_in_file = set()  # alimenté en Pass 1 (strict) pour bulk existence checks
 
         _logger.info(
             "[FULL] Pass 1 strict=%s (total_rows=%d, threshold=%d)",
@@ -3616,6 +3901,7 @@ class PlanetePimImporter(models.AbstractModel):
                 # Compter les références - SIMPLE et RAPIDE (O(n))
                 if norm_ref:
                     ref_count.setdefault(norm_ref, []).append((i, norm_ean))
+                    all_refs_in_file.add(norm_ref)
 
                 # Mise à jour progression toutes les 2 secondes OU 500 lignes
                 current_time = time.time()
@@ -3776,13 +4062,78 @@ class PlanetePimImporter(models.AbstractModel):
                 _logger.info("[FULL] Resuming from checkpoint at row %d", start_row)
         
         i = 0
-        
+
         # =====================================================================
-        # KEEPALIVE: Démarrer le ping DB en arrière-plan pour éviter timeouts
+        # KEEPALIVE (SAFE): inline ping in the SAME thread (no background thread)
         # =====================================================================
-        keepalive = DatabaseKeepalive(self.env, ping_interval=30)
-        keepalive.start()
-        _logger.info("[FULL] DatabaseKeepalive started (ping every 30 sec)")
+        last_ping_ts = 0.0
+
+        # =====================================================================
+        # PERF: Bulk existence checks for EAN / REF (when Pass 1 strict ran)
+        # - Avoid per-line SELECT 1 calls that make FULL imports take hours.
+        # - Only enabled when we already have sets from Pass 1 strict.
+        # =====================================================================
+        existing_eans_in_db = None
+        existing_refs_in_db = None
+        if do_pass1_strict and all_eans_in_file:
+            try:
+                existing_eans_in_db = set()
+                chunk_size = 5000
+                all_eans_list = list(all_eans_in_file)
+                for off in range(0, len(all_eans_list), chunk_size):
+                    chunk = all_eans_list[off:off + chunk_size]
+                    with self.env.cr.savepoint():
+                        self.env.cr.execute(
+                            "SELECT barcode FROM product_product WHERE barcode = ANY(%s)",
+                            [chunk],
+                        )
+                        existing_eans_in_db.update(r[0] for r in self.env.cr.fetchall() if r and r[0])
+                _logger.info("[FULL] Bulk existence check: %d/%d EAN already in DB", len(existing_eans_in_db), len(all_eans_in_file))
+            except Exception as e:
+                _logger.warning("[FULL] Bulk EAN existence check failed, falling back to per-row SQL: %s", e)
+                existing_eans_in_db = None
+
+        if do_pass1_strict and all_refs_in_file:
+            try:
+                existing_refs_in_db = set()
+                chunk_size = 5000
+                all_refs_list = list(all_refs_in_file)
+                for off in range(0, len(all_refs_list), chunk_size):
+                    chunk = all_refs_list[off:off + chunk_size]
+                    with self.env.cr.savepoint():
+                        self.env.cr.execute(
+                            "SELECT default_code FROM product_product WHERE default_code = ANY(%s)",
+                            [chunk],
+                        )
+                        existing_refs_in_db.update(r[0] for r in self.env.cr.fetchall() if r and r[0])
+                _logger.info("[FULL] Bulk existence check: %d/%d REF already in DB", len(existing_refs_in_db), len(all_refs_in_file))
+            except Exception as e:
+                _logger.warning("[FULL] Bulk REF existence check failed, falling back to per-row SQL: %s", e)
+                existing_refs_in_db = None
+
+        def _maybe_checkpoint_commit(row_i):
+            """Ensure checkpoint + commit advance even on skip/quarantine paths."""
+            # Checkpoint first (cheap)
+            if job_id and row_i and (row_i % checkpoint_interval == 0):
+                try:
+                    self._save_job_checkpoint(job_id, row_i, result)
+                except Exception:
+                    pass
+            # Commit periodically to release locks / show progress
+            if row_i and (row_i % batch_size == 0):
+                try:
+                    try:
+                        self._flush_pending_brand_agg(pending_brand_agg)
+                        pending_brand_agg.clear()
+                    except Exception:
+                        pass
+                    self.env.cr.commit()
+                    self.env.invalidate_all()
+                    gc.collect()
+                except Exception as commit_err:
+                    if "closed" in str(commit_err).lower():
+                        return
+                    raise
         
         # Flag pour détecter si le serveur est en shutdown
         shutdown_detected = False
@@ -3819,6 +4170,9 @@ class PlanetePimImporter(models.AbstractModel):
             
             try:
                 i += 1
+
+                # Safe keepalive ping every ~30s to avoid idle timeouts, without threading.
+                last_ping_ts = _safe_inline_db_ping(self.env, last_ping_ts, interval_sec=30)
 
                 # ✅ RETRY/RESUME SUPPORT: si un checkpoint existe, sauter les lignes déjà traitées
                 # NOTE: start_row est 1-based (compteur i ci-dessus), car _save_job_checkpoint
@@ -3952,18 +4306,18 @@ class PlanetePimImporter(models.AbstractModel):
                 raw_brand = self._strip_nul(raw_brand)
                 
                 if raw_brand:
-                    brand_key = raw_brand.lower()
-                    if brand_key in brand_cache:
-                        brand_id = brand_cache[brand_key]
-                    else:
-                        # ✅ FIX: Digital crée automatiquement les marques (fournisseur maître)
-                        # Les autres fournisseurs envoient vers "Marques à vérifier"
-                        brand_id = self._find_or_create_brand(
-                            raw_brand, brand_cache, new_brands_created,
-                            provider_id=provider.id, auto_create=is_digital  # Digital=True, autres=False
-                        )
-                        if not brand_id:
-                            _logger.info("[FULL] Ligne %d: Marque '%s' non trouvée -> envoyée vers 'Marques à vérifier'", i, raw_brand)
+                    brand_id = self._find_or_create_brand(
+                        raw_brand,
+                        brand_cache,
+                        new_brands_created,
+                        provider_id=provider.id,
+                        pending_brand_agg=pending_brand_agg,
+                        sample={
+                            "ean": norm_ean,
+                            "ref": norm_ref,
+                            "name": name_val,
+                        },
+                    )
                 
                 # Déterminer si ce produit doit aller en quarantaine
                 quarantine_reason = None
@@ -4073,23 +4427,33 @@ class PlanetePimImporter(models.AbstractModel):
                     except Exception as q_err:
                         _logger.warning("[FULL] Error creating quarantine record for row %d: %s", i, q_err)
                         result["errors"] += 1
+                    _maybe_checkpoint_commit(i)
                     continue
                 
                 # Vérifier si déjà créé dans ce fichier (par EAN)
                 if norm_ean in created_eans_this_file:
                     result["skipped_existing"] += 1
+                    _maybe_checkpoint_commit(i)
                     continue
                 
                 # Vérifier si déjà créé dans ce fichier (par référence)
                 if norm_ref and norm_ref in created_refs_this_file:
                     result["skipped_existing"] += 1
+                    _maybe_checkpoint_commit(i)
                     continue
                 
                 # RÈGLE FULL: Vérifier si le produit existe déjà en base via SQL direct
                 is_digital = self._is_digital_provider(provider)
                 existing_product_id, existing_template_id = None, None
                 
-                if self._ean_exists_in_db(norm_ean):
+                # PERF: bulk existence checks (when Pass 1 strict ran)
+                # If sets are built, prefer membership; else fallback to per-row SQL.
+                if existing_eans_in_db is not None:
+                    ean_exists = norm_ean in existing_eans_in_db
+                else:
+                    ean_exists = self._ean_exists_in_db(norm_ean)
+
+                if ean_exists:
                     # =====================================================================
                     # RÈGLE DIGITAL: Si Digital, reprendre le contrôle du produit existant
                     # Les autres fournisseurs skipent les produits existants
@@ -4108,10 +4472,19 @@ class PlanetePimImporter(models.AbstractModel):
                         result["skipped_existing"] += 1
                         skip_reasons["product_exists_ean"] += 1
                         _logger.debug("[FULL] Ligne %d: EAN %s existe déjà en base -> ignoré", i, norm_ean)
+                        _maybe_checkpoint_commit(i)
                         continue
                 
                 # Vérifier si référence existe déjà en base (sauf si Digital a déjà trouvé par EAN)
-                if norm_ref and self._ref_exists_in_db(norm_ref) and not existing_template_id:
+                if norm_ref and not existing_template_id:
+                    if existing_refs_in_db is not None:
+                        ref_exists = norm_ref in existing_refs_in_db
+                    else:
+                        ref_exists = self._ref_exists_in_db(norm_ref)
+                else:
+                    ref_exists = False
+
+                if norm_ref and ref_exists and not existing_template_id:
                     if is_digital:
                         # Digital peut aussi reprendre par référence
                         found_pid, found_tid = self._find_product_by_ref(norm_ref)
@@ -4125,6 +4498,7 @@ class PlanetePimImporter(models.AbstractModel):
                     else:
                         result["skipped_existing"] += 1
                         _logger.debug("[FULL] Ligne %d: référence %s existe déjà en base -> ignoré", i, norm_ref)
+                        _maybe_checkpoint_commit(i)
                         continue
                 
                 # =====================================================================
@@ -4200,6 +4574,26 @@ class PlanetePimImporter(models.AbstractModel):
                                         )
                                 else:
                                     _logger.error("[FULL-UPDATE] ❌ NO MAPPING available for product %s - skipping field updates!", tmpl_rec.id)
+                                
+                                # =====================================================================
+                                # AUTO-ALIAS: Si le produit existe avec une marque différente,
+                                # créer automatiquement un alias pour le nom de marque du CSV
+                                # =====================================================================
+                                if raw_brand and tmpl_rec.product_brand_id and brand_id:
+                                    # Le produit a déjà une marque ET on a trouvé une marque dans le CSV
+                                    # Vérifier si elles sont différentes et créer un alias si nécessaire
+                                    try:
+                                        alias_created = self._create_brand_alias_if_needed(
+                                            tmpl_rec.product_brand_id.id,
+                                            raw_brand,
+                                            norm_ean,
+                                            provider.id
+                                        )
+                                        if alias_created:
+                                            _logger.info("[FULL-UPDATE] 🏷️ Auto-alias créé: '%s' -> marque '%s' (EAN=%s)",
+                                                        raw_brand, tmpl_rec.product_brand_id.name, norm_ean)
+                                    except Exception as alias_err:
+                                        _logger.warning("[FULL-UPDATE] Could not create auto-alias: %s", alias_err)
                                 
                                 # =====================================================================
                                 # CORRECTION BUG: Digital doit TOUJOURS pouvoir mettre à jour la marque
@@ -4377,6 +4771,12 @@ class PlanetePimImporter(models.AbstractModel):
                         break
                     
                     try:
+                        # Flush des marques pending (batch) avant commit
+                        try:
+                            self._flush_pending_brand_agg(pending_brand_agg)
+                            pending_brand_agg = {}
+                        except Exception:
+                            pass
                         self.env.cr.commit()
                         self.env.invalidate_all()
                         _logger.info("[FULL] Committed batch at row %d (%d created, %d quarantined)", 
@@ -4393,6 +4793,9 @@ class PlanetePimImporter(models.AbstractModel):
                 if job_id and i % checkpoint_interval == 0:
                     self._save_job_checkpoint(job_id, i, result)
                     _logger.debug("[FULL] Saved checkpoint at row %d", i)
+
+                # Ensure periodic maintenance even if creation/update paths didn't hit the commit block
+                _maybe_checkpoint_commit(i)
                     
             except Exception as row_err:
                 _logger.warning("[FULL] Error processing row %d: %s", i, row_err)
@@ -4401,18 +4804,17 @@ class PlanetePimImporter(models.AbstractModel):
                 if job_id:
                     self._save_job_checkpoint(job_id, i, result)
         
-        # =====================================================================
-        # KEEPALIVE: Arrêter le ping DB
-        # =====================================================================
-        try:
-            keepalive.stop()
-            _logger.info("[FULL] DatabaseKeepalive stopped")
-        except Exception as ka_err:
-            _logger.warning("[FULL] Error stopping keepalive: %s", ka_err)
+        # (no keepalive thread to stop)
         
         # Commit final (seulement si le cursor est encore ouvert)
         if not shutdown_detected and not getattr(self.env.cr, 'closed', False):
             try:
+                # Flush final des marques pending avant commit final
+                try:
+                    self._flush_pending_brand_agg(pending_brand_agg)
+                    pending_brand_agg = {}
+                except Exception:
+                    pass
                 self.env.cr.commit()
                 self.env.invalidate_all()
                 gc.collect()
@@ -4557,16 +4959,27 @@ class PlanetePimImporter(models.AbstractModel):
         for provider in providers:
             try:
                 # ============================================================
-                # RESET AUTOMATIQUE: Si le guard est bloqué depuis plus de 2h
+                # RESET AUTOMATIQUE: Si le guard est bloqué depuis trop longtemps
+                # Timeout configurable via ir.config_parameter
                 # ============================================================
                 if provider.pim_delta_cron_running:
                     if provider.pim_last_delta_date:
                         last_run = fields.Datetime.from_string(provider.pim_last_delta_date)
                         stuck_duration = now - last_run
-                        if stuck_duration > timedelta(minutes=120):
+                        # Récupérer le timeout depuis les paramètres système (défaut: 5 minutes)
+                        try:
+                            guard_timeout_minutes = int(
+                                self.env["ir.config_parameter"].sudo().get_param(
+                                    "planete_pim.job_guard_timeout_minutes", "5"
+                                )
+                            )
+                        except Exception:
+                            guard_timeout_minutes = 5
+                        
+                        if stuck_duration > timedelta(minutes=guard_timeout_minutes):
                             _logger.warning(
-                                "[DELTA] Provider %s: Guard stuck for %s, auto-resetting after 2h",
-                                provider.id, stuck_duration
+                                "[DELTA] Provider %s: Guard stuck for %s, auto-resetting after %d min",
+                                provider.id, stuck_duration, guard_timeout_minutes
                             )
                             provider.sudo().write({
                                 "pim_delta_cron_running": False,
@@ -4690,6 +5103,18 @@ class PlanetePimImporter(models.AbstractModel):
         if isinstance(provider, int):
             provider = self.env["ftp.provider"].browse(provider)
         provider = provider.sudo().ensure_one()
+
+        # Keep ftp.provider status fields in sync with job-based PIM imports
+        try:
+            now = fields.Datetime.now()
+            provider.sudo().write({
+                "last_connection_status": "running",
+                "last_error": False,
+                "last_run_at": now,
+            })
+            self.env.cr.commit()
+        except Exception:
+            pass
         
         # Récupérer le job si fourni
         job = None
@@ -4785,12 +5210,35 @@ class PlanetePimImporter(models.AbstractModel):
                 ),
             })
             self.env.cr.commit()
+
+            # Success status for provider
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "ok",
+                    "last_error": False,
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             
             _logger.info("[DELTA] Completed for provider %s: %s", provider.id, result)
             return result
             
         except Exception as e:
             _logger.exception("[DELTA] Failed for provider %s: %s", provider.id, e)
+            # Failure status for provider
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "failed",
+                    "last_error": str(e)[:500],
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             provider.write({
                 "pim_delta_cron_running": False,
                 "pim_progress_status": _("[DELTA] Erreur: %s") % str(e)[:200],
@@ -4942,16 +5390,14 @@ class PlanetePimImporter(models.AbstractModel):
         batch_size = 100
         i = 0
         
-        # =====================================================================
-        # KEEPALIVE: Démarrer le ping DB en arrière-plan pour éviter timeouts
-        # =====================================================================
-        keepalive = DatabaseKeepalive(self.env, ping_interval=30)
-        keepalive.start()
-        _logger.info("[DELTA] DatabaseKeepalive started (ping every 30 sec)")
+        # KEEPALIVE (SAFE): inline ping in the SAME thread (no background thread)
+        last_ping_ts = 0.0
         
         # Lire le fichier en streaming
         for row in self._iter_csv_rows(file_path, has_header=has_header, encoding=sel_encoding, delimiter=sel_delimiter, delimiter_regex=sel_delimiter_regex):
             try:
+                last_ping_ts = _safe_inline_db_ping(self.env, last_ping_ts, interval_sec=30)
+
                 i += 1
                 
                 # Mettre à jour la progression tous les 100 produits
@@ -5124,14 +5570,7 @@ class PlanetePimImporter(models.AbstractModel):
                 _logger.warning("[DELTA] Error on row %d: %s", i, e)
                 result["errors"] += 1
         
-        # =====================================================================
-        # KEEPALIVE: Arrêter le ping DB
-        # =====================================================================
-        try:
-            keepalive.stop()
-            _logger.info("[DELTA] DatabaseKeepalive stopped")
-        except Exception as ka_err:
-            _logger.warning("[DELTA] Error stopping keepalive: %s", ka_err)
+        # (no keepalive thread to stop)
         
         # Commit final
         self.env.cr.commit()
@@ -5174,14 +5613,158 @@ class PlanetePimImporter(models.AbstractModel):
     # =========================================================================
     # Helpers pour FULL et DELTA
     # =========================================================================
+    def _download_and_merge_multi_files(self, provider):
+        """Télécharge et fusionne plusieurs fichiers pour les providers multi-fichiers.
+        
+        Utilisé pour Exertis, TD Synnex, etc. qui fournissent 3 fichiers à fusionner :
+        - Fichier principal (Material) : EAN, nom, prix, marque, etc.
+        - Fichier stock (Stock) : quantités disponibles
+        - Fichier taxes (TaxesGouv) : écotaxes, DEEE
+        
+        Returns:
+            tuple: (tmp_path, file_info) du fichier fusionné
+        """
+        import time as time_module
+        
+        try:
+            from odoo.addons.planete_pim.models.multi_file_merger import merge_provider_files
+        except ImportError:
+            _logger.error("[MULTI-FILE] Cannot import merge_provider_files, multi-file mode unavailable")
+            raise UserError(_("Le module de fusion multi-fichiers n'est pas disponible"))
+        
+        Backend = self.env["ftp.backend.service"]
+        
+        _logger.info("[MULTI-FILE] Starting multi-file download and merge for provider %s", provider.name)
+        
+        # Lister tous les fichiers
+        list_start = time_module.time()
+        files = Backend.list_provider_files(provider, preview_limit=None)
+        _logger.info("[MULTI-FILE] Listed %d files in %.1f sec", len(files), time_module.time() - list_start)
+        
+        if not files:
+            raise UserError(_("Aucun fichier trouvé sur le serveur FTP"))
+        
+        # Récupérer les patterns
+        pattern_material = provider.file_pattern_material or "CataExpert*.csv"
+        pattern_stock = provider.file_pattern_stock or "CataPrices*.csv"
+        pattern_taxes = provider.file_pattern_taxes or "CataStock*.csv"
+        
+        _logger.info("[MULTI-FILE] Looking for files: material=%s, stock=%s, taxes=%s",
+                    pattern_material, pattern_stock, pattern_taxes)
+        
+        # Convertir les patterns en regex (simple wildcard * → .*)
+        def pattern_to_regex(pattern):
+            return re.compile(pattern.replace("*", ".*"), re.IGNORECASE)
+        
+        material_regex = pattern_to_regex(pattern_material)
+        stock_regex = pattern_to_regex(pattern_stock)
+        taxes_regex = pattern_to_regex(pattern_taxes)
+        
+        # Identifier les fichiers
+        material_file = None
+        stock_file = None
+        taxes_file = None
+        
+        for file_info in files:
+            filename = os.path.basename(file_info.get("path", ""))
+            if material_regex.match(filename):
+                material_file = file_info
+            elif stock_regex.match(filename):
+                stock_file = file_info
+            elif taxes_regex.match(filename):
+                taxes_file = file_info
+        
+        if not material_file:
+            raise UserError(_("Fichier principal non trouvé (pattern: %s)") % pattern_material)
+        
+        _logger.info("[MULTI-FILE] Files identified: material=%s, stock=%s, taxes=%s",
+                    material_file.get("path") if material_file else "N/A",
+                    stock_file.get("path") if stock_file else "N/A",
+                    taxes_file.get("path") if taxes_file else "N/A")
+        
+        # Télécharger les fichiers
+        material_path, _ = Backend.download_to_temp(provider, material_file.get("path"))
+        stock_path = None
+        taxes_path = None
+        
+        if stock_file:
+            stock_path, _ = Backend.download_to_temp(provider, stock_file.get("path"))
+        if taxes_file:
+            taxes_path, _ = Backend.download_to_temp(provider, taxes_file.get("path"))
+        
+        try:
+            # Lire les contenus
+            with open(material_path, 'r', encoding='utf-8', errors='replace') as f:
+                material_content = f.read()
+            
+            stock_content = None
+            if stock_path:
+                with open(stock_path, 'r', encoding='utf-8', errors='replace') as f:
+                    stock_content = f.read()
+            
+            taxes_content = None
+            if taxes_path:
+                with open(taxes_path, 'r', encoding='utf-8', errors='replace') as f:
+                    taxes_content = f.read()
+            
+            # Fusionner
+            _logger.info("[MULTI-FILE] Merging files on key: %s", provider.multi_file_merge_key or "Article")
+            merged_path, merged_headers = merge_provider_files(
+                provider, material_content, stock_content, taxes_content
+            )
+            
+            if not merged_path:
+                raise UserError(_("La fusion des fichiers a échoué"))
+            
+            _logger.info("[MULTI-FILE] ✅ Files merged successfully: %s (headers: %s)",
+                        merged_path, merged_headers[:10] if merged_headers else [])
+            
+            # Construire file_info pour le fichier fusionné
+            file_info = {
+                "name": "merged_" + os.path.basename(material_file.get("path", "import.csv")),
+                "path": merged_path,
+                "size": os.path.getsize(merged_path),
+                "is_merged": True,
+                "source_files": {
+                    "material": material_file.get("path"),
+                    "stock": stock_file.get("path") if stock_file else None,
+                    "taxes": taxes_file.get("path") if taxes_file else None,
+                }
+            }
+            
+            return merged_path, file_info
+            
+        finally:
+            # Cleanup fichiers téléchargés (le merged sera nettoyé plus tard)
+            for path in [material_path, stock_path, taxes_path]:
+                if path and os.path.exists(path):
+                    try:
+                        os.remove(path)
+                    except Exception:
+                        pass
+
     def _download_provider_file(self, provider):
         """Télécharge le fichier le plus récent depuis le FTP/SFTP du provider.
         
-        AMÉLIORÉ: Détecte et extrait automatiquement les fichiers ZIP.
-        Si le fichier téléchargé est un ZIP, extrait le premier CSV/TXT trouvé.
+        AMÉLIORÉ: 
+        - Détecte et extrait automatiquement les fichiers ZIP
+        - Supporte le mode multi-fichiers (Exertis, TD Synnex)
+        
+        Si le provider a multi_file_mode=True, télécharge et fusionne les 3 fichiers.
+        Sinon, télécharge un seul fichier comme avant.
         
         Retourne (tmp_path, file_info) ou (None, None) si aucun fichier.
         """
+        # =====================================================================
+        # NOUVEAU: Support mode multi-fichiers (Exertis, TD Synnex)
+        # =====================================================================
+        if getattr(provider, 'multi_file_mode', False):
+            _logger.info("[DOWNLOAD] Provider %s has multi_file_mode=True, using merge logic", provider.name)
+            return self._download_and_merge_multi_files(provider)
+        
+        # =====================================================================
+        # Logique existante pour fichier unique
+        # =====================================================================
         import time as time_module
         import zipfile
         import tempfile as _tmp
@@ -5854,9 +6437,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ean:
             return False
         
-        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
-        with self.env.cr.savepoint():
-            try:
+        try:
+            # Utiliser un savepoint pour isoler les erreurs
+            with self.env.cr.savepoint():
                 # Vérifier dans product_product (le champ barcode est sur product_product, pas product_template)
                 self.env.cr.execute(
                     "SELECT 1 FROM product_product WHERE barcode = %s LIMIT 1",
@@ -5864,10 +6447,11 @@ class PlanetePimImporter(models.AbstractModel):
                 )
                 if self.env.cr.fetchone():
                     return True
-                return False
-            except Exception as e:
-                _logger.warning("Error checking EAN existence (isolated): %s", e)
-                return False
+            
+            return False
+        except Exception as e:
+            _logger.warning("Error checking EAN existence (isolated): %s", e)
+            return False
 
     def _ref_exists_in_db(self, ref):
         """Vérifie si une référence (default_code) existe déjà dans la base de données via SQL direct.
@@ -5879,9 +6463,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ref:
             return False
         
-        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
-        with self.env.cr.savepoint():
-            try:
+        try:
+            # Utiliser un savepoint pour isoler les erreurs
+            with self.env.cr.savepoint():
                 # Vérifier dans product_product (default_code)
                 self.env.cr.execute(
                     "SELECT 1 FROM product_product WHERE default_code = %s LIMIT 1",
@@ -5889,10 +6473,11 @@ class PlanetePimImporter(models.AbstractModel):
                 )
                 if self.env.cr.fetchone():
                     return True
-                return False
-            except Exception as e:
-                _logger.warning("Error checking reference existence (isolated): %s", e)
-                return False
+            
+            return False
+        except Exception as e:
+            _logger.warning("Error checking reference existence (isolated): %s", e)
+            return False
 
     @api.model
     def _clean_brand_name(self, raw_name):
@@ -5940,33 +6525,207 @@ class PlanetePimImporter(models.AbstractModel):
         
         return s
 
-    def _find_or_create_brand(self, brand_name, cache, new_brands_tracker=None, provider_id=None, auto_create=False):
-        """Trouve une marque ou l'envoie vers "Marques à vérifier".
+    # =========================================================================
+    # Brand helpers (auto-create + tracking in brand.pending)
+    # =========================================================================
+
+    def _find_brand_id_by_name_or_alias(self, clean_name):
+        """Return product.brand id if found by exact name (case-insensitive) or alias.
+
+        NOTE: Uses SQL direct for robustness/perf in long imports.
+        """
+        if not clean_name:
+            return False
+
+        try:
+            with self.env.cr.savepoint():
+                # 1) exact name match (trim + lower)
+                self.env.cr.execute(
+                    "SELECT id FROM product_brand WHERE LOWER(TRIM(name)) = LOWER(%s) LIMIT 1",
+                    [clean_name],
+                )
+                row = self.env.cr.fetchone()
+                if row:
+                    return row[0]
+        except Exception as e:
+            _logger.warning("[BRAND] Error searching brand by name: %s", e)
+
+        # 2) alias match (scan only brands that have aliases)
+        try:
+            with self.env.cr.savepoint():
+                self.env.cr.execute(
+                    "SELECT id, aliases FROM product_brand WHERE aliases IS NOT NULL AND aliases != ''"
+                )
+                key = self._normalize_string_for_comparison(clean_name)
+                for bid, aliases_str in self.env.cr.fetchall():
+                    if not aliases_str:
+                        continue
+                    alias_list = [
+                        self._normalize_string_for_comparison(self._clean_brand_name(a))
+                        for a in aliases_str.split(",")
+                        if a.strip()
+                    ]
+                    if key in alias_list:
+                        return bid
+        except Exception as e:
+            _logger.warning("[BRAND] Error searching brand by aliases: %s", e)
+
+        return False
+
+    def _create_brand_safe(self, clean_name):
+        """Create product.brand if missing. Returns brand id."""
+        if not clean_name:
+            return False
+
+        Brand = self.env["product.brand"].sudo()
+        try:
+            rec = Brand.create({"name": clean_name})
+            return rec.id
+        except Exception as e:
+            # Possible race/constraint => re-search
+            _logger.warning("[BRAND] Create failed for '%s', retrying search: %s", clean_name, e)
+            found = Brand.search([("name", "=ilike", clean_name)], limit=1)
+            return found.id if found else False
+
+    def _flush_pending_brand_agg(self, pending_brand_agg):
+        """Flush aggregated pending brands created during import.
+
+        pending_brand_agg format:
+            {
+              key: {
+                'brand_name': str,
+                'provider_id': int,
+                'brand_id': int,
+                'count': int,
+                'samples': [ {'ean':..., 'ref':..., 'name':...}, ...]
+              }
+            }
+        """
+        if not pending_brand_agg:
+            return
+
+        BrandPending = self.env["planete.pim.brand.pending"].sudo()
+        for info in pending_brand_agg.values():
+            try:
+                BrandPending.upsert_pending_brand(
+                    info.get("brand_name"),
+                    info.get("provider_id"),
+                    product_count=int(info.get("count") or 0) or 1,
+                    created_brand_id=info.get("brand_id"),
+                    sample_products=info.get("samples") or [],
+                    state="new_brand",
+                )
+            except Exception as e:
+                _logger.warning("[BRAND] Could not upsert pending brand '%s': %s", info.get("brand_name"), e)
+
+    def _create_brand_alias_if_needed(self, existing_brand_id, csv_brand_name, source_ean, provider_id):
+        """Crée un alias de marque si le nom CSV diffère de la marque existante.
         
-        RÈGLE CRITIQUE (Tous les fournisseurs y compris Digital):
-        1. Chercher par nom exact (case-insensitive) - après nettoyage agressif
-        2. Chercher dans les aliases des marques existantes
-        3. Si pas trouvée -> TOUJOURS créer dans brand.pending (Marques à vérifier)
-        4. JAMAIS créer automatiquement les marques (auto_create ignoré)
+        RÈGLE AUTO-ALIAS:
+        - Si un produit existe avec un EAN identique
+        - MAIS que le nom de marque dans le CSV est différent
+        - ALORS créer automatiquement un alias sur la marque existante
+        - ET enregistrer dans l'historique des alias
         
-        ✅ FIX BUG VOGELS: Nettoyage agressif du nom de marque pour supprimer
-        les caractères Unicode invisibles (zero-width space, NBSP, etc.) qui
-        empêchent la correspondance exacte avec les marques existantes en base.
+        Args:
+            existing_brand_id: ID de la marque existante sur le produit
+            csv_brand_name: Nom de marque trouvé dans le CSV
+            source_ean: EAN du produit source (pour traçabilité)
+            provider_id: ID du provider (pour traçabilité)
+            
+        Returns:
+            bool: True si un alias a été créé, False sinon
+        """
+        if not existing_brand_id or not csv_brand_name:
+            return False
         
-        Cette logique s'applique à TOUS les fournisseurs (y compris Digital/GroupeDigital).
-        Les marques inconnues doivent être validées manuellement.
-        
-        NOTE IMPORTANTE (règle actuelle validée avec le besoin métier):
-        - On NE crée PLUS automatiquement les marques à partir des fichiers fournisseurs.
-        - Si la marque n'existe pas: on crée/maj une entrée dans `planete.pim.brand.pending`
-          pour permettre un rapprochement manuel.
+        try:
+            Brand = self.env["product.brand"].sudo()
+            existing_brand = Brand.browse(existing_brand_id)
+            
+            if not existing_brand.exists():
+                return False
+            
+            # Nettoyer le nom CSV
+            clean_csv_name = self._clean_brand_name(csv_brand_name)
+            existing_brand_name = self._clean_brand_name(existing_brand.name)
+            
+            # Normaliser pour comparaison (insensible à la casse/accents)
+            csv_normalized = self._normalize_string_for_comparison(clean_csv_name)
+            existing_normalized = self._normalize_string_for_comparison(existing_brand_name)
+            
+            # Si identiques, pas besoin d'alias
+            if csv_normalized == existing_normalized:
+                return False
+            
+            # Vérifier si l'alias existe déjà
+            existing_aliases = existing_brand.aliases or ""
+            alias_list = [self._normalize_string_for_comparison(a.strip()) 
+                         for a in existing_aliases.split(",") if a.strip()]
+            
+            if csv_normalized in alias_list:
+                _logger.debug("[AUTO-ALIAS] Alias '%s' already exists for brand '%s'", 
+                             clean_csv_name, existing_brand.name)
+                return False
+            
+            # Créer le nouvel alias
+            if existing_aliases:
+                new_aliases = existing_aliases + ", " + clean_csv_name
+            else:
+                new_aliases = clean_csv_name
+            
+            existing_brand.write({"aliases": new_aliases})
+            
+            # Créer l'historique
+            try:
+                History = self.env["planete.pim.brand.alias.history"].sudo()
+                History.create({
+                    "brand_id": existing_brand_id,
+                    "alias_name": clean_csv_name,
+                    "provider_id": provider_id,
+                    "auto_created": True,
+                    "source_ean": source_ean,
+                    "creation_date": fields.Datetime.now(),
+                })
+            except Exception as hist_err:
+                _logger.warning("[AUTO-ALIAS] Could not create history record: %s", hist_err)
+            
+            _logger.info("[AUTO-ALIAS] ✅ Created alias '%s' for brand '%s' (EAN=%s, provider=%s)",
+                        clean_csv_name, existing_brand.name, source_ean, provider_id)
+            
+            return True
+            
+        except Exception as e:
+            _logger.warning("[AUTO-ALIAS] Error creating alias for brand %s: %s", 
+                           existing_brand_id, e)
+            return False
+
+    def _find_or_create_brand(
+        self,
+        brand_name,
+        cache,
+        new_brands_tracker=None,
+        provider_id=None,
+        pending_brand_agg=None,
+        sample=None,
+    ):
+        """Trouve une marque (nom/alias) et la crée automatiquement si absente.
+
+        Si la marque est créée automatiquement, on garde une trace dans
+        `planete.pim.brand.pending` (state=new_brand) avec :
+        - compteur de produits concernés
+        - quelques exemples (EAN | ref | nom)
+
+        IMPORTANT PERF: l'upsert pending peut être agrégé via pending_brand_agg
+        pour éviter 1 write par ligne.
 
         Args:
-            brand_name: nom de la marque à trouver
-            cache: dictionnaire de cache {brand_key: brand_id or False}
-            new_brands_tracker: liste optionnelle pour tracker les marques envoyées en attente
-            provider_id: ID du provider pour les marques en attente
-            auto_create: DEPRECATED (ignoré, conservé pour compatibilité)
+            brand_name: nom marque issu du fichier
+            cache: dict {brand_key_normalized: brand_id}
+            new_brands_tracker: list optionnelle (import history)
+            provider_id: ftp.provider id
+            pending_brand_agg: dict d'agrégation (voir _flush_pending_brand_agg)
+            sample: dict {ean, ref, name} optionnel
         """
         if not brand_name:
             return False
@@ -5981,59 +6740,59 @@ class PlanetePimImporter(models.AbstractModel):
 
         # Vérifier le cache d'abord
         if brand_key in cache:
-            return cache[brand_key]
+            brand_id = cache[brand_key]
+            # Si cette marque fait partie d'une agrégation "new_brand", incrémenter le compteur
+            if pending_brand_agg is not None and brand_key in pending_brand_agg:
+                info = pending_brand_agg[brand_key]
+                info["count"] = int(info.get("count") or 0) + 1
+                if sample and len(info.get("samples") or []) < 10:
+                    info.setdefault("samples", []).append(sample)
+            return brand_id
 
-        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
-        with self.env.cr.savepoint():
-            try:
-                # 1. Chercher par nom exact normalisé côté SQL (TRIM + LOWER)
-                self.env.cr.execute(
-                    "SELECT id, name FROM product_brand WHERE LOWER(TRIM(name)) = LOWER(%s) LIMIT 1",
-                    [clean_name]
+        # 1) Rechercher une marque existante (nom exact ou alias)
+        brand_id = self._find_brand_id_by_name_or_alias(clean_name)
+        if brand_id:
+            cache[brand_key] = brand_id
+            return brand_id
+
+        # 2) Créer la marque automatiquement
+        brand_id = self._create_brand_safe(clean_name)
+        cache[brand_key] = brand_id
+
+        if new_brands_tracker is not None:
+            new_brands_tracker.append(clean_name)
+
+        # 3) Track dans brand.pending (state=new_brand)
+        if provider_id:
+            if pending_brand_agg is not None:
+                info = pending_brand_agg.setdefault(
+                    brand_key,
+                    {
+                        "brand_name": clean_name,
+                        "provider_id": provider_id,
+                        "brand_id": brand_id,
+                        "count": 0,
+                        "samples": [],
+                    },
                 )
-                result = self.env.cr.fetchone()
+                info["count"] = int(info.get("count") or 0) + 1
+                if sample and len(info.get("samples") or []) < 10:
+                    info.setdefault("samples", []).append(sample)
+            else:
+                try:
+                    BrandPending = self.env["planete.pim.brand.pending"].sudo()
+                    BrandPending.upsert_pending_brand(
+                        clean_name,
+                        provider_id,
+                        product_count=1,
+                        created_brand_id=brand_id,
+                        sample_products=[sample] if sample else [],
+                        state="new_brand",
+                    )
+                except Exception as pending_err:
+                    _logger.warning("[BRAND] Could not create pending brand '%s': %s", clean_name, pending_err)
 
-                if result:
-                    brand_id = result[0]
-                    cache[brand_key] = brand_id
-                    _logger.debug("[BRAND] Found brand by exact name: '%s' -> id=%d (DB name='%s')",
-                                 brand_name, brand_id, result[1])
-                    return brand_id
-
-                # 2. Chercher dans les aliases (champ 'aliases' sur product.brand)
-                self.env.cr.execute(
-                    "SELECT id, aliases FROM product_brand WHERE aliases IS NOT NULL AND aliases != ''"
-                )
-                for row in self.env.cr.fetchall():
-                    brand_id_check, aliases_str = row
-                    if aliases_str:
-                        alias_list = [self._normalize_string_for_comparison(self._clean_brand_name(a))
-                                      for a in aliases_str.split(",") if a.strip()]
-                        if brand_key in alias_list:
-                            cache[brand_key] = brand_id_check
-                            _logger.info("[BRAND] Found brand via alias: '%s' -> id=%d", brand_name, brand_id_check)
-                            return brand_id_check
-
-                # 3. Marque non trouvée -> envoyer vers "Marques à vérifier" (TOUS providers, y compris Digital)
-                cache[brand_key] = False
-
-                if provider_id:
-                    try:
-                        BrandPending = self.env["planete.pim.brand.pending"].sudo()
-                        BrandPending.upsert_pending_brand(clean_name, provider_id, product_count=1)
-                        _logger.info("[BRAND] Sent unknown brand '%s' to pending validation (provider=%d)",
-                                     clean_name, provider_id)
-                    except Exception as pending_err:
-                        _logger.warning("[BRAND] Could not create pending brand '%s': %s", clean_name, pending_err)
-
-                if new_brands_tracker is not None:
-                    new_brands_tracker.append(f"{clean_name} (EN ATTENTE)")
-
-                return False
-
-            except Exception as e:
-                _logger.warning("Error finding/creating brand '%s' (isolated): %s", brand_name, e)
-                return False
+        return brand_id
 
     def _create_supplierinfo(self, template_id, supplier_id, price, supplier_stock):
         """Crée ou met à jour un supplierinfo via SQL direct + ORM avec savepoint pour isoler les erreurs.
@@ -6043,9 +6802,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not template_id or not supplier_id:
             return
         
-        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
-        with self.env.cr.savepoint():
-            try:
+        try:
+            # Utiliser un savepoint pour isoler les erreurs
+            with self.env.cr.savepoint():
                 SupplierInfo = self.env["product.supplierinfo"].sudo()
                 
                 # Chercher un supplierinfo existant via SQL direct (pas de .search() dans la boucle!)
@@ -6070,9 +6829,9 @@ class PlanetePimImporter(models.AbstractModel):
                         "min_qty": 1.0,
                     })
                     SupplierInfo.create(si_vals)
-                    
-            except Exception as e:
-                _logger.warning("Error creating supplierinfo (isolated): %s", e)
+                
+        except Exception as e:
+            _logger.warning("Error creating supplierinfo (isolated): %s", e)
 
     # =========================================================================
     # Cron: Expiration du stock fournisseur
@@ -6135,6 +6894,18 @@ class PlanetePimImporter(models.AbstractModel):
         if isinstance(provider, int):
             provider = self.env["ftp.provider"].browse(provider)
         provider = provider.sudo().ensure_one()
+
+        # Keep ftp.provider status fields in sync with job-based PIM imports
+        try:
+            now = fields.Datetime.now()
+            provider.sudo().write({
+                "last_connection_status": "running",
+                "last_error": False,
+                "last_run_at": now,
+            })
+            self.env.cr.commit()
+        except Exception:
+            pass
         
         _logger.info("[REFRESH] _process_refresh_content_import for provider %s (%s)", provider.id, provider.name)
         
@@ -6199,12 +6970,35 @@ class PlanetePimImporter(models.AbstractModel):
                 ),
             })
             self.env.cr.commit()
+
+            # Success status for provider
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "ok",
+                    "last_error": False,
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             
             _logger.info("[REFRESH] Completed for provider %s: %s", provider.id, result)
             return result
             
         except Exception as e:
             _logger.exception("[REFRESH] Failed for provider %s: %s", provider.id, e)
+            # Failure status for provider
+            try:
+                now = fields.Datetime.now()
+                provider.sudo().write({
+                    "last_connection_status": "failed",
+                    "last_error": str(e)[:500],
+                    "last_run_at": now,
+                })
+                self.env.cr.commit()
+            except Exception:
+                pass
             provider.write({
                 "pim_progress_status": _("[REFRESH] Erreur: %s") % str(e)[:200],
             })
@@ -6406,9 +7200,8 @@ class PlanetePimImporter(models.AbstractModel):
         if not ref:
             return None, None
         
-        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
-        with self.env.cr.savepoint():
-            try:
+        try:
+            with self.env.cr.savepoint():
                 # Chercher dans product_product.default_code
                 self.env.cr.execute(
                     "SELECT id, product_tmpl_id FROM product_product WHERE default_code = %s LIMIT 1",
@@ -6418,10 +7211,11 @@ class PlanetePimImporter(models.AbstractModel):
                 if result:
                     _logger.debug("[REF-MATCH] Found product by default_code: REF=%s -> product_id=%s, tmpl_id=%s", ref, result[0], result[1])
                     return result[0], result[1]
-                return None, None
-            except Exception as e:
-                _logger.warning("Error finding product by ref (isolated): %s", e)
-                return None, None
+            
+            return None, None
+        except Exception as e:
+            _logger.warning("Error finding product by ref (isolated): %s", e)
+            return None, None
 
     def _find_product_by_ean(self, ean):
         """Trouve un produit par EAN via SQL direct.
@@ -6439,9 +7233,9 @@ class PlanetePimImporter(models.AbstractModel):
         if not ean:
             return None, None
         
-        # ✅ FIX: Exception handling INSIDE savepoint to prevent transaction abort
-        with self.env.cr.savepoint():
-            try:
+        try:
+            # Utiliser un savepoint pour isoler les erreurs
+            with self.env.cr.savepoint():
                 # 1. Chercher dans product_product.barcode (le plus courant)
                 self.env.cr.execute(
                     "SELECT id, product_tmpl_id FROM product_product WHERE barcode = %s LIMIT 1",
@@ -6485,10 +7279,9 @@ class PlanetePimImporter(models.AbstractModel):
                     if result:
                         _logger.debug("[EAN-MATCH] Found product by template.barcode: EAN=%s -> product_id=%s, tmpl_id=%s", ean, result[0], result[1])
                         return result[0], result[1]
-                
-                _logger.debug("[EAN-MATCH] Product NOT FOUND for EAN=%s", ean)
-                return None, None
-            except Exception as e:
-                _logger.warning("Error finding product by EAN (isolated): %s", e)
-                return None, None
-
+            
+            _logger.debug("[EAN-MATCH] Product NOT FOUND for EAN=%s", ean)
+            return None, None
+        except Exception as e:
+            _logger.warning("Error finding product by EAN (isolated): %s", e)
+            return None, None

@@ -171,7 +171,13 @@ class FtpProvider(models.Model):
             else:
                 rec.pim_estimated_remaining = ""
 
-    @api.depends("last_connection_status", "mapping_template_id", "last_run_at")
+    @api.depends(
+        "last_connection_status",
+        "mapping_template_id",
+        "last_run_at",
+        "pim_last_full_date",
+        "pim_last_delta_date",
+    )
     def _compute_planning_status(self):
         """Calcule le statut de Planification du provider.
         
@@ -190,16 +196,18 @@ class FtpProvider(models.Model):
             elif not rec.mapping_template_id:
                 # Pas de mapping configuré
                 rec.planning_status = "warning"
-            elif rec.last_run_at:
-                # Vérifier si import < 24h
-                time_diff = now - rec.last_run_at
-                if time_diff <= timedelta(hours=24):
+            else:
+                # Utiliser la dernière exécution la plus récente (FTP ou PIM)
+                last_dt = rec.last_run_at
+                if rec.pim_last_full_date and (not last_dt or rec.pim_last_full_date > last_dt):
+                    last_dt = rec.pim_last_full_date
+                if rec.pim_last_delta_date and (not last_dt or rec.pim_last_delta_date > last_dt):
+                    last_dt = rec.pim_last_delta_date
+
+                if last_dt and (now - last_dt) <= timedelta(hours=24):
                     rec.planning_status = "ok"
                 else:
                     rec.planning_status = "warning"
-            else:
-                # Aucun import effectué
-                rec.planning_status = "warning"
 
     # =====================
     # Actions manuelles

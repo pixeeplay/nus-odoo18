@@ -25,6 +25,7 @@
         "views/provider_inherit.xml",
         "views/job_views.xml",
         "views/brand_pending_views.xml",
+        "views/brand_alias_history_views.xml",
         "views/colbee_views.xml",
         "views/product_views.xml",
         "views/menuitems.xml",

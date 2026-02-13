@@ -812,6 +812,12 @@ class PlanetePimImportJob(models.Model):
         
         for job in all_jobs:
             try:
+                # ✅ FIX RACE CONDITION: Check if job still exists before accessing attributes
+                # Jobs can be deleted by split cleanup while cron is running
+                if not job.exists():
+                    _logger.warning("Cron: Job %s no longer exists (deleted by split cleanup), skipping", job.id)
+                    continue
+                
                 _logger.info(
                     "Cron processing job %s (state=%s, retry_count=%d)",
                     job.id, job.state, job.retry_count
@@ -823,10 +829,25 @@ class PlanetePimImportJob(models.Model):
         # 3. Clean up stale 'running' jobs that stopped making progress
         # ✅ FIX: Use write_date instead of started_at to detect truly stale jobs.
         # Progress tracking updates write_date every 50-100 rows, so if write_date
-        # hasn't changed in 10 minutes, the job is truly stuck (not just slow).
+        # hasn't changed in the configured timeout, the job is truly stuck (not just slow).
         # Previously used started_at with 5min timeout which incorrectly flagged
         # active long-running imports (e.g., Digital 11k+ products at 97%).
-        stale_cutoff = now - timedelta(minutes=10)
+        # 
+        # ✅ CONFIGURABLE: Timeout is now configurable via system parameter
+        # Default: 5 minutes (middle of 3-5 minute range)
+        try:
+            stale_timeout_minutes = int(
+                self.env['ir.config_parameter'].sudo().get_param(
+                    'planete_pim.job_stale_timeout_minutes', 
+                    '5'
+                )
+            )
+            # Clamp to reasonable range (1-60 minutes)
+            stale_timeout_minutes = max(1, min(60, stale_timeout_minutes))
+        except (ValueError, TypeError):
+            stale_timeout_minutes = 5
+        
+        stale_cutoff = now - timedelta(minutes=stale_timeout_minutes)
         stale_jobs = self.search([
             ("state", "=", "running"),
             ("write_date", "<", stale_cutoff),

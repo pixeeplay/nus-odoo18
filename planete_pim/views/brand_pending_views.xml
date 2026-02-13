@@ -20,13 +20,15 @@
         <field name="name">planete.pim.brand.pending.list</field>
         <field name="model">planete.pim.brand.pending</field>
         <field name="arch" type="xml">
-            <list default_order="create_date desc" decoration-warning="state == 'pending'" decoration-success="state in ('validated', 'new_brand')" decoration-muted="state == 'ignored'">
+            <list default_order="create_date desc" decoration-warning="state in ('pending','new_brand')" decoration-success="state == 'validated'" decoration-muted="state == 'ignored'">
                 <field name="name" string="Marque fichier"/>
                 <field name="provider_name" string="Fournisseur"/>
                 <field name="product_count" string="Produits"/>
+                <field name="sample_products_text" string="Exemples (EAN | Ref)" optional="show" widget="text"/>
                 <field name="suggested_brand_id" string="Suggestion"/>
+                <field name="created_brand_id" string="Marque créée" optional="hide"/>
                 <field name="validated_brand_id" string="Marque validée"/>
-                <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state in ('validated', 'new_brand')" decoration-info="state == 'ignored'"/>
+                <field name="state" widget="badge" decoration-warning="state in ('pending','new_brand')" decoration-success="state == 'validated'" decoration-info="state == 'ignored'"/>
                 <field name="create_uid" string="Créé par"/>
                 <field name="import_date" string="Import"/>
                 <field name="last_seen_date" string="Dernière vue"/>
@@ -45,19 +47,19 @@
                             type="object" 
                             string="✅ Valider avec cette marque" 
                             class="btn-primary"
-                            invisible="state != 'pending' or not validated_brand_id"
+                            invisible="state not in ('pending','new_brand') or not validated_brand_id"
                             confirm="Confirmer l'association de cette marque à l'alias ?"/>
                     <button name="action_create_new_brand" 
                             type="object" 
                             string="➕ Créer nouvelle marque" 
                             class="btn-success"
-                            invisible="state != 'pending'"
+                            invisible="state not in ('pending','new_brand')"
                             confirm="Créer une nouvelle marque avec ce nom ?"/>
                     <button name="action_ignore" 
                             type="object" 
                             string="🚫 Ignorer" 
                             class="btn-secondary"
-                            invisible="state != 'pending'"
+                            invisible="state not in ('pending','new_brand')"
                             confirm="Ignorer cette marque ?"/>
                     <button name="action_reset_to_pending" 
                             type="object" 
@@ -82,6 +84,7 @@
                         <group string="Association">
                             <field name="suggested_brand_id" readonly="1" 
                                    help="Suggestion automatique basée sur le nom"/>
+                            <field name="created_brand_id" readonly="1" options="{'no_create': true}"/>
                             <field name="validated_brand_id" 
                                    options="{'no_create': true}"
                                    placeholder="Sélectionner une marque existante..."
@@ -94,6 +97,10 @@
                     </group>
                     <group string="Notes">
                         <field name="notes" placeholder="Ajoutez des notes si besoin..."/>
+                    </group>
+                    <group string="📋 Exemples de produits" col="1">
+                        <field name="sample_products_text" nolabel="1" widget="text" readonly="1" 
+                               placeholder="Les exemples de produits s'afficheront ici..."/>
                     </group>
                 </sheet>
             </form>
@@ -160,8 +167,8 @@
                 <field name="suggested_brand_id"/>
                 <field name="validated_brand_id"/>
                 <separator/>
-                <filter name="filter_pending" string="En attente" domain="[('state', '=', 'pending')]"/>
-                <filter name="filter_validated" string="Validées" domain="[('state', 'in', ['validated', 'new_brand'])]"/>
+                <filter name="filter_pending" string="À traiter" domain="[('state', 'in', ['pending','new_brand'])]"/>
+                <filter name="filter_validated" string="Validées" domain="[('state', '=', 'validated')]"/>
                 <filter name="filter_ignored" string="Ignorées" domain="[('state', '=', 'ignored')]"/>
                 <separator/>
                 <group expand="0" string="Grouper par">

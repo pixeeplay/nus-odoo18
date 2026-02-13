@@ -58,6 +58,13 @@ class PlanetePimBrandPending(models.Model):
         string="Marque validée",
         help="Marque choisie par l'utilisateur",
     )
+
+    # ✅ NOUVEAU: Marque créée automatiquement (ou manuellement) à partir de ce nom fournisseur
+    created_brand_id = fields.Many2one(
+        "product.brand",
+        string="Marque créée",
+        help="Marque créée automatiquement à partir de ce nom (pour ne pas bloquer l'import).",
+    )
     
     # Champ pour créer une nouvelle marque avec un nom personnalisé
     new_brand_name = fields.Char(
@@ -79,6 +86,20 @@ class PlanetePimBrandPending(models.Model):
         help="Notes ou commentaires sur cette marque",
     )
     
+    # ✅ NOUVEAU: Exemples de produits avec EAN et référence
+    sample_products_json = fields.Json(
+        string="Exemples produits (JSON)",
+        default=list,
+        help="Liste d'exemples produits rencontrés pendant l'import (max 10).",
+    )
+
+    sample_products_text = fields.Text(
+        string="Exemples de produits (EAN | Ref)",
+        compute="_compute_sample_products",
+        store=False,
+        help="Exemples de produits utilisant cette marque (max 10 pour ceux qui en ont beaucoup)",
+    )
+    
     # Champs pour le tracking
     create_uid = fields.Many2one("res.users", string="Créé par", readonly=True)
     write_uid = fields.Many2one("res.users", string="Modifié par", readonly=True)
@@ -87,6 +108,88 @@ class PlanetePimBrandPending(models.Model):
         ('unique_name_provider', 'UNIQUE(name, provider_id)',
          'Cette marque existe déjà pour ce fournisseur'),
     ]
+
+    # =========================================================================
+    # Computed fields
+    # =========================================================================
+    
+    @api.depends("name", "provider_id")
+    def _compute_sample_products(self):
+        """Calcule les exemples de produits avec EAN et référence.
+        
+        Cherche dans planete.pim.product.staging les produits avec cette marque,
+        et affiche jusqu'à 10 exemples avec EAN | Référence article.
+        """
+        for rec in self:
+            # 0) Priorité: exemples stockés au moment de l'import (plus fiable que staging)
+            try:
+                samples = rec.sample_products_json or []
+            except Exception:
+                samples = []
+
+            if samples:
+                lines = []
+                for s in samples[:10]:
+                    if not isinstance(s, dict):
+                        continue
+                    ean = (s.get("ean") or "N/A")
+                    ref = (s.get("ref") or "N/A")
+                    name = s.get("name") or ""
+                    name = (name[:40] + "...") if name and len(name) > 40 else name
+                    line = f"• {ean} | {ref}"
+                    if name:
+                        line += f" | {name}"
+                    lines.append(line)
+                rec.sample_products_text = "\n".join(lines) if lines else _("Aucun exemple enregistré")
+                continue
+
+            # Chercher dans staging les produits avec cette marque
+            Staging = self.env["planete.pim.product.staging"].sudo()
+            
+            try:
+                # Domaine de recherche: marque = nom du pending + provider
+                domain = [
+                    ("provider_id", "=", rec.provider_id.id),
+                    ("state", "in", ["pending", "validated"]),
+                ]
+                
+                # Chercher par brand_id si la marque existe déjà
+                if rec.validated_brand_id:
+                    domain.append(("brand_id", "=", rec.validated_brand_id.id))
+                else:
+                    # Sinon chercher par nom de marque dans le champ brand_id
+                    # (staging peut avoir brand_id.name = rec.name)
+                    domain.append(("brand_id.name", "=ilike", rec.name))
+                
+                products = Staging.search(domain, limit=10, order="id desc")
+                
+                if not products:
+                    rec.sample_products_text = _("Aucun produit trouvé en staging")
+                    continue
+                
+                lines = []
+                for p in products:
+                    # Format: EAN | Référence | Nom (tronqué)
+                    ean = p.ean13 or p.original_ean or "N/A"
+                    ref = p.default_code or "N/A"
+                    name = p.name[:40] + "..." if p.name and len(p.name) > 40 else (p.name or "")
+                    
+                    line = f"• {ean} | {ref}"
+                    if name:
+                        line += f" | {name}"
+                    lines.append(line)
+                
+                # Compter le total
+                count_total = Staging.search_count(domain)
+                
+                if count_total > 10:
+                    lines.append(f"\n... et {count_total - 10} autres produits")
+                
+                rec.sample_products_text = "\n".join(lines)
+                
+            except Exception as e:
+                _logger.warning("Error computing sample products for brand pending %s: %s", rec.id, e)
+                rec.sample_products_text = _("Erreur lors du calcul des exemples")
 
     # =========================================================================
     # Actions
@@ -167,6 +270,7 @@ class PlanetePimBrandPending(models.Model):
         
         self.write({
             "validated_brand_id": new_brand.id,
+            "created_brand_id": new_brand.id,
             "state": "new_brand",
         })
         
@@ -214,7 +318,15 @@ class PlanetePimBrandPending(models.Model):
     # =========================================================================
     
     @api.model
-    def upsert_pending_brand(self, brand_name, provider_id, product_count=1):
+    def upsert_pending_brand(
+        self,
+        brand_name,
+        provider_id,
+        product_count=1,
+        created_brand_id=None,
+        sample_products=None,
+        state=None,
+    ):
         """Crée ou met à jour une marque en attente.
         
         Args:
@@ -229,6 +341,25 @@ class PlanetePimBrandPending(models.Model):
             return self.browse()
         
         brand_name_clean = brand_name.strip()
+
+        def _normalize_samples(items):
+            normalized = []
+            for it in (items or []):
+                if not isinstance(it, dict):
+                    continue
+                ean = (it.get("ean") or "").strip()
+                ref = (it.get("ref") or "").strip()
+                name = (it.get("name") or "").strip()
+                if not (ean or ref or name):
+                    continue
+                normalized.append({
+                    "ean": ean or False,
+                    "ref": ref or False,
+                    "name": name or False,
+                })
+            return normalized
+
+        new_samples = _normalize_samples(sample_products)
         
         # Chercher si cette marque existe déjà pour ce provider
         existing = self.search([
@@ -238,10 +369,38 @@ class PlanetePimBrandPending(models.Model):
         
         if existing:
             # Mettre à jour
-            existing.write({
-                "product_count": existing.product_count + product_count,
+            vals = {
+                "product_count": existing.product_count + (product_count or 0),
                 "last_seen_date": fields.Datetime.now(),
-            })
+            }
+
+            # Lier la marque créée/associée (si fournie)
+            if created_brand_id:
+                vals["created_brand_id"] = created_brand_id
+
+            # Forcer l'état si demandé
+            if state and existing.state in ("pending", "new_brand"):
+                # Ne pas écraser un état "validated" / "ignored" déjà fixé par l'utilisateur
+                vals["state"] = state
+
+            # Fusionner les exemples (max 10)
+            if new_samples:
+                merged = list(existing.sample_products_json or [])
+                seen = set()
+                for s in merged:
+                    if isinstance(s, dict):
+                        seen.add(((s.get("ean") or ""), (s.get("ref") or "")))
+                for s in new_samples:
+                    key = ((s.get("ean") or ""), (s.get("ref") or ""))
+                    if key in seen:
+                        continue
+                    merged.append(s)
+                    seen.add(key)
+                    if len(merged) >= 10:
+                        break
+                vals["sample_products_json"] = merged[:10]
+
+            existing.write(vals)
             return existing
         else:
             # Créer
@@ -253,6 +412,11 @@ class PlanetePimBrandPending(models.Model):
                 "provider_id": provider_id,
                 "product_count": product_count,
                 "suggested_brand_id": suggested.id if suggested else False,
+                "created_brand_id": created_brand_id or False,
+                # Ne pas auto-valider: on laisse l'utilisateur/IA rapprocher plus tard
+                "validated_brand_id": False,
+                "state": state or "pending",
+                "sample_products_json": (new_samples or [])[:10],
             })
 
     @api.model
@@ -362,7 +526,7 @@ class PlanetePimBrandPending(models.Model):
         import unicodedata
         
         Brand = self.env["product.brand"].sudo()
-        pending_records = self.search([("state", "=", "pending")])
+        pending_records = self.search([("state", "in", ["pending", "new_brand"])])
         
         if not pending_records:
             return {
@@ -418,6 +582,10 @@ class PlanetePimBrandPending(models.Model):
                 matched_brand = brand_by_alias.get(pending_key)
             
             if matched_brand:
+                # Si on a créé une marque automatiquement et qu'on "match" sur cette même marque,
+                # ne pas la passer en "validated" (sinon on perd l'état new_brand).
+                if rec.created_brand_id and matched_brand.id == rec.created_brand_id.id:
+                    continue
                 # Auto-valider
                 rec.write({
                     "validated_brand_id": matched_brand.id,

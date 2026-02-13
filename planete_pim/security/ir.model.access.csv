@@ -44,3 +44,7 @@ access_planete_pim_import_error_line_base_user,access.planete.pim.import.error.l
 access_planete_pim_import_error_line_user,access.planete.pim.import.error.line.user,model_planete_pim_import_error_line,planete_pim.group_planete_pim_user,1,0,0,0
 access_planete_pim_import_error_line_manager,access.planete.pim.import.error.line.manager,model_planete_pim_import_error_line,planete_pim.group_planete_pim_manager,1,1,1,1
 access_planete_pim_import_error_line_admin,access.planete.pim.import.error.line.admin,model_planete_pim_import_error_line,base.group_system,1,1,1,1
+access_planete_pim_brand_alias_history_base_user,access.planete.pim.brand.alias.history.base.user,model_planete_pim_brand_alias_history,base.group_user,1,0,0,0
+access_planete_pim_brand_alias_history_user,access.planete.pim.brand.alias.history.user,model_planete_pim_brand_alias_history,planete_pim.group_planete_pim_user,1,0,0,0
+access_planete_pim_brand_alias_history_manager,access.planete.pim.brand.alias.history.manager,model_planete_pim_brand_alias_history,planete_pim.group_planete_pim_manager,1,1,1,1
+access_planete_pim_brand_alias_history_admin,access.planete.pim.brand.alias.history.admin,model_planete_pim_brand_alias_history,base.group_system,1,1,1,1
