@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         
         <!-- Default ChatGPT Configuration -->
         <!-- Default AI Configuration -->
@@ -11,9 +11,25 @@
             <field name="api_key">YOUR_API_KEY_HERE</field>
             <field name="api_endpoint">/v1/chat/completions</field>
             <field name="auto_enrich" eval="False"/>
-            <field name="max_tokens">1000</field>
+            <field name="max_tokens">1500</field>
             <field name="temperature">0.7</field>
             <field name="active" eval="True"/>
+            <field name="prompt_technical_research">Analyze the product '{product_name}'. 
+Search the web to find its exact technical specifications.
+Focus on: Dimensions (length, width, height), Weight (in kg), Material, and key technical features.
+Return the result as a detailed technical summary in {language}.</field>
+            <field name="prompt_deep_enrichment">System: You are a professional market analyst.
+Goal: Extract structured data for '{product_name}' using the PROVIDED CONTEXT (scraped from web).
+Required Output (JSON ONLY):
+{
+  "weight": float (kg),
+  "volume": float (m3),
+  "description_sale": "Short 1-sentence sales pitch",
+  "prices_france": [{"source": "domain.com", "price": float, "url": "url"}],
+  "youtube_videos": [{"name": "Title", "url": "url"}],
+  "technical_bullets": ["Spec 1", "Spec 2"]
+}
+Answer in {language}.</field>
         </record>
 
     </data>

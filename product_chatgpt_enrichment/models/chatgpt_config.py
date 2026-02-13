@@ -110,12 +110,26 @@ class ChatGPTConfig(models.Model):
 
     prompt_technical_research = fields.Text(
         string='Technical Research Prompt',
-        default="Research ONLY technical specifications, specs, and features for {product_name}. DO NOT include prices. Return a clean HTML summary.",
+        default="""Analyze the product '{product_name}'. 
+Search the web to find its exact technical specifications.
+Focus on: Dimensions (length, width, height), Weight (in kg), Material, and key technical features.
+Return the result as a detailed technical summary in {language}.""",
         help="Prompt used for the 'Web Search' phase.")
     
     prompt_deep_enrichment = fields.Text(
         string='Deep Enrichment Prompt',
-        default="System: You are an expert analyst. Answer in {language}. Use CONTEXT DATA to find French prices, youtube videos, and technical specs. Return ONLY JSON.",
+        default="""System: You are a professional market analyst.
+Goal: Extract structured data for '{product_name}' using the PROVIDED CONTEXT (scraped from web).
+Required Output (JSON ONLY):
+{{
+  "weight": float (kg),
+  "volume": float (m3),
+  "description_sale": "Short 1-sentence sales pitch",
+  "prices_france": [{{ "source": "domain.com", "price": float, "url": "url" }}],
+  "youtube_videos": [{{ "name": "Title", "url": "url" }}],
+  "technical_bullets": ["Spec 1", "Spec 2"]
+}}
+Answer in {language}.""",
         help="Internal system base prompt for deep enrichment.")
     
     auto_enrich_enabled = fields.Boolean(string='Automated Enrichment', default=False)
