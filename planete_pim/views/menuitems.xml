@@ -61,6 +61,14 @@
               sequence="42"
               groups="base.group_user"/>
 
+    <!-- Brand alias history -->
+    <menuitem id="menu_planete_pim_brand_alias_history"
+              name="Historique des alias de marques"
+              parent="menu_planete_pim_root"
+              action="planete_pim.action_planete_pim_brand_alias_history"
+              sequence="43"
+              groups="base.group_user"/>
+
     <menuitem id="menu_planete_pim_import_history"
               name="Imports (historique)"
               parent="planete_pim.menu_planete_pim_root"

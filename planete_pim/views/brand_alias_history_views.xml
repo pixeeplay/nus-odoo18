@@ -90,11 +90,4 @@
             </p>
         </field>
     </record>
-
-    <!-- Menu: Historique des alias (sous Planète PIM) -->
-    <menuitem id="menu_planete_pim_brand_alias_history"
-              name="Historique des alias de marques"
-              parent="planete_pim.menu_planete_pim_root"
-              action="action_planete_pim_brand_alias_history"
-              sequence="35"/>
 </odoo>
