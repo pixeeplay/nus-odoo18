@@ -27,11 +27,17 @@ def _signal_handler(signum, frame):
     _shutdown_requested = True
     _logger.warning("[SHUTDOWN] Signal %s received, setting shutdown flag", signum)
 
-# Register signal handlers
-signal.signal(signal.SIGTERM, _signal_handler)
-signal.signal(signal.SIGINT, _signal_handler)
-
 _logger = logging.getLogger(__name__)
+
+# Register signal handlers (only works in main thread)
+# Odoo loads modules in worker threads, so this may fail - handle gracefully
+try:
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+    _logger.debug("[SHUTDOWN] Signal handlers registered successfully")
+except ValueError as e:
+    # Expected when module loads in Odoo worker thread (not main thread)
+    _logger.debug("[SHUTDOWN] Could not register signal handlers (not in main thread): %s", e)
 
 
 # =========================================================================
