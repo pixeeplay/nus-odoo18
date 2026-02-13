@@ -4,7 +4,7 @@
     'category': 'Sales',
     'summary': 'Synchronize orders from PrestaShop to Odoo',
     'author': 'Antigravity',
-    'depends': ['base', 'sale_management'],
+    'depends': ['base', 'sale_management', 'stock'],
     'data': [
         'security/ir.model.access.csv',
         'views/prestashop_instance_views.xml',
