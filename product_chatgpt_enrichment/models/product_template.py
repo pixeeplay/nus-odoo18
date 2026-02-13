@@ -468,42 +468,6 @@ class ProductTemplate(models.Model):
             msg = _("<b>Manual Video Selection:</b> '%s' was selected as the preferred official video.") % (video_rec.name)
             self.message_post(body=msg)
 
-
-class ProductCompetitorPrice(models.Model):
-    _name = 'product.competitor.price'
-    _description = 'Competitor Price Tracking'
-
-    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
-    source = fields.Char(string='Source (Domain)')
-    price = fields.Float(string='Price')
-    currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id)
-    url = fields.Char(string='URL')
-    last_update = fields.Datetime(string='Last Scraped', default=fields.Datetime.now)
-
-    def action_apply_this_price(self):
-        """Proxy to parent model action"""
-        self.ensure_one()
-        self.product_tmpl_id.action_apply_competitor_price(self.id)
-
-
-class ProductVideoLink(models.Model):
-    _name = 'product.video.link'
-    _description = 'Official Video Links'
-
-    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
-    name = fields.Char(string='Title')
-    video_url = fields.Char(string='Video URL')
-    platform = fields.Selection([('youtube', 'YouTube'), ('other', 'Other')], string='Platform', default='youtube')
-    icon = fields.Char(compute='_compute_icon')
-
-    @api.depends('platform')
-    def _compute_icon(self):
-        for record in self:
-            if record.platform == 'youtube':
-                record.icon = 'fa-youtube'
-            else:
-                record.icon = 'fa-play-circle'
-
     def action_find_official_images(self):
         """Dedicated action to find official images using SerpApi Image Engine"""
         self.ensure_one()
@@ -543,6 +507,57 @@ class ProductVideoLink(models.Model):
                 'sticky': False,
             }
         }
+
+
+class ProductCompetitorPrice(models.Model):
+    _name = 'product.competitor.price'
+    _description = 'Competitor Price Tracking'
+
+    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
+    source = fields.Char(string='Source (Domain)')
+    price = fields.Float(string='Price')
+    currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id)
+    url = fields.Char(string='URL')
+    last_update = fields.Datetime(string='Last Scraped', default=fields.Datetime.now)
+
+    def action_apply_this_price(self):
+        """Proxy to parent model action"""
+        self.ensure_one()
+        self.product_tmpl_id.action_apply_competitor_price(self.id)
+
+
+class ProductVideoLink(models.Model):
+    _name = 'product.video.link'
+    _description = 'Official Video Links'
+
+    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
+    name = fields.Char(string='Title')
+    video_url = fields.Char(string='Video URL')
+    platform = fields.Selection([('youtube', 'YouTube'), ('other', 'Other')], string='Platform', default='youtube')
+    icon = fields.Char(compute='_compute_icon')
+
+    @api.depends('platform')
+    def _compute_icon(self):
+        for record in self:
+            if record.platform == 'youtube':
+                record.icon = 'fa-youtube'
+            else:
+                record.icon = 'fa-play-circle'
+
+    def action_open_video(self):
+        """Redirect to the video URL"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': self.video_url,
+            'target': 'new',
+        }
+
+    def action_set_primary(self):
+        """Proxy to parent model action"""
+        self.ensure_one()
+        self.product_tmpl_id.action_set_main_video(self.id)
+
 
 
 class ProductDiscoveredMedia(models.Model):
