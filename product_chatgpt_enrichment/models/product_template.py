@@ -369,7 +369,7 @@ class ProductVideoLink(models.Model):
             else:
                 record.icon = 'fa-play-circle'
 
-    def video_url(self):
+    def action_open_video(self):
         """Redirect to the video URL"""
         self.ensure_one()
         return {

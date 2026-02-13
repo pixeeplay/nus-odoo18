@@ -112,7 +112,7 @@
                                     <field name="chatgpt_video_ids" nolabel="1">
                                         <list decoration-info="platform == 'youtube'">
                                             <field name="icon" widget="image" options="{'size': [24, 24]}" invisible="1"/>
-                                            <button name="video_url" icon="fa-youtube-play" title="Watch on YouTube" type="object" invisible="platform != 'youtube'"/>
+                                            <button name="action_open_video" icon="fa-youtube-play" title="Watch on YouTube" type="object" invisible="platform != 'youtube'"/>
                                             <field name="name"/>
                                             <field name="platform"/>
                                             <field name="video_url" widget="url" string="Watch"/>
