@@ -130,6 +130,48 @@
                                 </group>
                             </div>
                         </div>
+                    <page string="Media Discovery" name="chatgpt_media_discovery">
+                        <header>
+                            <button name="action_find_official_images" string="Find Official Photos" type="object" class="btn-primary" icon="fa-camera"/>
+                        </header>
+                        <div class="o_kanban_view o_kanban_ungrouped">
+                            <field name="chatgpt_discovered_media_ids" mode="kanban" nolabel="1">
+                                <kanban>
+                                    <field name="id"/>
+                                    <field name="image_preview"/>
+                                    <field name="name"/>
+                                    <field name="url"/>
+                                    <field name="source"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_global_click d-flex flex-column p-0 border rounded overflow-hidden" style="width: 200px; height: 260px;">
+                                                <div class="d-flex align-items-center justify-content-center bg-light" style="height: 150px;">
+                                                    <t t-if="record.image_preview.raw_value">
+                                                        <img t-att-src="kanban_image('product.discovered.media', 'image_preview', record.id.raw_value)" 
+                                                             class="img-fluid" t-att-title="record.name.value" style="max-height: 100%; max-width: 100%; object-fit: contain;"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-picture-o fa-3x text-muted"/>
+                                                    </t>
+                                                </div>
+                                                <div class="p-2 flex-grow-1 overflow-hidden">
+                                                    <strong class="d-block text-truncate" t-att-title="record.name.value"><t t-esc="record.name.value"/></strong>
+                                                    <small class="text-muted d-block text-truncate" t-att-title="record.url.value"><t t-esc="record.source.value"/></small>
+                                                </div>
+                                                <div class="d-flex border-top">
+                                                    <button name="action_import_as_main" type="object" class="btn btn-sm btn-link flex-fill text-primary" title="Main Image">
+                                                        <i class="fa fa-photo mr-1"/> Main
+                                                    </button>
+                                                    <button name="action_import_to_gallery" type="object" class="btn btn-sm btn-link flex-fill text-success" title="Add to Gallery">
+                                                        <i class="fa fa-plus-circle mr-1"/> Gallery
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </div>
                     </page>
                 </xpath>
 

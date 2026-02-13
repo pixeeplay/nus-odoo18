@@ -56,6 +56,11 @@ class ProductTemplate(models.Model):
         string='Official Videos'
     )
 
+    chatgpt_discovered_media_ids = fields.One2many(
+        'product.discovered.media', 'product_tmpl_id',
+        string='Discovered Media'
+    )
+
     chatgpt_config_id = fields.Many2one('chatgpt.config', compute='_compute_chatgpt_config', string='Active AI Configuration')
     chatgpt_prompt_ids = fields.Many2many('chatgpt.product.prompt', string='Active Prompts', compute='_compute_chatgpt_config')
 
@@ -499,16 +504,99 @@ class ProductVideoLink(models.Model):
             else:
                 record.icon = 'fa-play-circle'
 
-    def action_open_video(self):
-        """Redirect to the video URL"""
+    def action_find_official_images(self):
+        """Dedicated action to find official images using SerpApi Image Engine"""
         self.ensure_one()
+        config = self.env['chatgpt.config'].get_active_config()
+        if not config.serpapi_key:
+            raise UserError(_("SerpApi Key is required for image discovery. Please configure it in AI Settings."))
+        
+        _logger.info("Starting official image discovery for: %s", self.name)
+        search_query = f"{self.name} official product photo"
+        if self.default_code:
+            search_query += f" {self.default_code}"
+            
+        results = config._search_with_serpapi(search_query, engine='google_images')
+        
+        # Clear previous discovery
+        self.chatgpt_discovered_media_ids.unlink()
+        
+        for res in results:
+            url = res.get('original') or res.get('thumbnail')
+            if not url: continue
+            
+            # Create discovery record - we'll compute preview on the fly or via button
+            self.env['product.discovered.media'].create({
+                'product_tmpl_id': self.id,
+                'name': res.get('title', 'Discovered Photo'),
+                'url': url,
+                'source': res.get('source', 'Web'),
+            })
+            
         return {
-            'type': 'ir.actions.act_url',
-            'url': self.video_url,
-            'target': 'new',
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Image Discovery'),
+                'message': _('Found %s potential official images.') % len(results),
+                'type': 'success',
+                'sticky': False,
+            }
         }
 
-    def action_set_primary(self):
-        """Proxy to parent model action"""
+
+class ProductDiscoveredMedia(models.Model):
+    _name = 'product.discovered.media'
+    _description = 'Discovered Product Media'
+
+    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
+    name = fields.Char(string='Title')
+    url = fields.Char(string='URL')
+    source = fields.Char(string='Source')
+    image_preview = fields.Binary(string='Preview', compute='_compute_preview', store=True)
+    
+    @api.depends('url')
+    def _compute_preview(self):
+        for record in self:
+            if record.url:
+                try:
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                    # We use a small timeout and verify=False to be robust
+                    response = requests.get(record.url, timeout=5, headers=headers, verify=False)
+                    if response.status_code == 200:
+                        record.image_preview = base64.b64encode(response.content)
+                    else:
+                        record.image_preview = False
+                except Exception:
+                    record.image_preview = False
+
+    def action_import_as_main(self):
+        """Set this image as the main product image"""
         self.ensure_one()
-        self.product_tmpl_id.action_set_main_video(self.id)
+        if not self.image_preview:
+            # Force download if preview failed
+            self._compute_preview()
+            
+        if self.image_preview:
+            self.product_tmpl_id.image_1920 = self.image_preview
+            self.product_tmpl_id.message_post(body=_("<b>Media Discovery:</b> Main image updated from discovered URL: %s") % self.url)
+        else:
+            raise UserError(_("Could not download this image. Please try another one."))
+
+    def action_import_to_gallery(self):
+        """Add this image to the Odoo extra media gallery"""
+        self.ensure_one()
+        if not self.image_preview:
+            self._compute_preview()
+            
+        if self.image_preview:
+            self.env['product.image'].create({
+                'name': self.name or _('AI Discovered Image'),
+                'product_tmpl_id': self.product_tmpl_id.id,
+                'image_1920': self.image_preview,
+            })
+            self.product_tmpl_id.message_post(body=_("<b>Media Discovery:</b> Added new extra media image from: %s") % self.url)
+        else:
+            raise UserError(_("Could not download this image. Please try another one."))

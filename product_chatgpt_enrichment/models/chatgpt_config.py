@@ -233,13 +233,13 @@ Answer in {language}.""",
         
         raise UserError(_("No models found or discovery not supported for this provider yet."))
 
-    def _search_with_serpapi(self, query):
+    def _search_with_serpapi(self, query, engine='google'):
         if not self.serpapi_key:
             return []
         url = "https://serpapi.com/search"
         params = {
             "q": query,
-            "engine": "google",
+            "engine": engine,
             "api_key": self.serpapi_key,
             "hl": self.serpapi_hl or 'fr',
             "gl": self.serpapi_gl or 'fr',
@@ -247,6 +247,8 @@ Answer in {language}.""",
         }
         try:
             res = requests.get(url, params=params, timeout=10).json()
+            if engine == 'google_images':
+                return res.get('images_results', [])
             return res.get('organic_results', [])
         except Exception as e:
             _logger.error("SerpApi error: %s", str(e))
