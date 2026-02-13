@@ -132,6 +132,12 @@ Required Output (JSON ONLY):
 Answer in {language}.""",
         help="Internal system base prompt for deep enrichment.")
     
+    # Advanced Search Settings
+    serpapi_hl = fields.Char(string='Google Host Language', default='fr', help="The language to use for Google Search (e.g. 'fr', 'en').")
+    serpapi_gl = fields.Char(string='Google Geolocation', default='fr', help="The country to use for Google Search (e.g. 'fr', 'us').")
+    max_scrape_pages = fields.Integer(string='Max Pages to Scrape', default=3, help="Maximum number of competitor pages to visit.")
+    debug_show_raw_results = fields.Boolean(string='Show Raw Search Data', default=False, help="Display the raw technical search results on the product page.")
+
     auto_enrich_enabled = fields.Boolean(string='Automated Enrichment', default=False)
     auto_enrich_interval = fields.Selection([
         ('2', 'Every 2 Hours'),
@@ -235,7 +241,9 @@ Answer in {language}.""",
             "q": query,
             "engine": "google",
             "api_key": self.serpapi_key,
-            "num": 5 # More results
+            "hl": self.serpapi_hl or 'fr',
+            "gl": self.serpapi_gl or 'fr',
+            "num": 10
         }
         try:
             res = requests.get(url, params=params, timeout=10).json()

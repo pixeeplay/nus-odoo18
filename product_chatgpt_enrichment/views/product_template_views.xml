@@ -81,19 +81,10 @@
                         </div>
                     </page>
 
-                    <page string="Web Search" name="chatgpt_web_search">
-                        <div class="alert alert-info" role="alert" invisible="chatgpt_web_search_log">
-                            <i class="fa fa-info-circle mr-2"/> No web search data available yet.
-                        </div>
-                        <group string="Web Intelligence Results" invisible="not chatgpt_web_search_log">
-                            <field name="chatgpt_web_search_log" nolabel="1" readonly="1"/>
-                        </group>
-                    </page>
-
-                    <page string="Deep Enrichment" name="chatgpt_deep_enrichment">
+                    <page string="Market Intel" name="chatgpt_market_intel">
                         <header>
-                            <button name="action_run_deep_search" string="Run Deep Search Only" type="object" class="btn-primary" icon="fa-search-plus"/>
-                            <button name="action_align_price" string="Align Price" type="object" class="btn-success" icon="fa-balance-scale" invisible="not chatgpt_competitor_price_ids"/>
+                            <button name="action_run_deep_search" string="Refresh Market Data" type="object" class="btn-primary" icon="fa-search-plus"/>
+                            <button name="action_align_price" string="Auto-Align Price" type="object" class="btn-success" icon="fa-balance-scale" invisible="not chatgpt_competitor_price_ids"/>
                         </header>
                         <div class="row">
                             <div class="col-md-7">
@@ -102,39 +93,43 @@
                                         <strong>AI Suggestion:</strong> Align price to <field name="chatgpt_suggested_price" widget="monetary" options="{'currency_field': 'currency_id'}"/> based on current strategy.
                                     </div>
                                     <div class="alert alert-info border small py-1" invisible="not chatgpt_competitor_price_ids">
-                                        <i class="fa fa-info-circle mr-1"/> <b>How it works:</b> AI scans the web, finds competitors. The "Align Price" button uses your settings (Lowest/Average + Offset) to update your sale price automatically.
+                                        <i class="fa fa-info-circle mr-1"/> AI found the following prices. Use "Auto-Align" to follow your global strategy, or click the <i class="fa fa-check-circle text-success"/> icon to force apply a specific price.
                                     </div>
                                     <field name="chatgpt_competitor_price_ids" nolabel="1">
-                                        <list editable="bottom">
-                                            <field name="source"/>
-                                            <field name="price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <list editable="bottom" create="0">
+                                            <field name="source" readonly="1"/>
+                                            <field name="price" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
                                             <field name="currency_id" invisible="1"/>
                                             <field name="url" widget="url" string="Link" text="View Page"/>
+                                            <button name="action_apply_this_price" icon="fa-check-circle text-success" title="Apply this price" type="object"/>
                                             <field name="last_update" widget="datetime" optional="hide"/>
                                         </list>
                                     </field>
                                 </group>
-                                <group string="Market Research Details">
+                                <group string="Market Research Content" invisible="not chatgpt_web_search_log">
+                                    <field name="chatgpt_web_search_log" nolabel="1" readonly="1"/>
+                                </group>
+                                <group string="Raw Search Data" invisible="not chatgpt_debug_show_raw">
                                     <field name="chatgpt_raw_serp_results" nolabel="1" readonly="1" options="{'style-inline': true}"/>
                                 </group>
                             </div>
                             <div class="col-md-5">
                                 <group string="Official Media &amp; Videos">
                                     <field name="chatgpt_video_ids" nolabel="1">
-                                        <list>
+                                        <list create="0">
                                             <field name="platform" invisible="1"/>
                                             <button name="action_open_video" icon="fa-youtube-play text-danger" title="Watch on YouTube" type="object"/>
-                                            <field name="name" string="Video Title"/>
-                                            <field name="video_url" widget="url" string="Watch" text="Open Link"/>
+                                            <field name="name" string="Video Title" readonly="1"/>
+                                            <button name="action_set_primary" icon="fa-star text-warning" title="Set as preferred video" type="object"/>
+                                            <field name="video_url" widget="url" string="Watch" text="Open Link" optional="hide"/>
                                         </list>
                                     </field>
                                 </group>
+                                <group string="Deep Scraping Logs">
+                                    <field name="chatgpt_deep_enrichment_log" nolabel="1" readonly="1"/>
+                                </group>
                             </div>
                         </div>
-
-                        <group string="Deep Scraping Logs">
-                            <field name="chatgpt_deep_enrichment_log" nolabel="1" readonly="1"/>
-                        </group>
                     </page>
                 </xpath>
 

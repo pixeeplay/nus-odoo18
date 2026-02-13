@@ -180,6 +180,16 @@
                                 <field name="scrapingbee_key" password="True" required="use_deep_enrichment" invisible="not use_deep_enrichment"/>
                             </group>
                         </group>
+                        <group string="Advanced Search &amp; Scraping Controls" invisible="not use_deep_enrichment and not use_web_search">
+                            <group>
+                                <field name="serpapi_hl" placeholder="e.g. fr"/>
+                                <field name="serpapi_gl" placeholder="e.g. fr"/>
+                            </group>
+                            <group>
+                                <field name="max_scrape_pages"/>
+                                <field name="debug_show_raw_results" widget="boolean_toggle"/>
+                            </group>
+                        </group>
                         <notebook>
                             <page string="Prompts" name="prompts">
                                 <group string="Custom Step Prompts">

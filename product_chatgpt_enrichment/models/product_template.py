@@ -44,6 +44,7 @@ class ProductTemplate(models.Model):
     chatgpt_auto_align = fields.Boolean(string='Auto-Align Market Price', default=True, help="If checked, this product will be automatically processed by the scheduler.")
     chatgpt_raw_serp_results = fields.Html(string='Raw Search Data', readonly=True)
     chatgpt_suggested_price = fields.Float(string='AI Suggested Price', compute='_compute_suggested_price', help="Suggested price based on global alignment strategy.")
+    chatgpt_debug_show_raw = fields.Boolean(related='chatgpt_config_id.debug_show_raw_results', string="Show Raw Search Data")
 
     chatgpt_competitor_price_ids = fields.One2many(
         'product.competitor.price', 'product_tmpl_id', 
@@ -146,7 +147,7 @@ class ProductTemplate(models.Model):
             if config.target_competitors:
                 search_query += " (" + " OR ".join(config.target_competitors.splitlines()) + ")"
                 
-            search_results = config._search_with_serpapi(search_query)
+            search_results = config._search_with_serpapi(search_query)[:max(1, config.max_scrape_pages or 3)]
             for res in search_results:
                 url = res.get('link')
                 title = res.get('title', 'Unknown Title')
@@ -299,7 +300,7 @@ class ProductTemplate(models.Model):
         
         # Trigger alignment if global config says so
         if config.price_alignment_strategy != 'none':
-            self.action_align_price()
+            self.action_align_price(raise_error=False)
         
     def _compute_suggested_price(self):
         config = self.env['chatgpt.config'].get_active_config()
@@ -322,7 +323,7 @@ class ProductTemplate(models.Model):
         
         _logger.info('Product %s enriched successfully', self.name)
 
-    def action_align_price(self):
+    def action_align_price(self, raise_error=True):
         """Align product price based on competitors"""
         self.ensure_one()
         if self.chatgpt_suggested_price > 0:
@@ -330,8 +331,10 @@ class ProductTemplate(models.Model):
             self.list_price = self.chatgpt_suggested_price
             msg = _("<b>Price Alignment:</b> Sale price updated from %s to <b>%s</b> based on AI market analysis.") % (old_price, self.list_price)
             self.message_post(body=msg)
-        else:
+        elif raise_error:
             raise UserError(_("No suggested price available. Ensure competitor prices are extracted first."))
+        else:
+            _logger.info("No suggested price available for %s, skipping alignment.", self.name)
 
     def _import_media_from_urls(self, urls):
         """Download images from URLs and import them into Odoo"""
@@ -347,7 +350,10 @@ class ProductTemplate(models.Model):
             
             try:
                 _logger.info('Importing image: %s', url)
-                response = requests.get(url, timeout=10)
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+                response = requests.get(url, timeout=10, headers=headers, verify=False)
                 if response.status_code == 200:
                     image_data = base64.b64encode(response.content)
                     
@@ -439,6 +445,25 @@ class ProductTemplate(models.Model):
         return True
 
 
+    def action_apply_competitor_price(self, price_id):
+        """Manually apply a specific competitor price as the product list price"""
+        self.ensure_one()
+        price_rec = self.env['product.competitor.price'].browse(price_id)
+        if price_rec.exists():
+            old_price = self.list_price
+            self.list_price = price_rec.price
+            msg = _("<b>Manual Price Override:</b> Price updated from %s to <b>%s</b> based on competitor: %s") % (old_price, self.list_price, price_rec.source)
+            self.message_post(body=msg)
+
+    def action_set_main_video(self, video_id):
+        """Set a discovered video as the primary one (currently just logs/notifies as Odoo 18 core doesn't have a single main video field by default outside of website_sale)"""
+        self.ensure_one()
+        video_rec = self.env['product.video.link'].browse(video_id)
+        if video_rec.exists():
+            msg = _("<b>Manual Video Selection:</b> '%s' was selected as the preferred official video.") % (video_rec.name)
+            self.message_post(body=msg)
+
+
 class ProductCompetitorPrice(models.Model):
     _name = 'product.competitor.price'
     _description = 'Competitor Price Tracking'
@@ -449,6 +474,11 @@ class ProductCompetitorPrice(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id)
     url = fields.Char(string='URL')
     last_update = fields.Datetime(string='Last Scraped', default=fields.Datetime.now)
+
+    def action_apply_this_price(self):
+        """Proxy to parent model action"""
+        self.ensure_one()
+        self.product_tmpl_id.action_apply_competitor_price(self.id)
 
 
 class ProductVideoLink(models.Model):
@@ -477,3 +507,8 @@ class ProductVideoLink(models.Model):
             'url': self.video_url,
             'target': 'new',
         }
+
+    def action_set_primary(self):
+        """Proxy to parent model action"""
+        self.ensure_one()
+        self.product_tmpl_id.action_set_main_video(self.id)
