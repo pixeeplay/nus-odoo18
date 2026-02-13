@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_prestashop_instance_tree" model="ir.ui.view">
+        <name>prestashop.instance.tree</name>
+        <model>prestashop.instance</model>
+        <arch type="xml">
+            <list>
+                <field name="name"/>
+                <field name="url"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="last_sync_date"/>
+                <field name="auto_sync"/>
+            </list>
+        </arch>
+    </record>
+
+    <record id="view_prestashop_instance_form" model="ir.ui.view">
+        <name>prestashop.instance.form</name>
+        <model>prestashop.instance</model>
+        <arch type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection" string="Test Connection" type="object" class="btn-info"/>
+                    <button name="action_sync_now" string="Sync Orders (Manual)" type="object" class="btn-primary" invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="E.g. French Store"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="API Credentials">
+                            <field name="url"/>
+                            <field name="api_key" password="True"/>
+                        </group>
+                        <group string="Local Settings">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="warehouse_id"/>
+                            <field name="auto_sync" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="info" string="Sync Information">
+                            <group>
+                                <field name="last_sync_date" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </arch>
+    </record>
+
+    <record id="action_prestashop_instance" model="ir.actions.act_window">
+        <name>PrestaShop Instances</name>
+        <res_model>prestashop.instance</res_model>
+        <view_mode>list,form</view_mode>
+    </record>
+</odoo>

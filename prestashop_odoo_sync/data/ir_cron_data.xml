@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_prestashop_sync" model="ir.cron">
+        <name>PrestaShop: Hourly Order Sync</name>
+        <model_id ref="model_prestashop_instance"/>
+        <state>code</state>
+        <code>model._cron_sync_orders()</code>
+        <user_id ref="base.user_root"/>
+        <interval_number>1</interval_number>
+        <interval_type>hours</interval_type>
+        <numbercall>-1</numbercall>
+        <active>True</active>
+    </record>
+</odoo>

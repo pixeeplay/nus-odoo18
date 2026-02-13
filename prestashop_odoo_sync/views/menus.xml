@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_prestashop_sync_root"
+              name="PrestaShop Sync"
+              web_icon="prestashop_odoo_sync,static/description/icon.png"
+              sequence="10"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_prestashop_dashboard"
+              name="Dashboard"
+              parent="menu_prestashop_sync_root"
+              action="action_prestashop_instance"
+              sequence="10"/>
+
+    <!-- Orders -->
+    <menuitem id="menu_prestashop_orders"
+              name="Orders"
+              parent="menu_prestashop_sync_root"
+              action="sale.action_orders"
+              sequence="20"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_prestashop_config_root"
+              name="Configuration"
+              parent="menu_prestashop_sync_root"
+              sequence="100"/>
+
+    <menuitem id="menu_prestashop_instances"
+              name="Instances"
+              parent="menu_prestashop_config_root"
+              action="action_prestashop_instance"
+              sequence="10"/>
+
+    <menuitem id="menu_prestashop_logs"
+              name="Sync Logs"
+              parent="menu_prestashop_config_root"
+              action="action_prestashop_sync_log"
+              sequence="20"/>
+</odoo>
