@@ -1,79 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_prestashop_instance_tree" model="ir.ui.view">
-        <name>prestashop.instance.tree</name>
-        <model>prestashop.instance</model>
-        <arch type="xml">
+        <field name="name">prestashop.instance.tree</field>
+        <field name="model">prestashop.instance</field>
+        <field name="arch" type="xml">
             <list>
                 <field name="name"/>
                 <field name="url"/>
-                <field name="active" widget="boolean_toggle"/>
-                <field name="last_sync_date"/>
-                <field name="auto_sync"/>
+                <field name="active"/>
             </list>
-        </arch>
+        </field>
     </record>
-
     <record id="view_prestashop_instance_form" model="ir.ui.view">
-        <name>prestashop.instance.form</name>
-        <model>prestashop.instance</model>
-        <arch type="xml">
+        <field name="name">prestashop.instance.form</field>
+        <field name="model">prestashop.instance</field>
+        <field name="arch" type="xml">
             <form>
-                <header>
-                    <button name="action_test_connection" string="Test Connection"
-                            type="object" class="btn-info"/>
-                    <button name="action_fetch_orders_preview" string="Fetch Orders to Preview"
-                            type="object" class="btn-primary"
-                            invisible="not id"/>
-                    <button name="action_sync_now" string="Auto-Sync Now (Import All)"
-                            type="object" class="btn-warning"
-                            invisible="not id"
-                            confirm="This will automatically import ALL pending orders without preview. Continue?"/>
-                </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" placeholder="E.g. French Store"/>
-                        </h1>
-                    </div>
                     <group>
-                        <group string="API Credentials">
-                            <field name="url"/>
-                            <field name="api_key" password="True"/>
-                        </group>
-                        <group string="Local Settings">
-                            <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="warehouse_id"/>
-                            <field name="auto_sync" widget="boolean_toggle"/>
-                            <field name="active" widget="boolean_toggle"/>
-                        </group>
+                        <field name="name"/>
+                        <field name="url"/>
+                        <field name="api_key"/>
+                        <field name="active"/>
                     </group>
-                    <notebook>
-                        <page name="preview" string="Order Preview">
-                            <field name="preview_order_ids" readonly="1">
-                                <list create="false" edit="false">
-                                    <field name="prestashop_order_date"/>
-                                    <field name="name"/>
-                                    <field name="customer_name"/>
-                                    <field name="total_amount"/>
-                                    <field name="state"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page name="info" string="Sync Information">
-                            <group>
-                                <field name="last_sync_date" readonly="1"/>
-                            </group>
-                        </page>
-                    </notebook>
                 </sheet>
             </form>
-        </arch>
+        </field>
     </record>
-
     <record id="action_prestashop_instance" model="ir.actions.act_window">
         <field name="name">PrestaShop Instances</field>
         <field name="res_model">prestashop.instance</field>
         <field name="view_mode">list,form</field>
     </record>
+    <menuitem id="menu_prestashop_root" name="PrestaShop" sequence="10"/>
+    <menuitem id="menu_prestashop_instances" name="Instances" parent="menu_prestashop_root" action="action_prestashop_instance" sequence="10"/>
 </odoo>
