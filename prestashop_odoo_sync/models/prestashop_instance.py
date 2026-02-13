@@ -51,52 +51,65 @@ class PrestaShopInstance(models.Model):
             else:
                 url = f"{self.url}/{resource}"
 
+            _logger.info(f"PrestaShop API call: {url} with params: {params}")
             response = requests.get(url, auth=(self.api_key, ''), params=params, timeout=30)
+            _logger.info(f"PrestaShop API response: Status {response.status_code}")
+
             if response.status_code == 200:
                 return ET.fromstring(response.content)
             else:
-                _logger.error(f"PrestaShop API error: {response.status_code} - {response.text}")
-                return None
+                error_msg = f"PrestaShop API error: {response.status_code} - {response.text[:500]}"
+                _logger.error(error_msg)
+                raise UserError(_(error_msg))
+        except ET.ParseError as e:
+            error_msg = f"XML parsing error: {str(e)}"
+            _logger.error(error_msg)
+            raise UserError(_(error_msg))
         except Exception as e:
-            _logger.error(f"PrestaShop API call failed: {str(e)}")
-            return None
+            error_msg = f"PrestaShop API call failed: {str(e)}"
+            _logger.error(error_msg)
+            raise UserError(_(error_msg))
 
     def _find_or_create_customer(self, customer_id):
         """Find or create customer from PrestaShop"""
         self.ensure_one()
 
-        # Check if customer already exists in Odoo
-        partner = self.env['res.partner'].search([
-            ('comment', 'ilike', f'PrestaShop ID: {customer_id}')
-        ], limit=1)
+        try:
+            # Check if customer already exists in Odoo
+            partner = self.env['res.partner'].search([
+                ('comment', 'ilike', f'PrestaShop ID: {customer_id}')
+            ], limit=1)
 
-        if partner:
+            if partner:
+                return partner
+
+            # Fetch customer from PrestaShop
+            customer_xml = self._api_get('customers', customer_id)
+            customer = customer_xml.find('.//customer')
+
+            if customer is None:
+                _logger.warning(f"Customer {customer_id} not found in PrestaShop response")
+                return None
+
+            # Extract customer data
+            firstname = customer.find('firstname').text or ''
+            lastname = customer.find('lastname').text or ''
+            email = customer.find('email').text or ''
+
+            # Create partner in Odoo
+            partner = self.env['res.partner'].create({
+                'name': f"{firstname} {lastname}".strip() or f'Customer {customer_id}',
+                'email': email,
+                'comment': f'PrestaShop ID: {customer_id}',
+                'customer_rank': 1,
+            })
+
+            _logger.info(f"Created customer {partner.name} from PrestaShop ID {customer_id}")
             return partner
 
-        # Fetch customer from PrestaShop
-        customer_xml = self._api_get('customers', customer_id)
-        if customer_xml is None:
+        except Exception as e:
+            _logger.error(f"Error creating customer {customer_id}: {str(e)}")
             return None
-
-        customer = customer_xml.find('.//customer')
-        if customer is None:
-            return None
-
-        # Extract customer data
-        firstname = customer.find('firstname').text or ''
-        lastname = customer.find('lastname').text or ''
-        email = customer.find('email').text or ''
-
-        # Create partner in Odoo
-        partner = self.env['res.partner'].create({
-            'name': f"{firstname} {lastname}".strip(),
-            'email': email,
-            'comment': f'PrestaShop ID: {customer_id}',
-            'customer_rank': 1,
-        })
-
-        _logger.info(f"Created customer {partner.name} from PrestaShop ID {customer_id}")
-        return partner
 
     def _find_or_create_product(self, product_id, product_name, product_reference):
         """Find or create product from PrestaShop"""
@@ -138,15 +151,25 @@ class PrestaShopInstance(models.Model):
 
             # Fetch orders from PrestaShop
             params = {
-                'filter[date_add]': f'[{date_from},]',
+                'filter[date_add]': f'>[{date_from}]',
                 'display': 'full',
             }
 
             orders_xml = self._api_get('orders', params=params)
-            if orders_xml is None:
-                raise UserError(_("Failed to fetch orders from PrestaShop"))
-
             orders = orders_xml.findall('.//order')
+
+            if not orders:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _('No Orders Found'),
+                        'message': _('No orders found in the last 30 days'),
+                        'type': 'info',
+                        'sticky': False,
+                    }
+                }
+
             imported_count = 0
             skipped_count = 0
 
