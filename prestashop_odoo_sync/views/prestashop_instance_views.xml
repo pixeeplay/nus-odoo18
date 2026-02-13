@@ -18,14 +18,36 @@
             <form>
                 <header>
                     <button name="action_test_connection" string="Test Connection" type="object" class="btn-primary"/>
+                    <button name="action_sync_orders" string="Sync Orders (Last 30 Days)" type="object" class="btn-success" invisible="not id"/>
                 </header>
                 <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="url"/>
-                        <field name="api_key"/>
-                        <field name="active"/>
+                        <group string="PrestaShop API">
+                            <field name="name"/>
+                            <field name="url"/>
+                            <field name="api_key" password="True"/>
+                        </group>
+                        <group string="Odoo Configuration">
+                            <field name="warehouse_id"/>
+                            <field name="company_id"/>
+                            <field name="active"/>
+                            <field name="last_sync_date"/>
+                        </group>
                     </group>
+                    <notebook>
+                        <page name="orders" string="Synchronized Orders">
+                            <field name="order_ids" readonly="1">
+                                <list create="false" edit="false">
+                                    <field name="name"/>
+                                    <field name="date_order"/>
+                                    <field name="partner_id"/>
+                                    <field name="amount_total"/>
+                                    <field name="state"/>
+                                    <field name="prestashop_order_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -35,6 +57,13 @@
         <field name="res_model">prestashop.instance</field>
         <field name="view_mode">list,form</field>
     </record>
+    <record id="action_prestashop_orders" model="ir.actions.act_window">
+        <field name="name">PrestaShop Orders</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('prestashop_source', '=', 'prestashop')]</field>
+    </record>
     <menuitem id="menu_prestashop_root" name="PrestaShop" sequence="10"/>
     <menuitem id="menu_prestashop_instances" name="Instances" parent="menu_prestashop_root" action="action_prestashop_instance" sequence="10"/>
+    <menuitem id="menu_prestashop_orders" name="Orders" parent="menu_prestashop_root" action="action_prestashop_orders" sequence="20"/>
 </odoo>
