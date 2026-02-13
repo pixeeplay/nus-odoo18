@@ -120,29 +120,35 @@ class ProductTemplate(models.Model):
             'chatgpt_log': f"<p>Starting enrichment for <b>{self.name}</b>...</p>",
         }
         
-        # 1. Fact Discovery (Web Search / Perplexity)
+        # 1. Technical Fact Discovery (Web Search) - SPECIFICATIONS ONLY
         scraped_data = ""
         if config.use_web_search:
-            vals['chatgpt_web_search_log'] = f"<p><i class='fa fa-search'/> Performing market research...</p>"
-            research_prompt = f"Research technical specifications and competitor prices in France for {self.name}. Return a detailed summary in HTML."
+            vals['chatgpt_web_search_log'] = f"<p><i class='fa fa-microchip'/> Researching technical characteristics...</p>"
+            research_prompt = f"Research ONLY technical specifications, specs, and features for {self.name}. DO NOT include prices. Return a clean HTML summary."
             research_res = config.call_ai_api(research_prompt)
-            # Remove markdown backticks from research results
             research_res = re.sub(r'```(html|json|xml)?', '', research_res).replace('```', '').strip()
             vals['chatgpt_web_search_log'] += f"<div class='research-results'>{research_res}</div>"
-            scraped_data += f"\n--- General Web Research ---\n{research_res}\n"
+            scraped_data += f"\n--- Technical Web Research ---\n{research_res}\n"
 
-        # 2. Scraping Layer (Deep Enrichment)
+        # 2. Scraping Layer (Deep Enrichment) - INCLUDES PRICES
         if config.use_deep_enrichment:
             deep_log = f"<p><i class='fa fa-deep-enrichment'/> Running Deep Scraping phase...</p><ul>"
-            raw_serp = "<div class='serp-results'><h5>SerpApi Discovery</h5><ul>"
-            urls = config._search_with_serpapi(self.name)
-            for url in urls:
-                deep_log += f"<li>Scraping <a href='{url}' target='_blank'>{url}</a>...</li>"
-                raw_serp += f"<li>Found reference: <a href='{url}' target='_blank'>{url}</a></li>"
+            raw_serp = "<div class='serp-results'><h5><i class='fa fa-google mr-2 text-primary'/> Market Data Discovery</h5><div class='list-group list-group-flush border rounded'>"
+            search_results = config._search_with_serpapi(self.name)
+            for res in search_results:
+                url = res.get('link')
+                title = res.get('title', 'Unknown Title')
+                snippet = res.get('snippet', '')
+                if not url: continue
+                
+                deep_log += f"<li>Analyzing <a href='{url}' target='_blank'>{title}</a>...</li>"
+                raw_serp += f"<div class='list-group-item p-2'><a href='{url}' target='_blank' class='fw-bold'>{title}</a><br/><small class='text-muted' style='font-size: 0.8em;'>{snippet}</small></div>"
+                
                 content = config._scrape_with_scrapingbee(url)
-                scraped_data += f"\n--- Content from {url} ---\n{content}\n"
+                scraped_data += f"\n--- Content from {title} ({url}) ---\n{content}\n"
+            
             deep_log += "</ul>"
-            raw_serp += "</ul></div>"
+            raw_serp += "</div></div>"
             vals['chatgpt_deep_enrichment_log'] = deep_log
             vals['chatgpt_raw_serp_results'] = raw_serp
         
@@ -150,9 +156,10 @@ class ProductTemplate(models.Model):
         
         system_instruction = (
             "You are an expert product data analyst. Always provide accurate technical details. "
-            "IMPORTANT: Return ONLY clean HTML or JSON as requested. NO markdown backticks. "
-            "If JSON is requested, use these exact keys if data found: 'weight', 'description_sale', "
-            "'prices_france' (list of {'source': domain, 'price': float, 'url': url} - aim for 5 competitors), "
+            "IMPORTANT: Return ONLY clean text or HTML as requested. NO markdown backticks. "
+            "For product descriptions, return ONLY the description content, NO field labels like 'Description:' or JSON syntax. "
+            "If JSON is requested, use these exact keys: 'weight', 'description_sale', "
+            "'prices_france' (list of {'source': domain, 'price': float, 'url': url} - aim for 5+ competitors), "
             "'youtube_videos' (list of {'name': title, 'url': url}), "
             "'technical_bullets' (list of strings)."
         )
@@ -170,11 +177,13 @@ class ProductTemplate(models.Model):
                 prompt += "\nReturn ONLY valid JSON."
             
             enriched_content = config.call_ai_api(prompt)
+            # Remove markdown backticks
             enriched_content = re.sub(r'```(html|json|xml)?', '', enriched_content).replace('```', '').strip()
             
             vals['chatgpt_log'] += f"<p><b>Prompt '{p.name}':</b> Executed.</p>"
             
             try:
+                # Attempt to extract JSON even if there's other text
                 json_start = enriched_content.find('{')
                 json_end = enriched_content.rfind('}') + 1
                 if json_start >= 0 and json_end > json_start:
@@ -182,24 +191,27 @@ class ProductTemplate(models.Model):
                     json_data = json.loads(maybe_json)
                     
                     if 'prices_france' in json_data and isinstance(json_data['prices_france'], list):
-                        self.chatgpt_competitor_price_ids.unlink()
-                        for pr in json_data['prices_france'][:5]:
-                            self.env['product.competitor.price'].create({
-                                'product_tmpl_id': self.id,
-                                'source': pr.get('source'),
-                                'price': float(pr.get('price', 0)),
-                                'url': pr.get('url'),
-                            })
+                        self.chatgpt_competitor_price_ids.unlink() # Refresh prices
+                        for pr in json_data['prices_france']:
+                            if pr.get('price'):
+                                self.env['product.competitor.price'].create({
+                                    'product_tmpl_id': self.id,
+                                    'source': pr.get('source'),
+                                    'price': float(pr.get('price', 0)),
+                                    'url': pr.get('url'),
+                                })
 
                     if 'youtube_videos' in json_data and isinstance(json_data['youtube_videos'], list):
-                        self.chatgpt_video_ids.unlink()
+                        # Don't unlink, just update/append unique ones
                         for v in json_data['youtube_videos']:
-                            self.env['product.video.link'].create({
-                                'product_tmpl_id': self.id,
-                                'name': v.get('name'),
-                                'video_url': v.get('url'),
-                                'platform': 'youtube'
-                            })
+                            if v.get('url'):
+                                if not self.chatgpt_video_ids.filtered(lambda x: x.video_url == v.get('url')):
+                                    self.env['product.video.link'].create({
+                                        'product_tmpl_id': self.id,
+                                        'name': v.get('name') or _('Official Media'),
+                                        'video_url': v.get('url'),
+                                        'platform': 'youtube'
+                                    })
 
                     media_keys = ['image_urls', 'images', 'media']
                     for mk in media_keys:
@@ -208,37 +220,49 @@ class ProductTemplate(models.Model):
 
                     for key, value in json_data.items():
                         if key in self._fields and not vals.get(key) and key not in ['chatgpt_competitor_price_ids', 'chatgpt_video_ids']:
-                            vals[key] = value
+                            if key == 'description_sale' and isinstance(value, str):
+                                # Clean any JSON-like headers labels
+                                clean_val = re.sub(r'^\{?"description_sale":\s*"?', '', value)
+                                clean_val = re.sub(r'"?\}?$', '', clean_val).strip()
+                                vals[key] = clean_val
+                            else:
+                                vals[key] = value
                     
-                    enriched_content = json.dumps(json_data, indent=2, ensure_ascii=False)
+                    # If we mapped a description, use it as the clean content for the dashboard
+                    if 'description_sale' in json_data:
+                        enriched_content = json_data['description_sale']
+                else:
+                    # Not JSON, but let's clean it anyway for the dashboard
+                    enriched_content = re.sub(r'^\{?"description_sale":\s*"?', '', enriched_content)
+                    enriched_content = re.sub(r'"?\}?$', '', enriched_content).strip()
+
             except Exception as e:
-                _logger.warning('Failed to parse AI response as JSON: %s', str(e))
+                _logger.warning('Failed to parse AI response as JSON or clean it: %s', str(e))
 
             if p.target_field_id and p.target_field_id.name in self._fields:
                 vals[p.target_field_id.name] = enriched_content
             
-            # Universal media extraction from raw text
+            # Universal media extraction from raw text (back-up)
             urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', enriched_content)
             if urls:
                 self._import_media_from_urls(urls)
-                # Also extract YouTube videos from raw URLs if not already in JSON
                 for url in urls:
                     if 'youtube.com' in url or 'youtu.be' in url:
                         if not self.chatgpt_video_ids.filtered(lambda v: v.video_url == url):
                             self.env['product.video.link'].create({
                                 'product_tmpl_id': self.id,
-                                'name': _('Official Video Discover'),
+                                'name': _('Official Discovery'),
                                 'video_url': url,
                                 'platform': 'youtube'
                             })
-
-                existing_urls = vals.get('chatgpt_media_urls', '') or ''
-                new_urls = "\n".join(list(set(urls)))
-                vals['chatgpt_media_urls'] = (existing_urls + "\n" + new_urls).strip()
+                
+                existing_media_urls = vals.get('chatgpt_media_urls', '') or ''
+                new_media_urls = "\n".join(list(set(urls)))
+                vals['chatgpt_media_urls'] = (existing_media_urls + "\n" + new_media_urls).strip()
             
-            all_content.append(f"<h3>{p.name}</h3>\n{enriched_content}")
+            all_content.append(enriched_content) # Just content for clean look
             
-        vals['chatgpt_content'] = "\n".join(all_content)
+        vals['chatgpt_content'] = "\n\n".join(all_content)
         vals['chatgpt_log'] += "<p class='text-success'><b>Done!</b> Enrichment completed.</p>"
         self.write(vals)
         
@@ -267,25 +291,13 @@ class ProductTemplate(models.Model):
     def action_align_price(self):
         """Align product price based on competitors"""
         self.ensure_one()
-        config = self.env['chatgpt.config'].get_active_config()
-        if not self.chatgpt_competitor_price_ids:
-            return
-            
-        prices = self.chatgpt_competitor_price_ids.filtered(lambda p: p.price > 0).mapped('price')
-        if not prices:
-            return
-            
-        target_price = 0
-        if config.price_alignment_strategy == 'lowest':
-            target_price = min(prices)
-        elif config.price_alignment_strategy == 'average':
-            target_price = sum(prices) / len(prices)
-            
-        if target_price > 0:
-            new_price = target_price + config.price_alignment_offset
-            self.list_price = new_price
-            msg = _("Price aligned to %s (Strategy: %s)") % (new_price, config.price_alignment_strategy)
+        if self.chatgpt_suggested_price > 0:
+            old_price = self.list_price
+            self.list_price = self.chatgpt_suggested_price
+            msg = _("<b>Price Alignment:</b> Sale price updated from %s to <b>%s</b> based on AI market analysis.") % (old_price, self.list_price)
             self.message_post(body=msg)
+        else:
+            raise UserError(_("No suggested price available. Ensure competitor prices are extracted first."))
 
     def _import_media_from_urls(self, urls):
         """Download images from URLs and import them into Odoo"""

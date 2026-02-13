@@ -100,29 +100,31 @@
                                     <div class="alert alert-warning mb-2" invisible="not chatgpt_suggested_price">
                                         <strong>AI Suggestion:</strong> Align price to <field name="chatgpt_suggested_price" widget="monetary" options="{'currency_field': 'currency_id'}"/> based on current strategy.
                                     </div>
+                                    <div class="alert alert-info border small py-1" invisible="not chatgpt_competitor_price_ids">
+                                        <i class="fa fa-info-circle mr-1"/> <b>How it works:</b> AI scans the web, finds competitors. The "Align Price" button uses your settings (Lowest/Average + Offset) to update your sale price automatically.
+                                    </div>
                                     <field name="chatgpt_competitor_price_ids" nolabel="1">
-                                        <list editable="bottom" decoration-bf="price">
+                                        <list editable="bottom">
                                             <field name="source"/>
                                             <field name="price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                             <field name="currency_id" invisible="1"/>
-                                            <field name="url" widget="url" string="Link"/>
-                                            <field name="last_update" widget="datetime"/>
+                                            <field name="url" widget="url" string="Link" text="View Page"/>
+                                            <field name="last_update" widget="datetime" optional="hide"/>
                                         </list>
                                     </field>
                                 </group>
-                                <group string="Raw Search Insights">
+                                <group string="Market Research Details">
                                     <field name="chatgpt_raw_serp_results" nolabel="1" readonly="1" options="{'style-inline': true}"/>
                                 </group>
                             </div>
                             <div class="col-md-5">
                                 <group string="Official Media &amp; Videos">
                                     <field name="chatgpt_video_ids" nolabel="1">
-                                        <list decoration-info="platform == 'youtube'">
-                                            <field name="icon" widget="image" options="{'size': [24, 24]}" invisible="1"/>
-                                            <button name="action_open_video" icon="fa-youtube-play" title="Watch on YouTube" type="object" invisible="platform != 'youtube'"/>
-                                            <field name="name"/>
-                                            <field name="platform"/>
-                                            <field name="video_url" widget="url" string="Watch"/>
+                                        <list>
+                                            <field name="platform" invisible="1"/>
+                                            <button name="action_open_video" icon="fa-youtube-play text-danger" title="Watch on YouTube" type="object"/>
+                                            <field name="name" string="Video Title"/>
+                                            <field name="video_url" widget="url" string="Watch" text="Open Link"/>
                                         </list>
                                     </field>
                                 </group>

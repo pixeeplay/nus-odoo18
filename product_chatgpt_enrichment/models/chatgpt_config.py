@@ -191,11 +191,11 @@ class ChatGPTConfig(models.Model):
             "q": query,
             "engine": "google",
             "api_key": self.serpapi_key,
-            "num": 3
+            "num": 5 # More results
         }
         try:
             res = requests.get(url, params=params, timeout=10).json()
-            return [r.get('link') for r in res.get('organic_results', []) if r.get('link')]
+            return res.get('organic_results', [])
         except Exception as e:
             _logger.error("SerpApi error: %s", str(e))
             return []
