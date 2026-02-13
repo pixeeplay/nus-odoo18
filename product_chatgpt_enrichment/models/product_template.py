@@ -38,6 +38,7 @@ class ProductTemplate(models.Model):
 
     chatgpt_log = fields.Html(string='Enrichment Log', readonly=True)
     chatgpt_web_search_log = fields.Html(string='Web Search Log', readonly=True)
+    chatgpt_deep_enrichment_log = fields.Html(string='Deep Enrichment Log', readonly=True)
     chatgpt_last_enrichment = fields.Datetime(string='Last AI Enrichment', readonly=True)
     chatgpt_auto_align = fields.Boolean(string='Auto-Align Market Price', default=True, help="If checked, this product will be automatically processed by the scheduler.")
     chatgpt_raw_serp_results = fields.Html(string='Raw Search Data', readonly=True)
