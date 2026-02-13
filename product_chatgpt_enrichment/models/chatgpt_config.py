@@ -118,6 +118,13 @@ class ChatGPTConfig(models.Model):
         default="System: You are an expert analyst. Answer in {language}. Use CONTEXT DATA to find French prices, youtube videos, and technical specs. Return ONLY JSON.",
         help="Internal system base prompt for deep enrichment.")
     
+    auto_enrich_enabled = fields.Boolean(string='Automated Enrichment', default=False)
+    auto_enrich_interval = fields.Selection([
+        ('2', 'Every 2 Hours'),
+        ('4', 'Every 4 Hours'),
+        ('24', 'Every 24 Hours'),
+    ], string='Frequency', default='24')
+    
     model_discovery_results = fields.Text(string='Discovered Models', readonly=True)
 
     @api.model
@@ -239,6 +246,48 @@ class ChatGPTConfig(models.Model):
         except Exception as e:
             _logger.error("ScrapingBee error: %s", str(e))
             return ""
+
+    @api.model
+    def action_cron_automated_alignment(self):
+        """Cron triggered method to enrich and align prices for products"""
+        config = self.get_active_config()
+        if not config or not config.auto_enrich_enabled:
+            _logger.info("Automated enrichment disabled or no active config.")
+            return
+            
+        _logger.info("Starting automated market alignment...")
+        products = self.env['product.template'].search([
+            ('active', '=', True),
+            ('chatgpt_auto_align', '=', True)
+        ])
+        
+        for product in products:
+            try:
+                _logger.info("Auto-enriching/aligning: %s", product.name)
+                product._enrich_with_chatgpt()
+                self.env.cr.commit() # Commit each product to avoid long transactions
+            except Exception as e:
+                _logger.error("Auto-align error for %s: %s", product.name, str(e))
+                continue
+                
+        _logger.info("Automated market alignment completed for %s products.", len(products))
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'auto_enrich_interval' in vals or 'auto_enrich_enabled' in vals:
+            self._update_cron_interval()
+        return res
+
+    def _update_cron_interval(self):
+        """Sync Odoo cron with chosen interval"""
+        cron = self.env.ref('product_chatgpt_enrichment.ir_cron_auto_align_market', raise_if_not_found=False)
+        if cron:
+            interval = int(self.auto_enrich_interval or 24)
+            cron.write({
+                'interval_number': interval,
+                'interval_type': 'hours',
+                'active': self.auto_enrich_enabled
+            })
 
     def _get_model_name(self):
         """Helper to get model code from Many2one or manual field"""

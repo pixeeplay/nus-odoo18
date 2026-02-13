@@ -68,9 +68,10 @@
                                         </list>
                                     </field>
                                 </group>
-                                <group string="Process Timeline">
-                                    <field name="chatgpt_last_enrichment" readonly="1"/>
-                                    <field name="chatgpt_enriched" invisible="1"/>
+                                <group name="chatgpt_status" string="AI Status">
+                                    <field name="chatgpt_enriched" readonly="1" widget="boolean_toggle"/>
+                                    <field name="chatgpt_last_enrichment" invisible="not chatgpt_enriched"/>
+                                    <field name="chatgpt_auto_align" widget="boolean_toggle"/>
                                 </group>
                                 <div class="bg-light p-3 border rounded">
                                     <h5 class="text-primary"><i class="fa fa-history mr-2"/> Activity Log</h5>

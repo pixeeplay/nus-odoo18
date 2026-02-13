@@ -1,39 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- Default AI Prompts -->
-        
-        <record id="prompt_marketing_description" model="chatgpt.product.prompt">
-            <field name="name">Marketing HTML Description</field>
+        <!-- 1. Description eCommerce Longue -->
+        <record id="prompt_ecommerce_description" model="chatgpt.product.prompt">
+            <field name="name">SEO eCommerce Description (Long)</field>
             <field name="sequence">10</field>
-            <field name="language">fr_FR</field>
-            <field name="prompt_template">Generate a professional, SEO-optimized product description for {product_name}. 
-Include a catchy title (h2), a compelling introduction, and a list of key benefits. 
-Return ONLY clean HTML.</field>
+            <field name="prompt_template">Generate a high-quality, SEO-optimized product description for {product_name}. 
+Include a catchy title (h2), compelling introduction (p), bullet points for features (ul/li), and technical benefits. 
+Focus on selling points. Return ONLY clean HTML without markdown backticks.</field>
             <field name="active" eval="True"/>
         </record>
 
-        <record id="prompt_technical_specs_json" model="chatgpt.product.prompt">
-            <field name="name">Technical Specifications (JSON)</field>
+        <!-- 2. Argumentaire de Vente Court -->
+        <record id="prompt_sales_pitch" model="chatgpt.product.prompt">
+            <field name="name">Short Sales Pitch</field>
             <field name="sequence">20</field>
-            <field name="language">fr_FR</field>
-            <field name="prompt_template">Extract all technical specifications for {product_name}. 
-Return the result ONLY as a JSON object with the following keys:
-- 'weight': numeric value in kg
-- 'description_sale': short text summary
-- 'image_urls': list of found image URLs</field>
+            <field name="prompt_template">Generate a concise and powerful sales pitch (2-3 sentences) for {product_name}. No HTML, plain text only.</field>
             <field name="active" eval="True"/>
         </record>
 
-        <record id="prompt_seo_meta" model="chatgpt.product.prompt">
-            <field name="name">SEO Meta Data (Titles &amp; Meta)</field>
+        <!-- 3. Spécifications Techniques JSON -->
+        <record id="prompt_technical_specs" model="chatgpt.product.prompt">
+            <field name="name">Technical Specs &amp; JSON Mapping</field>
             <field name="sequence">30</field>
-            <field name="language">fr_FR</field>
-            <field name="prompt_template">Generate SEO meta-title and meta-description for {product_name}. 
-Maximize click-through rate from Google.
-Format: 
-Title: [title]
-Meta: [description]</field>
+            <field name="prompt_template">Extract all technical data for {product_name}.
+Return ONLY a JSON object with: 
+- 'weight': float (kg)
+- 'description_sale': 1 sentence summary
+- 'prices_france': list of {'source': domain, 'price': float, 'url': url}
+- 'youtube_videos': list of {'name': title, 'url': url}
+- 'technical_bullets': list of strings</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- 4. Meta Titre SEO -->
+        <record id="prompt_seo_meta_title" model="chatgpt.product.prompt">
+            <field name="name">SEO Meta Title (CTR Optimized)</field>
+            <field name="sequence">40</field>
+            <field name="prompt_template">Generate an irresistible SEO Meta Title for {product_name} (max 60 chars). Include the brand if known.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 5. Meta Description SEO -->
+        <record id="prompt_seo_meta_desc" model="chatgpt.product.prompt">
+            <field name="name">SEO Meta Description</field>
+            <field name="sequence">50</field>
+            <field name="prompt_template">Generate a high-conversion SEO Meta Description for {product_name} (max 155 chars). End with a call to action.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 6. FAQ Produit -->
+        <record id="prompt_product_faq" model="chatgpt.product.prompt">
+            <field name="name">Product FAQ (3 Questions)</field>
+            <field name="sequence">60</field>
+            <field name="prompt_template">Generate 3 frequently asked questions and answers for {product_name} in HTML (dt/dd).</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 7. Points Forts / Faibles -->
+        <record id="prompt_pros_cons" model="chatgpt.product.prompt">
+            <field name="name">Pros &amp; Cons Analysis</field>
+            <field name="sequence">70</field>
+            <field name="prompt_template">Based on market reviews, list 3 Pros and 3 Cons for {product_name}. Return HTML.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 8. Guide d'Entretien -->
+        <record id="prompt_maintenance_guide" model="chatgpt.product.prompt">
+            <field name="name">Maintenance &amp; Care Guide</field>
+            <field name="sequence">80</field>
+            <field name="prompt_template">Provide a short maintenance and cleaning guide for {product_name}. Plain text.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 9. Comparaison Marché -->
+        <record id="prompt_market_comparison" model="chatgpt.product.prompt">
+            <field name="name">Market Positioning</field>
+            <field name="sequence">90</field>
+            <field name="prompt_template">Describe how {product_name} compares to its main competitors in terms of quality and price. 1 paragraph.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 10. Tagline Marketing -->
+        <record id="prompt_marketing_tagline" model="chatgpt.product.prompt">
+            <field name="name">Catchy Tagline</field>
+            <field name="sequence">100</field>
+            <field name="prompt_template">Create 5 short and catchy taglines for {product_name}.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 11. Description Instagram -->
+        <record id="prompt_social_insta" model="chatgpt.product.prompt">
+            <field name="name">Social Media: Instagram Post</field>
+            <field name="sequence">110</field>
+            <field name="prompt_template">Write an engaging Instagram post for {product_name} with emojis and hashtags.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 12. Description Amazon -->
+        <record id="prompt_amazon_bullets" model="chatgpt.product.prompt">
+            <field name="name">Amazon Style Bullet Points</field>
+            <field name="sequence">120</field>
+            <field name="prompt_template">Generate 5 'Amazon style' bullet points for {product_name}, starting with BOLD keywords.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 13. Mode d'Emploi Rapide -->
+        <record id="prompt_quick_start" model="chatgpt.product.prompt">
+            <field name="name">Quick Start Guide</field>
+            <field name="sequence">130</field>
+            <field name="prompt_template">Create a 4-step quick start guide for {product_name}. No HTML.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 14. Histoire de la Marque -->
+        <record id="prompt_brand_story" model="chatgpt.product.prompt">
+            <field name="name">Brand Story Insight</field>
+            <field name="sequence">140</field>
+            <field name="prompt_template">Find and summarize the brand's heritage or story related to {product_name}.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 15. Cibles Prioritaires -->
+        <record id="prompt_target_audience" model="chatgpt.product.prompt">
+            <field name="name">Target Audience Profile</field>
+            <field name="sequence">150</field>
+            <field name="prompt_template">Identify the 3 primary types of customers who would buy {product_name}.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 16. Mots Clés SEO -->
+        <record id="prompt_seo_keywords" model="chatgpt.product.prompt">
+            <field name="name">Primary &amp; LSI Keywords</field>
+            <field name="sequence">160</field>
+            <field name="prompt_template">List 10 primary and LSI keywords for {product_name} to use in blog posts.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 17. Traduction Anglais Marketing -->
+        <record id="prompt_trans_en" model="chatgpt.product.prompt">
+            <field name="name">Marketing Translation (EN)</field>
+            <field name="sequence">170</field>
+            <field name="language">en_US</field>
+            <field name="prompt_template">Translate the current description of {product_name} into high-end marketing English.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 18. Traduction Allemand Technique -->
+        <record id="prompt_trans_de" model="chatgpt.product.prompt">
+            <field name="name">Technical Translation (DE)</field>
+            <field name="sequence">180</field>
+            <field name="language">de_DE</field>
+            <field name="prompt_template">Translate technical specs of {product_name} into professional German.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 19. Idées de Contenu Blog -->
+        <record id="prompt_blog_ideas" model="chatgpt.product.prompt">
+            <field name="name">Blog Post Ideas</field>
+            <field name="sequence">190</field>
+            <field name="prompt_template">Suggest 3 blog post titles related to {product_name} to drive traffic.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- 20. Script Vidéo Youtube -->
+        <record id="prompt_video_script" model="chatgpt.product.prompt">
+            <field name="name">YouTube Short Script</field>
+            <field name="sequence">200</field>
+            <field name="prompt_template">Write a 30-second script for a YouTube Short video showing {product_name}.</field>
             <field name="active" eval="False"/>
         </record>
 

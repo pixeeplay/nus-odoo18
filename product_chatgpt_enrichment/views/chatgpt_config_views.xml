@@ -172,10 +172,12 @@
                                 <field name="price_alignment_offset" invisible="price_alignment_strategy == 'none' or price_alignment_offset_type != 'fixed'"/>
                                 <field name="price_alignment_offset_pct" invisible="price_alignment_strategy == 'none' or price_alignment_offset_type != 'percentage'"/>
                             </group>
-                            <group invisible="not use_deep_enrichment">
-                                <field name="target_competitors"/>
-                                <field name="serpapi_key" password="True" required="use_deep_enrichment"/>
-                                <field name="scrapingbee_key" password="True" required="use_deep_enrichment"/>
+                            <group>
+                                <field name="auto_enrich_enabled" widget="boolean_toggle"/>
+                                <field name="auto_enrich_interval" invisible="not auto_enrich_enabled"/>
+                                <field name="target_competitors" invisible="not use_deep_enrichment"/>
+                                <field name="serpapi_key" password="True" required="use_deep_enrichment" invisible="not use_deep_enrichment"/>
+                                <field name="scrapingbee_key" password="True" required="use_deep_enrichment" invisible="not use_deep_enrichment"/>
                             </group>
                         </group>
                         <notebook>

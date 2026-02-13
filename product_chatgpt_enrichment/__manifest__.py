@@ -25,6 +25,7 @@ Features:
         'security/ir.model.access.csv',
         'data/chatgpt_config_data.xml',
         'data/chatgpt_prompt_data.xml',
+        'data/ir_cron_data.xml',
         'views/chatgpt_config_views.xml',
         'views/product_template_views.xml',
     ],
