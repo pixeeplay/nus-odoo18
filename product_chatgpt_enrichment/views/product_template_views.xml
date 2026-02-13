@@ -130,6 +130,7 @@
                                 </group>
                             </div>
                         </div>
+                    </page>
                     <page string="Media Discovery" name="chatgpt_media_discovery">
                         <header>
                             <button name="action_find_official_images" string="Find Official Photos" type="object" class="btn-primary" icon="fa-camera"/>
