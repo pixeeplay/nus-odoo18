@@ -36,6 +36,29 @@ class ProductTemplate(models.Model):
         help='URLs of official images and videos found by AI'
     )
 
+    chatgpt_log = fields.Html(string='Enrichment Log', readonly=True)
+    chatgpt_web_search_log = fields.Html(string='Web Search Log', readonly=True)
+    chatgpt_deep_enrichment_log = fields.Html(string='Deep Enrichment Log', readonly=True)
+
+    chatgpt_competitor_price_ids = fields.One2many(
+        'product.competitor.price', 'product_tmpl_id', 
+        string='Competitor Prices (France)'
+    )
+    
+    chatgpt_video_ids = fields.One2many(
+        'product.video.link', 'product_tmpl_id', 
+        string='Official Videos'
+    )
+
+    chatgpt_config_id = fields.Many2one('chatgpt.config', compute='_compute_chatgpt_config', string='Active AI Configuration')
+    chatgpt_prompt_ids = fields.Many2many('chatgpt.product.prompt', string='Active Prompts', compute='_compute_chatgpt_config')
+
+    def _compute_chatgpt_config(self):
+        config = self.env['chatgpt.config'].search([('active', '=', True)], limit=1)
+        for record in self:
+            record.chatgpt_config_id = config.id
+            record.chatgpt_prompt_ids = config.prompt_ids.ids if config else []
+
     @api.model_create_multi
     def create(self, vals_list):
         """Override create to auto-enrich products if enabled"""
@@ -92,57 +115,100 @@ class ProductTemplate(models.Model):
         vals = {
             'chatgpt_enriched': True,
             'chatgpt_last_enrichment': fields.Datetime.now(),
+            'chatgpt_log': f"<p>Starting enrichment for <b>{self.name}</b>...</p>",
         }
         
-        # 1. Scraping Layer (Deep Enrichment)
+        # 1. Web Search Layer (Log)
+        if config.use_web_search:
+            vals['chatgpt_web_search_log'] = f"<p><i class='fa fa-search'/> Performing web search for latest info...</p>"
+
+        # 2. Scraping Layer (Deep Enrichment)
         scraped_data = ""
         if config.use_deep_enrichment:
-            _logger.info('Running Deep Enrichment for %s', self.name)
+            deep_log = f"<p><i class='fa fa-deep-enrichment'/> Running Deep Enrichment phase...</p><ul>"
             urls = config._search_with_serpapi(self.name)
             for url in urls:
-                scraped_data += f"\n--- Content from {url} ---\n"
-                scraped_data += config._scrape_with_scrapingbee(url)
+                deep_log += f"<li>Scraping <a href='{url}' target='_blank'>{url}</a>...</li>"
+                content = config._scrape_with_scrapingbee(url)
+                scraped_data += f"\n--- Content from {url} ---\n{content}\n"
+            deep_log += "</ul>"
+            vals['chatgpt_deep_enrichment_log'] = deep_log
         
         all_content = []
         
+        # System instruction to force specific JSON keys
+        system_instruction = (
+            "You are an expert product data analyst. Always provide accurate technical details. "
+            "If requested in JSON, use these exact keys if found: 'weight', 'description_sale', "
+            "'prices_france' (list of {'source': domain, 'price': float, 'url': url}), "
+            "'youtube_videos' (list of {'name': title, 'url': url}), "
+            "'technical_bullets' (list of strings)."
+        )
+
         for p in config.prompt_ids:
             if not p.active:
                 continue
                 
             # Prepare the prompt
             lang_name = dict(p._fields['language'].selection).get(p.language, 'French')
-            prompt = f"Answer in {lang_name}. "
+            prompt = f"{system_instruction}\nAnswer in {lang_name}. "
             
             if config.use_deep_enrichment and scraped_data:
-                prompt += "Use the following scraped data to provide accurate and technical details for the product. "
+                prompt += "Use the following scraped context to extract real specifications and French prices. "
                 prompt += f"CONTEXT DATA:\n{scraped_data}\n"
             else:
                 if config.media_discovery:
-                    prompt += "Include official media URLs (images/videos) if found. "
+                    prompt += "Find official YouTube video links and high-res image URLs. "
                 if config.use_web_search:
-                    prompt += "Use web search to find the latest technical specifications. "
+                    prompt += "Search for the current market price in France and official model specs. "
             
             prompt += p.prompt_template.format(product_name=self.name)
             
             # Request JSON if needed
             if "JSON" in prompt.upper() or "STRUCTURED" in prompt.upper():
-                prompt += "\nReturn ONLY a valid JSON object without markdown formatting."
+                prompt += "\nReturn ONLY valid JSON."
             
             # Call AI API
             enriched_content = config.call_ai_api(prompt)
+            vals['chatgpt_log'] += f"<p><b>Prompt '{p.name}':</b> Response received.</p>"
             
             # Try to parse JSON if content looks like JSON
             try:
                 if enriched_content.strip().startswith('{'):
                     json_data = json.loads(enriched_content)
+                    
+                    # 1. Extract Competitor Prices
+                    if 'prices_france' in json_data and isinstance(json_data['prices_france'], list):
+                        self.chatgpt_competitor_price_ids.unlink() # Refresh
+                        for pr in json_data['prices_france']:
+                            self.env['product.competitor.price'].create({
+                                'product_tmpl_id': self.id,
+                                'source': pr.get('source'),
+                                'price': float(pr.get('price', 0)),
+                                'url': pr.get('url'),
+                            })
+
+                    # 2. Extract YouTube Videos
+                    if 'youtube_videos' in json_data and isinstance(json_data['youtube_videos'], list):
+                        self.chatgpt_video_ids.unlink() # Refresh
+                        for v in json_data['youtube_videos']:
+                            self.env['product.video.link'].create({
+                                'product_tmpl_id': self.id,
+                                'name': v.get('name'),
+                                'video_url': v.get('url'),
+                                'platform': 'youtube'
+                            })
+
+                    # 3. Handle Media URLs
+                    media_keys = ['image_urls', 'images', 'media']
+                    for mk in media_keys:
+                        if mk in json_data and isinstance(json_data[mk], list):
+                            self._import_media_from_urls(json_data[mk])
+
                     # Batch map JSON fields if target_field_id is not set or custom
                     for key, value in json_data.items():
-                        # Automatic mapping for common fields
-                        if key in self._fields and not vals.get(key):
+                        if key in self._fields and not vals.get(key) and key not in ['chatgpt_competitor_price_ids', 'chatgpt_video_ids']:
                             vals[key] = value
-                        # Image URLs specifically
-                        if key in ['image_urls', 'images', 'media'] and isinstance(value, list):
-                            self._import_media_from_urls(value)
                     
                     enriched_content = json.dumps(json_data, indent=2, ensure_ascii=False)
             except Exception as e:
@@ -151,7 +217,7 @@ class ProductTemplate(models.Model):
             if p.target_field_id and p.target_field_id.name in self._fields:
                 vals[p.target_field_id.name] = enriched_content
             
-            # Extract URLs for media discovery
+            # Generic URL discovery for media
             if config.media_discovery or config.use_deep_enrichment:
                 urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', enriched_content)
                 if urls:
@@ -163,6 +229,7 @@ class ProductTemplate(models.Model):
             all_content.append(f"<h3>{p.name}</h3>\n{enriched_content}")
             
         vals['chatgpt_content'] = "\n".join(all_content)
+        vals['chatgpt_log'] += "<p class='text-success'><b>Done!</b> Enrichment completed.</p>"
         self.write(vals)
         _logger.info('Product %s enriched successfully', self.name)
 
@@ -205,10 +272,19 @@ class ProductTemplate(models.Model):
                             _logger.info('Added extra media from %s', url)
                 
                 processed_urls.append(url)
-                if len(processed_urls) >= 5: # Limit to 5 images per product to avoid bloat
+                if len(processed_urls) >= 10: # Increased limit
                     break
             except Exception as e:
                 _logger.warning('Failed to import image from %s: %s', url, str(e))
+
+    def action_run_deep_search(self):
+        """Dedicated action for deep enrichment phase only"""
+        self.ensure_one()
+        # Force set config to use deep enrichment for this run
+        config = self.env['chatgpt.config'].get_active_config()
+        if not config.use_deep_enrichment:
+            raise UserError(_("Deep Enrichment is disabled in global settings. Please enable it first."))
+        return self.action_enrich_with_chatgpt()
 
     def action_enrich_batch(self):
         """Action for batch enrichment of multiple products"""
@@ -261,3 +337,43 @@ class ProductTemplate(models.Model):
     def action_view_chatgpt_enrichment(self):
         """Dummy action for stat button to satisfy Odoo requirements"""
         return True
+
+
+class ProductCompetitorPrice(models.Model):
+    _name = 'product.competitor.price'
+    _description = 'Competitor Price Tracking'
+
+    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
+    source = fields.Char(string='Source (Domain)')
+    price = fields.Float(string='Price')
+    currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id)
+    url = fields.Char(string='URL')
+    last_update = fields.Datetime(string='Last Scraped', default=fields.Datetime.now)
+
+
+class ProductVideoLink(models.Model):
+    _name = 'product.video.link'
+    _description = 'Official Video Links'
+
+    product_tmpl_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
+    name = fields.Char(string='Title')
+    video_url = fields.Char(string='Video URL')
+    platform = fields.Selection([('youtube', 'YouTube'), ('other', 'Other')], string='Platform', default='youtube')
+    icon = fields.Char(compute='_compute_icon')
+
+    @api.depends('platform')
+    def _compute_icon(self):
+        for record in self:
+            if record.platform == 'youtube':
+                record.icon = 'fa-youtube'
+            else:
+                record.icon = 'fa-play-circle'
+
+    def video_url(self):
+        """Redirect to the video URL"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': self.video_url,
+            'target': 'new',
+        }

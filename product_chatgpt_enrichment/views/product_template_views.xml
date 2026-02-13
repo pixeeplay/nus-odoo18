@@ -44,22 +44,87 @@
                 <!-- Add ChatGPT fields in a new notebook page -->
                 <xpath expr="//notebook" position="inside">
                     <page string="AI Enrichment" name="chatgpt_enrichment">
-                        <group>
-                            <group>
-                                <field name="chatgpt_enriched" readonly="1"/>
-                                <field name="chatgpt_last_enrichment" readonly="1"/>
-                            </group>
-                        </group>
-                        <group string="AI Generated Content">
-                            <field name="chatgpt_content" nolabel="1" readonly="1"/>
-                        </group>
-                        <group string="Discovered Media" invisible="not chatgpt_media_urls">
-                            <field name="chatgpt_media_urls" nolabel="1" readonly="1" widget="text"/>
-                        </group>
-                        <div class="alert alert-info" role="alert" invisible="chatgpt_enriched">
-                            <p><strong>No AI enrichment yet.</strong></p>
-                            <p>Click the "Enrich with ChatGPT" button to automatically generate enhanced product content.</p>
+                        <header>
+                            <button name="action_enrich_with_chatgpt" string="Run Enrichment" type="object" class="btn-primary" icon="fa-magic"/>
+                            <button name="action_clear_enrichment" string="Clear Data" type="object" class="btn-secondary" icon="fa-trash" invisible="not chatgpt_enriched"/>
+                        </header>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <group string="Main AI Output">
+                                    <field name="chatgpt_content" nolabel="1" readonly="1" options="{'style-inline': true}"/>
+                                </group>
+                            </div>
+                            <div class="col-md-4">
+                                <group string="Active Configuration">
+                                    <field name="chatgpt_config_id" readonly="1"/>
+                                </group>
+                                <group string="Registered Prompts">
+                                    <field name="chatgpt_prompt_ids" nolabel="1">
+                                        <list create="0" delete="0" edit="0">
+                                            <field name="name"/>
+                                            <field name="language"/>
+                                            <field name="active" widget="boolean_toggle"/>
+                                        </list>
+                                    </field>
+                                </group>
+                                <group string="Process Timeline">
+                                    <field name="chatgpt_last_enrichment" readonly="1"/>
+                                    <field name="chatgpt_enriched" invisible="1"/>
+                                </group>
+                                <div class="bg-light p-3 border rounded">
+                                    <h5 class="text-primary"><i class="fa fa-history mr-2"/> Activity Log</h5>
+                                    <field name="chatgpt_log" nolabel="1" readonly="1"/>
+                                </div>
+                            </div>
                         </div>
+                    </page>
+
+                    <page string="Web Search" name="chatgpt_web_search">
+                        <div class="alert alert-info" role="alert" invisible="chatgpt_web_search_log">
+                            <i class="fa fa-info-circle mr-2"/> No web search data available yet.
+                        </div>
+                        <group string="Web Intelligence Results" invisible="not chatgpt_web_search_log">
+                            <field name="chatgpt_web_search_log" nolabel="1" readonly="1"/>
+                        </group>
+                    </page>
+
+                    <page string="Deep Enrichment" name="chatgpt_deep_enrichment">
+                        <header>
+                            <button name="action_run_deep_search" string="Run Deep Search Only" type="object" class="btn-primary" icon="fa-search-plus"/>
+                        </header>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <group string="Competitor Prices (France)">
+                                    <field name="chatgpt_competitor_price_ids" nolabel="1">
+                                        <list editable="bottom" decoration-bf="price">
+                                            <field name="source"/>
+                                            <field name="price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            <field name="currency_id" invisible="1"/>
+                                            <field name="url" widget="url" string="Link"/>
+                                            <field name="last_update" widget="datetime"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </div>
+                            <div class="col-md-5">
+                                <group string="Official Media &amp; Videos">
+                                    <field name="chatgpt_video_ids" nolabel="1">
+                                        <list decoration-info="platform == 'youtube'">
+                                            <field name="icon" widget="image" options="{'size': [24, 24]}" invisible="1"/>
+                                            <button name="video_url" icon="fa-youtube-play" title="Watch on YouTube" type="object" invisible="platform != 'youtube'"/>
+                                            <field name="name"/>
+                                            <field name="platform"/>
+                                            <field name="video_url" widget="url" string="Watch"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </div>
+                        </div>
+
+                        <group string="Deep Scraping Logs">
+                            <field name="chatgpt_deep_enrichment_log" nolabel="1" readonly="1"/>
+                        </group>
                     </page>
                 </xpath>
 
