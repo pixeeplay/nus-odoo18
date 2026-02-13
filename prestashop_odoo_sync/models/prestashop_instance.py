@@ -142,17 +142,14 @@ class PrestaShopInstance(models.Model):
         return product
 
     def action_sync_orders(self):
-        """Synchronize orders from PrestaShop (last 30 days)"""
+        """Synchronize orders from PrestaShop (last 50 orders)"""
         self.ensure_one()
 
         try:
-            # Calculate date 30 days ago
-            date_from = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-
-            # Fetch orders from PrestaShop
+            # Fetch orders from PrestaShop - simplified without date filter first
             params = {
-                'filter[date_add]': f'>[{date_from}]',
                 'display': 'full',
+                'limit': 50,  # Limit to last 50 orders for testing
             }
 
             orders_xml = self._api_get('orders', params=params)
