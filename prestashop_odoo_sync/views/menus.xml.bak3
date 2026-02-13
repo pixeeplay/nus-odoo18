@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+<data>
     <menuitem id="menu_prestashop_sync_root"
               name="PrestaShop Sync"
               web_icon="prestashop_odoo_sync,static/description/icon.png"
@@ -43,4 +44,5 @@
               parent="menu_prestashop_config_root"
               action="action_prestashop_sync_log"
               sequence="20"/>
+</data>
 </odoo>

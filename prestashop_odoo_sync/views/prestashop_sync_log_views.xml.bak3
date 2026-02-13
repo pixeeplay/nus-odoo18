@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+<data>
     <record id="view_prestashop_sync_log_tree" model="ir.ui.view">
         <name>prestashop.sync.log.tree</name>
         <model>prestashop.sync.log</model>
@@ -48,4 +49,5 @@
         <field name="res_model">prestashop.sync.log</field>
         <field name="view_mode">list,form</field>
     </record>
+</data>
 </odoo>
