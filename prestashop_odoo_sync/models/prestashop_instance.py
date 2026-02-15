@@ -1,18 +1,18 @@
 import logging
 import requests
 from datetime import datetime, timedelta
-import xml.etree.ElementTree as ET
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
+
 
 class PrestaShopInstance(models.Model):
     _name = 'prestashop.instance'
     _description = 'PrestaShop Instance'
 
     name = fields.Char(required=True)
-    url = fields.Char(string='Store URL', required=True, help="Include /api/ at the end (e.g., https://mystore.com/api/)")
+    url = fields.Char(string='Store URL', required=True, help="PrestaShop API URL (e.g., https://mystore.com/api/)")
     api_key = fields.Char(string='API Key', required=True)
     active = fields.Boolean(default=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
@@ -20,12 +20,21 @@ class PrestaShopInstance(models.Model):
     last_sync_date = fields.Datetime(string='Last Sync Date', readonly=True)
     order_ids = fields.One2many('sale.order', 'prestashop_instance_id', string='Synchronized Orders')
 
+    def _get_base_url(self):
+        """Return clean base URL for API calls"""
+        return self.url.rstrip('/')
+
     def action_test_connection(self):
         """Test connection to PrestaShop API"""
         self.ensure_one()
         try:
-            url = f"{self.url}?schema=blank"
-            response = requests.get(url, auth=(self.api_key, ''), timeout=10)
+            base_url = self._get_base_url()
+            response = requests.get(
+                base_url,
+                auth=(self.api_key, ''),
+                params={'output_format': 'JSON'},
+                timeout=10,
+            )
             if response.status_code == 200:
                 return {
                     'type': 'ir.actions.client',
@@ -38,159 +47,143 @@ class PrestaShopInstance(models.Model):
                     }
                 }
             else:
-                raise UserError(_("Connection failed. Status Code: %s") % response.status_code)
-        except Exception as e:
+                raise UserError(_("Connection failed. Status Code: %s\nResponse: %s") % (
+                    response.status_code, response.text[:300]))
+        except requests.exceptions.RequestException as e:
             raise UserError(_("Connection error: %s") % str(e))
 
     def _api_get(self, resource, resource_id=None, params=None):
-        """Helper method to make API calls to PrestaShop"""
+        """Helper method to make JSON API calls to PrestaShop"""
+        self.ensure_one()
+        base_url = self._get_base_url()
+
+        if resource_id:
+            url = f"{base_url}/{resource}/{resource_id}"
+        else:
+            url = f"{base_url}/{resource}"
+
+        if params is None:
+            params = {}
+        params['output_format'] = 'JSON'
+
+        _logger.info("PrestaShop API call: %s with params: %s", url, params)
+        response = requests.get(url, auth=(self.api_key, ''), params=params, timeout=30)
+        _logger.info("PrestaShop API response: Status %s", response.status_code)
+
+        if response.status_code != 200:
+            _logger.error("PrestaShop API error %s: %s", response.status_code, response.text[:500])
+            raise UserError(_("PrestaShop API error (status %s). URL: %s") % (
+                response.status_code, url))
+
+        try:
+            return response.json()
+        except Exception:
+            _logger.error("Failed to parse JSON response: %s", response.text[:500])
+            raise UserError(_("Invalid API response (not JSON). URL: %s\nResponse: %s") % (
+                url, response.text[:300]))
+
+    def action_check_permissions(self):
+        """Check which resources are available on the PrestaShop API"""
         self.ensure_one()
         try:
-            base_url = self.url.rstrip('/')
-            if resource_id:
-                url = f"{base_url}/{resource}/{resource_id}"
+            data = self._api_get('')
+            if isinstance(data, dict):
+                resources = list(data.keys())
+                msg = ', '.join(resources[:30])
             else:
-                url = f"{base_url}/{resource}"
-
-            _logger.info(f"PrestaShop API call: {url} with params: {params}")
-            response = requests.get(url, auth=(self.api_key, ''), params=params, timeout=30)
-            _logger.info(f"PrestaShop API response: Status {response.status_code}")
-
-            if response.status_code == 200:
-                return ET.fromstring(response.content)
-            else:
-                error_msg = f"PrestaShop API error: {response.status_code} - {response.text[:500]}"
-                _logger.error(error_msg)
-                raise UserError(_(error_msg))
-        except ET.ParseError as e:
-            error_msg = f"XML parsing error: {str(e)}"
-            _logger.error(error_msg)
-            raise UserError(_(error_msg))
+                msg = str(data)[:500]
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Available API Resources'),
+                    'message': msg,
+                    'type': 'info',
+                    'sticky': True,
+                }
+            }
         except Exception as e:
-            error_msg = f"PrestaShop API call failed: {str(e)}"
-            _logger.error(error_msg)
-            raise UserError(_(error_msg))
+            raise UserError(_("Check failed: %s") % str(e))
 
     def _find_or_create_customer(self, customer_id):
         """Find or create customer from PrestaShop"""
         self.ensure_one()
-
         try:
-            # Check if customer already exists in Odoo
             partner = self.env['res.partner'].search([
                 ('comment', 'ilike', f'PrestaShop ID: {customer_id}')
             ], limit=1)
-
             if partner:
                 return partner
 
-            # Fetch customer from PrestaShop
-            customer_xml = self._api_get('customers', customer_id)
-            customer = customer_xml.find('.//customer')
+            data = self._api_get('customers', customer_id)
+            customer = data.get('customer', {})
 
-            if customer is None:
-                _logger.warning(f"Customer {customer_id} not found in PrestaShop response")
-                return None
+            firstname = customer.get('firstname', '')
+            lastname = customer.get('lastname', '')
+            email = customer.get('email', '')
 
-            # Extract customer data
-            firstname = customer.find('firstname').text or ''
-            lastname = customer.find('lastname').text or ''
-            email = customer.find('email').text or ''
-
-            # Create partner in Odoo
             partner = self.env['res.partner'].create({
                 'name': f"{firstname} {lastname}".strip() or f'Customer {customer_id}',
                 'email': email,
                 'comment': f'PrestaShop ID: {customer_id}',
                 'customer_rank': 1,
             })
-
-            _logger.info(f"Created customer {partner.name} from PrestaShop ID {customer_id}")
+            _logger.info("Created customer %s from PrestaShop ID %s", partner.name, customer_id)
             return partner
 
         except Exception as e:
-            _logger.error(f"Error creating customer {customer_id}: {str(e)}")
+            _logger.error("Error creating customer %s: %s", customer_id, str(e))
             return None
 
     def _find_or_create_product(self, product_id, product_name, product_reference):
         """Find or create product from PrestaShop"""
         self.ensure_one()
-
-        # Try to find by reference first
         product = None
+
         if product_reference:
             product = self.env['product.product'].search([
                 ('default_code', '=', product_reference)
             ], limit=1)
 
-        # Try to find by name
-        if not product:
+        if not product and product_name:
             product = self.env['product.product'].search([
                 ('name', '=', product_name)
             ], limit=1)
 
-        # Create if not found
         if not product:
             product = self.env['product.product'].create({
-                'name': product_name,
+                'name': product_name or f'Product {product_id}',
                 'default_code': product_reference,
                 'type': 'product',
                 'list_price': 0.0,
                 'description_sale': f'PrestaShop Product ID: {product_id}',
             })
-            _logger.info(f"Created product {product.name} from PrestaShop ID {product_id}")
+            _logger.info("Created product %s from PrestaShop ID %s", product.name, product_id)
 
         return product
-
-    def action_check_permissions(self):
-        """Check which resources are available on the PrestaShop API"""
-        self.ensure_one()
-        try:
-            base_url = self.url.rstrip('/')
-            response = requests.get(base_url, auth=(self.api_key, ''), timeout=10)
-            if response.status_code == 200:
-                root = ET.fromstring(response.content)
-                resources = [elem.tag for elem in root.find('.//api') or []]
-                if not resources:
-                    resources = [elem.tag for elem in root.iter() if elem.get('xlink:href')]
-                msg = ', '.join(resources) if resources else response.text[:500]
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': _('Available API Resources'),
-                        'message': msg,
-                        'type': 'info',
-                        'sticky': True,
-                    }
-                }
-            else:
-                raise UserError(_("API root returned status %s") % response.status_code)
-        except Exception as e:
-            raise UserError(_("Check failed: %s") % str(e))
 
     def action_sync_orders(self):
         """Synchronize orders from PrestaShop (last 50 orders)"""
         self.ensure_one()
 
         try:
-            # Fetch orders from PrestaShop
-            params = {
+            data = self._api_get('orders', params={
                 'display': 'full',
                 'limit': 50,
-                'output_format': 'XML',
-            }
+                'sort': '[id_DESC]',
+            })
 
-            orders_xml = self._api_get('orders', params=params)
-            orders = orders_xml.findall('.//order')
+            orders = data.get('orders', [])
+            if isinstance(orders, dict):
+                orders = [orders]
 
             if not orders:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
-                        'title': _('No Orders Found'),
-                        'message': _('No orders found in the last 30 days'),
+                        'title': _('No Orders'),
+                        'message': _('No orders found in PrestaShop'),
                         'type': 'info',
                         'sticky': False,
                     }
@@ -200,9 +193,8 @@ class PrestaShopInstance(models.Model):
             skipped_count = 0
 
             for order in orders:
-                order_id = order.find('id').text
+                order_id = str(order.get('id', ''))
 
-                # Check if order already imported
                 existing = self.env['sale.order'].search([
                     ('prestashop_order_id', '=', order_id),
                     ('prestashop_instance_id', '=', self.id)
@@ -212,19 +204,15 @@ class PrestaShopInstance(models.Model):
                     skipped_count += 1
                     continue
 
-                # Get order details
-                order_reference = order.find('reference').text or f'PS-{order_id}'
-                customer_id = order.find('id_customer').text
-                total_paid = float(order.find('total_paid').text or 0)
-                date_add = order.find('date_add').text
+                order_reference = order.get('reference', f'PS-{order_id}')
+                customer_id = str(order.get('id_customer', ''))
+                date_add = order.get('date_add', '')
 
-                # Find or create customer
                 partner = self._find_or_create_customer(customer_id)
                 if not partner:
-                    _logger.warning(f"Could not create customer for order {order_id}")
+                    _logger.warning("Could not create customer for order %s", order_id)
                     continue
 
-                # Create sale order
                 sale_order = self.env['sale.order'].create({
                     'partner_id': partner.id,
                     'date_order': date_add,
@@ -236,36 +224,32 @@ class PrestaShopInstance(models.Model):
                     'origin': order_reference,
                 })
 
-                # Fetch order details for lines
-                order_detail_xml = self._api_get('orders', order_id)
-                if order_detail_xml:
-                    associations = order_detail_xml.find('.//associations')
-                    if associations is not None:
-                        order_rows = associations.findall('.//order_row')
+                # Process order lines from associations
+                associations = order.get('associations', {})
+                order_rows = associations.get('order_rows', [])
+                if isinstance(order_rows, dict):
+                    order_rows = [order_rows]
 
-                        for row in order_rows:
-                            product_id = row.find('product_id').text
-                            product_name = row.find('product_name').text or 'Unknown Product'
-                            product_reference = row.find('product_reference').text or ''
-                            quantity = int(row.find('product_quantity').text or 1)
-                            unit_price = float(row.find('product_price').text or 0)
+                for row in order_rows:
+                    product_id = str(row.get('product_id', ''))
+                    product_name = row.get('product_name', 'Unknown Product')
+                    product_reference = row.get('product_reference', '')
+                    quantity = int(row.get('product_quantity', 1))
+                    unit_price = float(row.get('product_price', 0))
 
-                            # Find or create product
-                            product = self._find_or_create_product(product_id, product_name, product_reference)
+                    product = self._find_or_create_product(product_id, product_name, product_reference)
 
-                            # Create order line
-                            self.env['sale.order.line'].create({
-                                'order_id': sale_order.id,
-                                'product_id': product.id,
-                                'name': product_name,
-                                'product_uom_qty': quantity,
-                                'price_unit': unit_price,
-                            })
+                    self.env['sale.order.line'].create({
+                        'order_id': sale_order.id,
+                        'product_id': product.id,
+                        'name': product_name,
+                        'product_uom_qty': quantity,
+                        'price_unit': unit_price,
+                    })
 
                 imported_count += 1
-                _logger.info(f"Imported PrestaShop order {order_id} as {sale_order.name}")
+                _logger.info("Imported PrestaShop order %s as %s", order_id, sale_order.name)
 
-            # Update last sync date
             self.last_sync_date = fields.Datetime.now()
 
             return {
@@ -280,5 +264,5 @@ class PrestaShopInstance(models.Model):
             }
 
         except Exception as e:
-            _logger.error(f"Order sync failed: {str(e)}")
+            _logger.error("Order sync failed: %s", str(e))
             raise UserError(_("Synchronization failed: %s") % str(e))
