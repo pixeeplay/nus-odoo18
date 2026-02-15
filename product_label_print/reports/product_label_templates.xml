@@ -3,68 +3,39 @@
 
     <!-- ============================================================ -->
     <!-- MAIN REPORT TEMPLATE                                         -->
-    <!-- 2 labels per A4 page, front-then-back for recto-verso        -->
+    <!-- Uses pre-built pages from Python AbstractModel               -->
     <!-- ============================================================ -->
     <template id="report_product_labels">
         <t t-call="web.html_container">
             <t t-call="product_label_print.label_styles"/>
-            <t t-set="data" t-value="data or {}"/>
-            <t t-set="print_mode" t-value="data.get('print_mode', 'both')"/>
-            <t t-set="quantity" t-value="data.get('quantity', 1)"/>
-            <t t-set="show_promo" t-value="data.get('show_promo', True)"/>
-            <t t-set="show_energy_label" t-value="data.get('show_energy_label', True)"/>
-            <t t-set="show_repairability" t-value="data.get('show_repairability', True)"/>
-            <t t-set="show_deee" t-value="data.get('show_deee', True)"/>
-            <t t-set="max_bullets" t-value="data.get('max_bullets', 5)"/>
-
-            <!-- Build expanded product list (repeated by quantity) -->
-            <t t-set="all_products" t-value="[]"/>
-            <t t-foreach="docs" t-as="product">
-                <t t-foreach="range(quantity)" t-as="copy_idx">
-                    <t t-set="all_products" t-value="all_products + [product]"/>
-                </t>
-            </t>
 
             <!-- ====== FRONT PAGES ====== -->
-            <t t-if="print_mode in ('front_only', 'both')">
-                <t t-foreach="range(0, len(all_products), 2)" t-as="page_idx">
-                    <div class="page label-page">
-                        <t t-set="p1" t-value="all_products[page_idx]"/>
+            <t t-foreach="front_pages" t-as="page">
+                <div class="page label-page">
+                    <t t-foreach="page" t-as="item">
                         <t t-call="product_label_print.label_front">
-                            <t t-set="product" t-value="p1"/>
+                            <t t-set="item" t-value="item"/>
                         </t>
-                        <t t-if="page_idx + 1 &lt; len(all_products)">
-                            <t t-set="p2" t-value="all_products[page_idx + 1]"/>
-                            <t t-call="product_label_print.label_front">
-                                <t t-set="product" t-value="p2"/>
-                            </t>
-                        </t>
-                        <t t-else="">
-                            <div class="label-half label-empty"/>
-                        </t>
-                    </div>
-                </t>
+                    </t>
+                    <!-- Empty half if odd label on last page -->
+                    <t t-if="len(page) == 1">
+                        <div class="label-half label-empty"/>
+                    </t>
+                </div>
             </t>
 
             <!-- ====== BACK PAGES (after all fronts) ====== -->
-            <t t-if="print_mode in ('back_only', 'both')">
-                <t t-foreach="range(0, len(all_products), 2)" t-as="page_idx">
-                    <div class="page label-page">
-                        <t t-set="p1" t-value="all_products[page_idx]"/>
+            <t t-foreach="back_pages" t-as="page">
+                <div class="page label-page">
+                    <t t-foreach="page" t-as="item">
                         <t t-call="product_label_print.label_back">
-                            <t t-set="product" t-value="p1"/>
+                            <t t-set="item" t-value="item"/>
                         </t>
-                        <t t-if="page_idx + 1 &lt; len(all_products)">
-                            <t t-set="p2" t-value="all_products[page_idx + 1]"/>
-                            <t t-call="product_label_print.label_back">
-                                <t t-set="product" t-value="p2"/>
-                            </t>
-                        </t>
-                        <t t-else="">
-                            <div class="label-half label-empty"/>
-                        </t>
-                    </div>
-                </t>
+                    </t>
+                    <t t-if="len(page) == 1">
+                        <div class="label-half label-empty"/>
+                    </t>
+                </div>
             </t>
 
         </t>
@@ -78,22 +49,22 @@
             <!-- Header: Store logo | Brand logo | Energy label -->
             <div class="label-header">
                 <div class="header-logo">
-                    <img t-if="product.company_id.logo"
-                         t-att-src="image_data_uri(product.company_id.logo)"
+                    <img t-if="item.get('company_logo')"
+                         t-att-src="item['company_logo']"
                          class="store-logo" alt="Store"/>
                 </div>
                 <div class="header-brand">
-                    <img t-if="product.product_brand_id and product.product_brand_id.logo"
-                         t-att-src="image_data_uri(product.product_brand_id.logo)"
+                    <img t-if="item.get('brand_logo')"
+                         t-att-src="item['brand_logo']"
                          class="brand-logo" alt="Brand"/>
-                    <span t-elif="product.product_brand_id"
+                    <span t-elif="item.get('brand_name')"
                           class="brand-name-text"
-                          t-esc="product.product_brand_id.name"/>
+                          t-esc="item['brand_name']"/>
                 </div>
                 <div class="header-energy"
-                     t-if="show_energy_label and product.energy_label">
+                     t-if="show_energy_label and item.get('energy_label')">
                     <t t-call="product_label_print.energy_label_badge">
-                        <t t-set="grade" t-value="product.energy_label"/>
+                        <t t-set="grade" t-value="item['energy_label']"/>
                     </t>
                 </div>
             </div>
@@ -101,17 +72,16 @@
             <!-- Body: Photo + Name + Bullet points -->
             <div class="label-body">
                 <div class="body-photo">
-                    <img t-if="product.image_128"
-                         t-att-src="image_data_uri(product.image_128)"
+                    <img t-if="item.get('product_image')"
+                         t-att-src="item['product_image']"
                          class="product-photo" alt="Product"/>
                     <div t-else="" class="no-photo">No Image</div>
                 </div>
                 <div class="body-info">
-                    <h2 class="product-name" t-esc="product.name"/>
+                    <h2 class="product-name" t-esc="item['name']"/>
                     <div class="product-features">
-                        <t t-set="bullets" t-value="product._get_label_bullet_points(max_bullets)"/>
-                        <ul t-if="bullets">
-                            <li t-foreach="bullets" t-as="bullet">
+                        <ul t-if="item.get('bullets')">
+                            <li t-foreach="item['bullets']" t-as="bullet">
                                 <t t-esc="bullet"/>
                             </li>
                         </ul>
@@ -123,13 +93,13 @@
             <div class="label-meta">
                 <div class="meta-category">
                     <span class="category-tag"
-                          t-if="product.categ_id"
-                          t-esc="product.categ_id.name"/>
+                          t-if="item.get('categ_name')"
+                          t-esc="item['categ_name']"/>
                 </div>
                 <div class="meta-repairability"
-                     t-if="show_repairability and product.repairability_index > 0">
+                     t-if="show_repairability and item.get('repairability_index', 0) &gt; 0">
                     <t t-call="product_label_print.repairability_badge">
-                        <t t-set="score" t-value="product.repairability_index"/>
+                        <t t-set="score" t-value="item['repairability_index']"/>
                     </t>
                 </div>
             </div>
@@ -137,23 +107,23 @@
             <!-- Price bar -->
             <div class="label-price-bar">
                 <div class="price-main">
-                    <t t-if="show_promo and product.promo_active and product.promo_price > 0">
+                    <t t-if="show_promo and item.get('promo_active') and item.get('promo_price', 0) &gt; 0">
                         <span class="price-original"
-                              t-esc="'%.2f' % product.list_price"/>
+                              t-esc="'%.2f' % item['list_price']"/>
                         <span class="price-currency-small">EUR</span>
                         <span class="price-promo"
-                              t-esc="'%.2f' % product.promo_price"/>
+                              t-esc="'%.2f' % item['promo_price']"/>
                         <span class="price-currency">EUR</span>
                     </t>
                     <t t-else="">
                         <span class="price-value"
-                              t-esc="'%.2f' % product.list_price"/>
+                              t-esc="'%.2f' % item['list_price']"/>
                         <span class="price-currency">EUR</span>
                     </t>
                 </div>
                 <div class="price-deee"
-                     t-if="show_deee and product.deee_amount > 0">
-                    Dont eco-part. DEEE : <t t-esc="'%.2f' % product.deee_amount"/> EUR
+                     t-if="show_deee and item.get('deee_amount', 0) &gt; 0">
+                    Dont eco-part. DEEE : <t t-esc="'%.2f' % item['deee_amount']"/> EUR
                 </div>
             </div>
         </div>
@@ -165,18 +135,18 @@
     <template id="label_back">
         <div class="label-half label-back">
             <div class="back-content">
-                <div class="back-product-name" t-esc="product.name"/>
-                <div class="back-reference" t-if="product.default_code">
-                    Ref: <t t-esc="product.default_code"/>
+                <div class="back-product-name" t-esc="item['name']"/>
+                <div class="back-reference" t-if="item.get('default_code')">
+                    Ref: <t t-esc="item['default_code']"/>
                 </div>
-                <div class="back-barcode" t-if="product.barcode">
-                    <img t-att-src="'/report/barcode/EAN13/%s?width=400&amp;height=150&amp;humanreadable=1' % product.barcode"
+                <div class="back-barcode" t-if="item.get('barcode')">
+                    <img t-att-src="'/report/barcode/Code128/%s?width=400&amp;height=150&amp;humanreadable=1' % item['barcode']"
                          class="barcode-image" alt="Barcode"/>
                 </div>
                 <div class="back-barcode-text"
-                     t-if="product.barcode"
-                     t-esc="product.barcode"/>
-                <div class="back-no-barcode" t-if="not product.barcode">
+                     t-if="item.get('barcode')"
+                     t-esc="item['barcode']"/>
+                <div class="back-no-barcode" t-if="not item.get('barcode')">
                     No barcode available
                 </div>
             </div>

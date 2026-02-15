@@ -30,6 +30,7 @@
                     (2 labels per page).
                 </div>
                 <footer>
+                    <button name="action_enrich_products" type="object" string="Enrich with AI" class="btn-warning" icon="fa-magic"/>
                     <button name="action_print" type="object" string="Print Labels" class="btn-primary" icon="fa-print"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>

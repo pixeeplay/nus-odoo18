@@ -75,6 +75,44 @@ class ProductLabelPrintWizard(models.TransientModel):
             if wiz.quantity < 1:
                 raise UserError(_('Quantity must be at least 1.'))
 
+    def action_enrich_products(self):
+        """Enrich all selected products with AI before printing."""
+        self.ensure_one()
+        if not self.product_ids:
+            raise UserError(_('Please select at least one product.'))
+
+        enriched = 0
+        errors = []
+        for product in self.product_ids:
+            if hasattr(product, 'action_enrich_with_chatgpt'):
+                try:
+                    product.action_enrich_with_chatgpt()
+                    enriched += 1
+                except Exception as e:
+                    errors.append(f'{product.name}: {e}')
+
+        msg = _('%d product(s) enriched with AI.', enriched)
+        if errors:
+            msg += '\n' + _('Errors:') + '\n' + '\n'.join(errors)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('AI Enrichment'),
+                'message': msg,
+                'type': 'success' if not errors else 'warning',
+                'sticky': bool(errors),
+                'next': {
+                    'type': 'ir.actions.act_window',
+                    'res_model': self._name,
+                    'res_id': self.id,
+                    'view_mode': 'form',
+                    'target': 'new',
+                },
+            },
+        }
+
     def action_print(self):
         """Generate the PDF report."""
         self.ensure_one()
