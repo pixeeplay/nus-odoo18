@@ -76,6 +76,30 @@ class PrestaShopInstance(models.Model):
         return str(field_data)
 
     # ------------------------------------
+    # Helpers – long-timeout API call
+    # ------------------------------------
+    def _api_get_long(self, resource, resource_id=None, params=None, timeout=120):
+        """Same as _api_get but with configurable (longer) timeout."""
+        self.ensure_one()
+        base_url = self._get_base_url()
+        if resource_id:
+            url = f"{base_url}/{resource}/{resource_id}"
+        else:
+            url = f"{base_url}/{resource}"
+        if params is None:
+            params = {}
+        params['output_format'] = 'JSON'
+        _logger.info("PS API (long) call: %s", url)
+        resp = requests.get(url, auth=(self.api_key, ''), params=params, timeout=timeout)
+        if resp.status_code != 200:
+            _logger.error("PS API error %s: %s", resp.status_code, resp.text[:500])
+            raise UserError(_("PrestaShop API error (status %s). URL: %s") % (resp.status_code, url))
+        try:
+            return resp.json()
+        except Exception:
+            raise UserError(_("Invalid API response (not JSON). URL: %s") % url)
+
+    # ------------------------------------
     # Helpers – image download
     # ------------------------------------
     def _download_image(self, product_id, image_id):
@@ -84,7 +108,7 @@ class PrestaShopInstance(models.Model):
         base_url = self._get_base_url()
         url = f"{base_url}/images/products/{product_id}/{image_id}"
         try:
-            resp = requests.get(url, auth=(self.api_key, ''), timeout=30)
+            resp = requests.get(url, auth=(self.api_key, ''), timeout=60)
             if resp.status_code == 200 and resp.content:
                 return base64.b64encode(resp.content)
         except Exception as exc:
@@ -373,24 +397,45 @@ class PrestaShopInstance(models.Model):
     # ------------------------------------
     # Actions
     # ------------------------------------
+    def _fetch_product_ids(self):
+        """Fetch the list of active product IDs from PrestaShop (lightweight call)."""
+        self.ensure_one()
+        params = {
+            'display': '[id]',
+            'filter[active]': '[1]',
+            'sort': '[id_ASC]',
+        }
+        if self.product_sync_limit and self.product_sync_limit > 0:
+            params['limit'] = self.product_sync_limit
+
+        data = self._api_get_long('products', params=params, timeout=60)
+        products = data.get('products', [])
+        if isinstance(products, dict):
+            products = [products]
+        return [str(p.get('id', '')) for p in products if p.get('id')]
+
+    def _fetch_single_product_full(self, ps_product_id):
+        """Fetch full details for a single product by ID."""
+        self.ensure_one()
+        data = self._api_get_long(
+            'products', resource_id=str(ps_product_id),
+            params={'display': 'full'},
+            timeout=120,
+        )
+        return data.get('product', {})
+
     def action_sync_products(self):
-        """Fetch all active products from PrestaShop and sync them into Odoo."""
+        """Fetch all active products from PrestaShop and sync them into Odoo.
+
+        Strategy: first fetch the lightweight list of IDs, then load each
+        product individually to avoid a single massive API call that times out.
+        """
         self.ensure_one()
         try:
-            params = {
-                'display': 'full',
-                'filter[active]': '[1]',
-                'sort': '[id_ASC]',
-            }
-            if self.product_sync_limit and self.product_sync_limit > 0:
-                params['limit'] = self.product_sync_limit
+            # Step 1 – get list of active product IDs (fast, lightweight)
+            product_ids = self._fetch_product_ids()
 
-            data = self._api_get('products', params=params)
-            products = data.get('products', [])
-            if isinstance(products, dict):
-                products = [products]
-
-            if not products:
+            if not product_ids:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -403,29 +448,36 @@ class PrestaShopInstance(models.Model):
                 }
 
             created = updated = errors = 0
+            total = len(product_ids)
+            _logger.info("Starting product sync: %d products to process", total)
 
-            for ps_prod in products:
+            # Step 2 – load each product one by one
+            for idx, ps_id in enumerate(product_ids, 1):
                 try:
-                    ps_id = str(ps_prod.get('id', ''))
                     already = self.env['product.template'].search([
                         ('prestashop_id', '=', ps_id),
                         ('prestashop_instance_id', '=', self.id),
                     ], limit=1)
 
-                    self._sync_single_product(ps_prod)
+                    ps_product = self._fetch_single_product_full(ps_id)
+                    if ps_product:
+                        self._sync_single_product(ps_product)
+                        if already:
+                            updated += 1
+                        else:
+                            created += 1
 
-                    if already:
-                        updated += 1
-                    else:
-                        created += 1
+                    # commit after each product so we don't lose progress
+                    if idx % 5 == 0:
+                        self.env.cr.commit()  # noqa: B903
+                        _logger.info("Product sync progress: %d/%d", idx, total)
+
                 except Exception as exc:
                     errors += 1
-                    _logger.error(
-                        "Error syncing product PS-%s: %s",
-                        ps_prod.get('id', '?'), exc,
-                    )
+                    _logger.error("Error syncing product PS-%s: %s", ps_id, exc)
 
             self.last_product_sync_date = fields.Datetime.now()
+            self.env.cr.commit()
 
             return {
                 'type': 'ir.actions.client',
@@ -433,8 +485,8 @@ class PrestaShopInstance(models.Model):
                 'params': {
                     'title': _('Product Sync Complete'),
                     'message': _(
-                        'Created: %d | Updated: %d | Errors: %d'
-                    ) % (created, updated, errors),
+                        'Created: %d | Updated: %d | Errors: %d (Total: %d)'
+                    ) % (created, updated, errors, total),
                     'type': 'success' if not errors else 'warning',
                     'sticky': False,
                 },
