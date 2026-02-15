@@ -13,9 +13,14 @@
             <!-- Add product sync buttons in the header -->
             <xpath expr="//header/button[@name='action_sync_orders']" position="after">
                 <button name="action_sync_products"
-                        string="Sync Products"
+                        string="Sync All Products"
                         type="object"
                         class="btn-primary"
+                        invisible="not id"/>
+                <button name="action_open_test_sync_wizard"
+                        string="Test Sync (5 products)"
+                        type="object"
+                        class="btn-warning"
                         invisible="not id"/>
             </xpath>
 

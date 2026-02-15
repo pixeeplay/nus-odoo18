@@ -496,6 +496,22 @@ class PrestaShopInstance(models.Model):
             _logger.error("Product sync failed: %s", exc)
             raise UserError(_("Product sync failed: %s") % exc)
 
+    def action_open_test_sync_wizard(self):
+        """Open the test sync wizard pre-configured with 5 products."""
+        self.ensure_one()
+        wizard = self.env['prestashop.product.sync.wizard'].create({
+            'instance_id': self.id,
+            'product_limit': 5,
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Test Product Sync'),
+            'res_model': 'prestashop.product.sync.wizard',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
     def action_view_synced_products(self):
         """Open a list view of all products synced from this instance."""
         self.ensure_one()

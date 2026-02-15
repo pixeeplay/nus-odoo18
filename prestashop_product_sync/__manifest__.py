@@ -4,10 +4,11 @@
     'category': 'Sales/Sales',
     'summary': 'Import active products from PrestaShop with images, HTML descriptions and features',
     'author': 'Antigravity',
-    'depends': ['prestashop_odoo_sync', 'product'],
+    'depends': ['prestashop_odoo_sync', 'product', 'bus'],
     'data': [
         'security/ir.model.access.csv',
         'data/ir_cron_data.xml',
+        'wizard/prestashop_product_sync_wizard_views.xml',
         'views/prestashop_instance_views.xml',
         'views/product_template_views.xml',
     ],
