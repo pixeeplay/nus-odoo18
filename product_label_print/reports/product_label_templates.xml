@@ -7,6 +7,7 @@
     <!-- ============================================================ -->
     <template id="report_product_labels">
         <t t-call="web.html_container">
+            <t t-call="product_label_print.label_styles"/>
             <t t-set="data" t-value="data or {}"/>
             <t t-set="print_mode" t-value="data.get('print_mode', 'both')"/>
             <t t-set="quantity" t-value="data.get('quantity', 1)"/>
@@ -212,11 +213,10 @@
     </template>
 
     <!-- ============================================================ -->
-    <!-- CSS STYLES (injected into report assets)                    -->
+    <!-- CSS STYLES (called inline from main template)               -->
     <!-- ============================================================ -->
-    <template id="report_product_labels_css" inherit_id="web.report_assets_common">
-        <xpath expr="." position="inside">
-            <style>
+    <template id="label_styles">
+        <style>
                 /* ====== PAGE &amp; LABEL SIZING ====== */
                 .label-page {
                     width: 210mm;
@@ -515,8 +515,7 @@
                     .label-page { page-break-after: always; }
                     .label-half { page-break-inside: avoid; }
                 }
-            </style>
-        </xpath>
+        </style>
     </template>
 
 </odoo>
