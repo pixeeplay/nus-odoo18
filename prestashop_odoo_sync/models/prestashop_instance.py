@@ -108,8 +108,10 @@ class PrestaShopInstance(models.Model):
         except Exception as e:
             raise UserError(_("Check failed: %s") % str(e))
 
+    # ---- Customer & Address sync ----
+
     def _find_or_create_customer(self, customer_id):
-        """Find or create customer from PrestaShop"""
+        """Find or create customer from PrestaShop with full details"""
         self.ensure_one()
         try:
             partner = self.env['res.partner'].search([
@@ -124,19 +126,143 @@ class PrestaShopInstance(models.Model):
             firstname = customer.get('firstname', '')
             lastname = customer.get('lastname', '')
             email = customer.get('email', '')
+            company_name = customer.get('company', '')
+            siret = customer.get('siret', '')
+            note = customer.get('note', '')
 
-            partner = self.env['res.partner'].create({
+            vals = {
                 'name': f"{firstname} {lastname}".strip() or f'Customer {customer_id}',
                 'email': email,
                 'comment': f'PrestaShop ID: {customer_id}',
                 'customer_rank': 1,
-            })
+            }
+
+            if company_name:
+                # Create company partner first
+                company_partner = self.env['res.partner'].search([
+                    ('name', '=', company_name),
+                    ('is_company', '=', True),
+                ], limit=1)
+                if not company_partner:
+                    company_vals = {
+                        'name': company_name,
+                        'is_company': True,
+                        'customer_rank': 1,
+                    }
+                    if siret:
+                        company_vals['company_registry'] = siret
+                    company_partner = self.env['res.partner'].create(company_vals)
+                vals['parent_id'] = company_partner.id
+
+            if note:
+                vals['comment'] = f'PrestaShop ID: {customer_id}\n{note}'
+
+            partner = self.env['res.partner'].create(vals)
             _logger.info("Created customer %s from PrestaShop ID %s", partner.name, customer_id)
             return partner
 
         except Exception as e:
             _logger.error("Error creating customer %s: %s", customer_id, str(e))
             return None
+
+    def _find_or_create_address(self, address_id, parent_partner, address_type):
+        """Fetch address from PrestaShop and create/find partner address.
+        address_type: 'invoice' or 'delivery'
+        """
+        self.ensure_one()
+        try:
+            if not address_id or str(address_id) == '0':
+                return parent_partner
+
+            data = self._api_get('addresses', str(address_id))
+            addr = data.get('address', {})
+
+            firstname = addr.get('firstname', '')
+            lastname = addr.get('lastname', '')
+            company = addr.get('company', '')
+            address1 = addr.get('address1', '')
+            address2 = addr.get('address2', '')
+            postcode = addr.get('postcode', '')
+            city = addr.get('city', '')
+            phone = addr.get('phone', '')
+            phone_mobile = addr.get('phone_mobile', '')
+            vat_number = addr.get('vat_number', '')
+
+            # Get country
+            country = False
+            country_id_ps = str(addr.get('id_country', ''))
+            if country_id_ps and country_id_ps != '0':
+                try:
+                    country_data = self._api_get('countries', country_id_ps)
+                    iso_code = country_data.get('country', {}).get('iso_code', '')
+                    if iso_code:
+                        country = self.env['res.country'].search([
+                            ('code', '=', iso_code.upper())
+                        ], limit=1)
+                except Exception:
+                    pass
+
+            # Get state
+            state = False
+            state_id_ps = str(addr.get('id_state', ''))
+            if state_id_ps and state_id_ps != '0':
+                try:
+                    state_data = self._api_get('states', state_id_ps)
+                    state_iso = state_data.get('state', {}).get('iso_code', '')
+                    if state_iso and country:
+                        state = self.env['res.country.state'].search([
+                            ('code', '=', state_iso),
+                            ('country_id', '=', country.id),
+                        ], limit=1)
+                except Exception:
+                    pass
+
+            addr_name = f"{firstname} {lastname}".strip()
+            if company:
+                addr_name = f"{company} - {addr_name}" if addr_name else company
+
+            # Check if address already exists
+            existing = self.env['res.partner'].search([
+                ('parent_id', '=', parent_partner.id),
+                ('type', '=', address_type),
+                ('street', '=', address1),
+                ('zip', '=', postcode),
+            ], limit=1)
+
+            if existing:
+                return existing
+
+            vals = {
+                'parent_id': parent_partner.id,
+                'type': address_type,
+                'name': addr_name or parent_partner.name,
+                'street': address1,
+                'street2': address2 or False,
+                'zip': postcode,
+                'city': city,
+                'phone': phone or False,
+                'mobile': phone_mobile or False,
+            }
+
+            if company:
+                vals['company_name'] = company
+
+            if country:
+                vals['country_id'] = country.id
+            if state:
+                vals['state_id'] = state.id
+            if vat_number:
+                vals['vat'] = vat_number
+
+            address_partner = self.env['res.partner'].create(vals)
+            _logger.info("Created %s address for %s", address_type, parent_partner.name)
+            return address_partner
+
+        except Exception as e:
+            _logger.error("Error creating address %s: %s", address_id, str(e))
+            return parent_partner
+
+    # ---- Product sync ----
 
     def _find_or_create_product(self, product_id, product_name, product_reference):
         """Find or create product from PrestaShop"""
@@ -164,6 +290,38 @@ class PrestaShopInstance(models.Model):
             _logger.info("Created product %s from PrestaShop ID %s", product.name, product_id)
 
         return product
+
+    def _get_shipping_product(self):
+        """Get or create a service product for shipping costs"""
+        product = self.env.ref('prestashop_odoo_sync.product_shipping', raise_if_not_found=False)
+        if not product:
+            product = self.env['product.product'].search([
+                ('default_code', '=', 'PS-SHIPPING')
+            ], limit=1)
+        if not product:
+            product = self.env['product.product'].create({
+                'name': 'Frais de port (PrestaShop)',
+                'default_code': 'PS-SHIPPING',
+                'type': 'service',
+                'list_price': 0.0,
+                'taxes_id': [(5, 0, 0)],
+            })
+        return product
+
+    # ---- Carrier sync ----
+
+    def _get_carrier_name(self, carrier_id):
+        """Fetch carrier name from PrestaShop"""
+        try:
+            if not carrier_id or str(carrier_id) == '0':
+                return ''
+            data = self._api_get('carriers', str(carrier_id))
+            carrier = data.get('carrier', {})
+            return carrier.get('name', '') or ''
+        except Exception:
+            return ''
+
+    # ---- Order sync ----
 
     def action_sync_orders(self):
         """Synchronize orders from PrestaShop (last 50 orders)"""
@@ -210,20 +368,35 @@ class PrestaShopInstance(models.Model):
                 order_reference = order.get('reference', f'PS-{order_id}')
                 customer_id = str(order.get('id_customer', ''))
                 date_add = order.get('date_add', '')
+                id_address_delivery = str(order.get('id_address_delivery', ''))
+                id_address_invoice = str(order.get('id_address_invoice', ''))
+                id_carrier = str(order.get('id_carrier', ''))
+                total_shipping = float(order.get('total_shipping_tax_excl', 0) or order.get('total_shipping', 0) or 0)
 
+                # Find or create customer
                 partner = self._find_or_create_customer(customer_id)
                 if not partner:
                     _logger.warning("Could not create customer for order %s", order_id)
                     continue
 
+                # Find or create addresses
+                invoice_partner = self._find_or_create_address(id_address_invoice, partner, 'invoice')
+                delivery_partner = self._find_or_create_address(id_address_delivery, partner, 'delivery')
+
+                # Get carrier name
+                carrier_name = self._get_carrier_name(id_carrier)
+
                 sale_order = self.env['sale.order'].create({
                     'partner_id': partner.id,
+                    'partner_invoice_id': invoice_partner.id,
+                    'partner_shipping_id': delivery_partner.id,
                     'date_order': date_add,
                     'warehouse_id': self.warehouse_id.id,
                     'company_id': self.company_id.id,
                     'prestashop_instance_id': self.id,
                     'prestashop_order_id': order_id,
                     'prestashop_source': 'prestashop',
+                    'prestashop_carrier': carrier_name,
                     'origin': order_reference,
                 })
 
@@ -250,6 +423,17 @@ class PrestaShopInstance(models.Model):
                         'product_uom_qty': quantity,
                         'price_unit': unit_price,
                         'prestashop_ecotax': ecotax,
+                    })
+
+                # Add shipping cost line if > 0
+                if total_shipping > 0:
+                    shipping_product = self._get_shipping_product()
+                    self.env['sale.order.line'].create({
+                        'order_id': sale_order.id,
+                        'product_id': shipping_product.id,
+                        'name': f'Frais de port - {carrier_name}' if carrier_name else 'Frais de port',
+                        'product_uom_qty': 1,
+                        'price_unit': total_shipping,
                     })
 
                 imported_count += 1

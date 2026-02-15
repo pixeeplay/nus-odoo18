@@ -7,6 +7,7 @@ class SaleOrder(models.Model):
     prestashop_instance_id = fields.Many2one('prestashop.instance', string='PrestaShop Instance', readonly=True)
     prestashop_order_id = fields.Char(string='PrestaShop Order ID', readonly=True)
     prestashop_source = fields.Selection([('prestashop', 'PrestaShop')], string='Source', readonly=True)
+    prestashop_carrier = fields.Char(string='Carrier (PrestaShop)', readonly=True)
     prestashop_total_ecotax = fields.Float(string='Total Eco-Tax', compute='_compute_total_ecotax', store=True)
 
     @api.depends('order_line.prestashop_ecotax')
