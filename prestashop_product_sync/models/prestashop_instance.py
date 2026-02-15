@@ -683,10 +683,14 @@ class PrestaShopInstance(models.Model):
                             ps_product = instance._fetch_single_product_full(
                                 preview.prestashop_id
                             )
-                            if not ps_product:
+                            if not ps_product or not ps_product.get('id'):
                                 preview.write({
                                     'state': 'error',
-                                    'error_message': 'Empty API response',
+                                    'error_message': (
+                                        'Empty API response — product may '
+                                        'have been deleted or deactivated '
+                                        'in PrestaShop (PS-%s)'
+                                    ) % preview.prestashop_id,
                                 })
                                 errors += 1
                                 cr.commit()
@@ -809,7 +813,20 @@ class PrestaShopInstance(models.Model):
             params={'display': 'full'},
             timeout=120,
         )
-        return data.get('product', {})
+        # PrestaShop may return {'product': {...}} or {'products': [{...}]}
+        product = data.get('product')
+        if not product:
+            products = data.get('products', [])
+            if isinstance(products, list) and products:
+                product = products[0]
+            elif isinstance(products, dict):
+                product = products
+        if not product:
+            _logger.warning(
+                "Empty product response for PS-%s. Keys: %s",
+                ps_product_id, list(data.keys()),
+            )
+        return product or {}
 
     def action_sync_products(self):
         """Fetch all active products from PrestaShop and sync them into Odoo.

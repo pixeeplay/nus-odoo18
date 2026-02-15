@@ -75,8 +75,14 @@ class PrestaShopProductPreview(models.Model):
             ], limit=1)
 
             ps_product = instance._fetch_single_product_full(self.prestashop_id)
-            if not ps_product:
-                self.write({'state': 'error', 'error_message': 'Empty API response'})
+            if not ps_product or not ps_product.get('id'):
+                self.write({
+                    'state': 'error',
+                    'error_message': (
+                        'Empty API response — product may have been deleted '
+                        'or deactivated in PrestaShop (PS-%s)'
+                    ) % self.prestashop_id,
+                })
                 self.env.cr.commit()
                 return
 
