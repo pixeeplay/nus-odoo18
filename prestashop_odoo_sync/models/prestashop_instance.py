@@ -157,7 +157,7 @@ class PrestaShopInstance(models.Model):
             product = self.env['product.product'].create({
                 'name': product_name or f'Product {product_id}',
                 'default_code': product_reference,
-                'type': 'product',
+                'type': 'consu',
                 'list_price': 0.0,
                 'description_sale': f'PrestaShop Product ID: {product_id}',
             })
