@@ -1,4 +1,4 @@
-import math
+import base64
 import logging
 from odoo import api, models
 from odoo.tools.image import image_data_uri
@@ -10,12 +10,26 @@ class ReportProductLabels(models.AbstractModel):
     _name = 'report.product_label_print.report_product_labels'
     _description = 'Product Labels Report'
 
+    def _generate_barcode_uri(self, barcode_value):
+        """Generate barcode as base64 data URI using Odoo's built-in method."""
+        if not barcode_value:
+            return None
+        try:
+            barcode_bytes = self.env['ir.actions.report'].barcode(
+                'Code128', barcode_value,
+                width=600, height=150, humanreadable=1,
+            )
+            b64 = base64.b64encode(barcode_bytes).decode('ascii')
+            return f'data:image/png;base64,{b64}'
+        except Exception as e:
+            _logger.warning('Barcode generation failed for %s: %s', barcode_value, e)
+            return None
+
     @api.model
     def _get_report_values(self, docids, data=None):
         data = data or {}
         product_ids = data.get('product_ids', docids or [])
         quantity = data.get('quantity', 1)
-        print_mode = data.get('print_mode', 'both')
         show_promo = data.get('show_promo', True)
         show_energy_label = data.get('show_energy_label', True)
         show_repairability = data.get('show_repairability', True)
@@ -38,7 +52,7 @@ class ReportProductLabels(models.AbstractModel):
                 except Exception:
                     pass
 
-            # Product image (use image_1920 for better quality in PDF)
+            # Product image (use image_1920 for better quality)
             product_image = None
             img_field = product.image_1920 or product.image_128
             if img_field:
@@ -63,6 +77,9 @@ class ReportProductLabels(models.AbstractModel):
             if hasattr(product, 'deee_amount') and product.deee_amount:
                 deee = product.deee_amount
 
+            # Barcode as base64
+            barcode_uri = self._generate_barcode_uri(product.barcode)
+
             item = {
                 'product': product,
                 'bullets': bullets,
@@ -72,6 +89,7 @@ class ReportProductLabels(models.AbstractModel):
                 'brand_name': brand_name,
                 'deee_amount': deee,
                 'barcode': product.barcode or '',
+                'barcode_uri': barcode_uri,
                 'default_code': product.default_code or '',
                 'name': product.name or '',
                 'list_price': product.list_price,
@@ -85,23 +103,18 @@ class ReportProductLabels(models.AbstractModel):
             for _i in range(quantity):
                 expanded.append(item)
 
-        # Group into pages of 2 labels each
-        front_pages = []
-        back_pages = []
+        # Group into pages of 2 labels each (2 rows per A4)
+        pages = []
         for i in range(0, len(expanded), 2):
-            pair = expanded[i:i + 2]
-            front_pages.append(pair)
-            back_pages.append(pair)
+            pages.append(expanded[i:i + 2])
 
         return {
             'doc_ids': product_ids,
             'doc_model': 'product.template',
             'docs': products,
-            'front_pages': front_pages if print_mode in ('front_only', 'both') else [],
-            'back_pages': back_pages if print_mode in ('back_only', 'both') else [],
+            'pages': pages,
             'show_promo': show_promo,
             'show_energy_label': show_energy_label,
             'show_repairability': show_repairability,
             'show_deee': show_deee,
-            'print_mode': print_mode,
         }
