@@ -43,6 +43,7 @@
                                     <field name="date_order"/>
                                     <field name="partner_id"/>
                                     <field name="amount_total"/>
+                                    <field name="prestashop_total_ecotax" string="Eco-Tax"/>
                                     <field name="state"/>
                                     <field name="prestashop_order_id"/>
                                 </list>

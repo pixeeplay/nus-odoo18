@@ -7,6 +7,7 @@
     'depends': ['base', 'sale_management', 'stock'],
     'data': [
         'security/ir.model.access.csv',
+        'data/ir_cron_data.xml',
         'views/prestashop_instance_views.xml',
     ],
     'installable': True,

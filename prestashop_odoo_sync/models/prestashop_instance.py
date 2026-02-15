@@ -239,6 +239,7 @@ class PrestaShopInstance(models.Model):
                     product_reference = row.get('product_reference', '')
                     quantity = int(row.get('product_quantity', 1))
                     unit_price = float(row.get('product_price', 0))
+                    ecotax = float(row.get('product_ean13_ecotax', 0) or row.get('ecotax', 0) or 0)
 
                     product = self._find_or_create_product(product_id, product_name, product_reference)
 
@@ -248,6 +249,7 @@ class PrestaShopInstance(models.Model):
                         'name': product_name,
                         'product_uom_qty': quantity,
                         'price_unit': unit_price,
+                        'prestashop_ecotax': ecotax,
                     })
 
                 imported_count += 1
@@ -269,3 +271,14 @@ class PrestaShopInstance(models.Model):
         except Exception as e:
             _logger.error("Order sync failed: %s", str(e))
             raise UserError(_("Synchronization failed: %s") % str(e))
+
+    @api.model
+    def _cron_sync_orders(self):
+        """Cron method: sync orders for all active instances"""
+        instances = self.search([('active', '=', True)])
+        for instance in instances:
+            try:
+                instance.action_sync_orders()
+                _logger.info("Cron sync completed for instance %s", instance.name)
+            except Exception as e:
+                _logger.error("Cron sync failed for instance %s: %s", instance.name, str(e))
