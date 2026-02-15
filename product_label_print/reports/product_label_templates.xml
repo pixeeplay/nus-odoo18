@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- MAIN REPORT TEMPLATE                                         -->
+    <!-- 2 labels per A4 page, front-then-back for recto-verso        -->
+    <!-- ============================================================ -->
+    <template id="report_product_labels">
+        <t t-call="web.html_container">
+            <t t-set="data" t-value="data or {}"/>
+            <t t-set="print_mode" t-value="data.get('print_mode', 'both')"/>
+            <t t-set="quantity" t-value="data.get('quantity', 1)"/>
+            <t t-set="show_promo" t-value="data.get('show_promo', True)"/>
+            <t t-set="show_energy_label" t-value="data.get('show_energy_label', True)"/>
+            <t t-set="show_repairability" t-value="data.get('show_repairability', True)"/>
+            <t t-set="show_deee" t-value="data.get('show_deee', True)"/>
+            <t t-set="max_bullets" t-value="data.get('max_bullets', 5)"/>
+
+            <!-- Build expanded product list (repeated by quantity) -->
+            <t t-set="all_products" t-value="[]"/>
+            <t t-foreach="docs" t-as="product">
+                <t t-foreach="range(quantity)" t-as="copy_idx">
+                    <t t-set="all_products" t-value="all_products + [product]"/>
+                </t>
+            </t>
+
+            <!-- ====== FRONT PAGES ====== -->
+            <t t-if="print_mode in ('front_only', 'both')">
+                <t t-foreach="range(0, len(all_products), 2)" t-as="page_idx">
+                    <div class="page label-page">
+                        <t t-set="p1" t-value="all_products[page_idx]"/>
+                        <t t-call="product_label_print.label_front">
+                            <t t-set="product" t-value="p1"/>
+                        </t>
+                        <t t-if="page_idx + 1 &lt; len(all_products)">
+                            <t t-set="p2" t-value="all_products[page_idx + 1]"/>
+                            <t t-call="product_label_print.label_front">
+                                <t t-set="product" t-value="p2"/>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="label-half label-empty"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+
+            <!-- ====== BACK PAGES (after all fronts) ====== -->
+            <t t-if="print_mode in ('back_only', 'both')">
+                <t t-foreach="range(0, len(all_products), 2)" t-as="page_idx">
+                    <div class="page label-page">
+                        <t t-set="p1" t-value="all_products[page_idx]"/>
+                        <t t-call="product_label_print.label_back">
+                            <t t-set="product" t-value="p1"/>
+                        </t>
+                        <t t-if="page_idx + 1 &lt; len(all_products)">
+                            <t t-set="p2" t-value="all_products[page_idx + 1]"/>
+                            <t t-call="product_label_print.label_back">
+                                <t t-set="product" t-value="p2"/>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="label-half label-empty"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- FRONT LABEL (210mm x 148.5mm)                               -->
+    <!-- ============================================================ -->
+    <template id="label_front">
+        <div class="label-half label-front">
+            <!-- Header: Store logo | Brand logo | Energy label -->
+            <div class="label-header">
+                <div class="header-logo">
+                    <img t-if="product.company_id.logo"
+                         t-att-src="image_data_uri(product.company_id.logo)"
+                         class="store-logo" alt="Store"/>
+                </div>
+                <div class="header-brand">
+                    <img t-if="product.product_brand_id and product.product_brand_id.logo"
+                         t-att-src="image_data_uri(product.product_brand_id.logo)"
+                         class="brand-logo" alt="Brand"/>
+                    <span t-elif="product.product_brand_id"
+                          class="brand-name-text"
+                          t-esc="product.product_brand_id.name"/>
+                </div>
+                <div class="header-energy"
+                     t-if="show_energy_label and product.energy_label">
+                    <t t-call="product_label_print.energy_label_badge">
+                        <t t-set="grade" t-value="product.energy_label"/>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Body: Photo + Name + Bullet points -->
+            <div class="label-body">
+                <div class="body-photo">
+                    <img t-if="product.image_128"
+                         t-att-src="image_data_uri(product.image_128)"
+                         class="product-photo" alt="Product"/>
+                    <div t-else="" class="no-photo">No Image</div>
+                </div>
+                <div class="body-info">
+                    <h2 class="product-name" t-esc="product.name"/>
+                    <div class="product-features">
+                        <t t-set="bullets" t-value="product._get_label_bullet_points(max_bullets)"/>
+                        <ul t-if="bullets">
+                            <li t-foreach="bullets" t-as="bullet">
+                                <t t-esc="bullet"/>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meta: Category + Repairability -->
+            <div class="label-meta">
+                <div class="meta-category">
+                    <span class="category-tag"
+                          t-if="product.categ_id"
+                          t-esc="product.categ_id.name"/>
+                </div>
+                <div class="meta-repairability"
+                     t-if="show_repairability and product.repairability_index > 0">
+                    <t t-call="product_label_print.repairability_badge">
+                        <t t-set="score" t-value="product.repairability_index"/>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Price bar -->
+            <div class="label-price-bar">
+                <div class="price-main">
+                    <t t-if="show_promo and product.promo_active and product.promo_price > 0">
+                        <span class="price-original"
+                              t-esc="'%.2f' % product.list_price"/>
+                        <span class="price-currency-small">EUR</span>
+                        <span class="price-promo"
+                              t-esc="'%.2f' % product.promo_price"/>
+                        <span class="price-currency">EUR</span>
+                    </t>
+                    <t t-else="">
+                        <span class="price-value"
+                              t-esc="'%.2f' % product.list_price"/>
+                        <span class="price-currency">EUR</span>
+                    </t>
+                </div>
+                <div class="price-deee"
+                     t-if="show_deee and product.deee_amount > 0">
+                    Dont eco-part. DEEE : <t t-esc="'%.2f' % product.deee_amount"/> EUR
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- BACK LABEL (210mm x 148.5mm)                                -->
+    <!-- ============================================================ -->
+    <template id="label_back">
+        <div class="label-half label-back">
+            <div class="back-content">
+                <div class="back-product-name" t-esc="product.name"/>
+                <div class="back-reference" t-if="product.default_code">
+                    Ref: <t t-esc="product.default_code"/>
+                </div>
+                <div class="back-barcode" t-if="product.barcode">
+                    <img t-att-src="'/report/barcode/EAN13/%s?width=400&amp;height=150&amp;humanreadable=1' % product.barcode"
+                         class="barcode-image" alt="Barcode"/>
+                </div>
+                <div class="back-barcode-text"
+                     t-if="product.barcode"
+                     t-esc="product.barcode"/>
+                <div class="back-no-barcode" t-if="not product.barcode">
+                    No barcode available
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- EU ENERGY LABEL BADGE (A-G colored scale)                   -->
+    <!-- ============================================================ -->
+    <template id="energy_label_badge">
+        <div class="energy-badge">
+            <div class="energy-scale">
+                <t t-foreach="['A','B','C','D','E','F','G']" t-as="g">
+                    <div t-attf-class="energy-bar energy-{{g}} {{'energy-active' if g == grade else ''}}">
+                        <span t-esc="g"/>
+                        <span t-if="g == grade" class="energy-arrow">&#9664;</span>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- REPAIRABILITY INDEX BADGE                                   -->
+    <!-- ============================================================ -->
+    <template id="repairability_badge">
+        <div class="repair-badge">
+            <div class="repair-icon">&#128295;</div>
+            <div t-attf-class="repair-score repair-color-{{'green' if score >= 8 else 'lightgreen' if score >= 6 else 'yellow' if score >= 4 else 'orange' if score >= 2 else 'red'}}">
+                <span class="repair-value" t-esc="'%.1f' % score"/>
+                <span class="repair-max">/10</span>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- CSS STYLES (injected into report assets)                    -->
+    <!-- ============================================================ -->
+    <template id="report_product_labels_css" inherit_id="web.report_assets_common">
+        <xpath expr="." position="inside">
+            <style>
+                /* ====== PAGE &amp; LABEL SIZING ====== */
+                .label-page {
+                    width: 210mm;
+                    height: 297mm;
+                    page-break-after: always;
+                    padding: 0;
+                    margin: 0;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .label-half {
+                    width: 210mm;
+                    height: 148.5mm;
+                    box-sizing: border-box;
+                    padding: 6mm 8mm;
+                    overflow: hidden;
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .label-empty { }
+
+                /* ====== FRONT LABEL ====== */
+                .label-front {
+                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                    color: #333;
+                    border-bottom: 1px dashed #ccc;
+                }
+
+                /* Header */
+                .label-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    height: 22mm;
+                    margin-bottom: 3mm;
+                    border-bottom: 2px solid #0066cc;
+                    padding-bottom: 2mm;
+                }
+                .header-logo { flex: 0 0 auto; }
+                .store-logo {
+                    max-height: 18mm;
+                    max-width: 45mm;
+                    object-fit: contain;
+                }
+                .header-brand {
+                    flex: 1;
+                    text-align: center;
+                }
+                .brand-logo {
+                    max-height: 16mm;
+                    max-width: 50mm;
+                    object-fit: contain;
+                }
+                .brand-name-text {
+                    font-size: 14pt;
+                    font-weight: bold;
+                    color: #555;
+                }
+                .header-energy { flex: 0 0 auto; }
+
+                /* Body: Photo + Info */
+                .label-body {
+                    display: flex;
+                    flex: 1;
+                    gap: 5mm;
+                    min-height: 0;
+                }
+                .body-photo {
+                    flex: 0 0 60mm;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .product-photo {
+                    max-width: 58mm;
+                    max-height: 70mm;
+                    object-fit: contain;
+                }
+                .no-photo {
+                    width: 58mm;
+                    height: 58mm;
+                    background: #f0f0f0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #999;
+                    font-size: 10pt;
+                    border: 1px dashed #ccc;
+                }
+                .body-info {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                }
+                .product-name {
+                    font-size: 14pt;
+                    font-weight: bold;
+                    color: #222;
+                    line-height: 1.2;
+                    margin: 0 0 2mm 0;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                .product-features { flex: 1; overflow: hidden; }
+                .product-features ul {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                .product-features li {
+                    font-size: 9pt;
+                    line-height: 1.3;
+                    padding: 0.5mm 0 0.5mm 3mm;
+                    position: relative;
+                    color: #444;
+                }
+                .product-features li::before {
+                    content: "\25CF";
+                    color: #0066cc;
+                    font-size: 7pt;
+                    position: absolute;
+                    left: 0;
+                    top: 0.5mm;
+                }
+
+                /* Meta: Category + Repairability */
+                .label-meta {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    height: 12mm;
+                    padding: 1mm 0;
+                }
+                .category-tag {
+                    font-size: 8pt;
+                    color: #666;
+                    background: #f0f0f0;
+                    padding: 1mm 3mm;
+                    border-radius: 2mm;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3pt;
+                }
+
+                /* Price bar */
+                .label-price-bar {
+                    height: 22mm;
+                    background: linear-gradient(135deg, #0066cc, #004499);
+                    border-radius: 3mm;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 2mm 5mm;
+                    color: white;
+                }
+                .price-main {
+                    display: flex;
+                    align-items: baseline;
+                    gap: 2mm;
+                }
+                .price-value {
+                    font-size: 28pt;
+                    font-weight: bold;
+                    letter-spacing: -0.5pt;
+                }
+                .price-currency {
+                    font-size: 12pt;
+                    font-weight: bold;
+                    opacity: 0.8;
+                }
+                .price-currency-small {
+                    font-size: 10pt;
+                    opacity: 0.6;
+                }
+                .price-original {
+                    font-size: 16pt;
+                    text-decoration: line-through;
+                    opacity: 0.7;
+                }
+                .price-promo {
+                    font-size: 28pt;
+                    font-weight: bold;
+                    color: #ff3333;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                }
+                .price-deee {
+                    font-size: 7pt;
+                    opacity: 0.7;
+                    text-align: right;
+                }
+
+                /* ====== EU ENERGY LABEL ====== */
+                .energy-badge { width: 28mm; }
+                .energy-scale {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5mm;
+                }
+                .energy-bar {
+                    height: 2.5mm;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 1mm;
+                    font-size: 6pt;
+                    font-weight: bold;
+                    color: white;
+                    border-radius: 0 1mm 1mm 0;
+                    position: relative;
+                }
+                .energy-arrow {
+                    position: absolute;
+                    right: -3mm;
+                    font-size: 8pt;
+                    color: #333;
+                }
+                .energy-A { width: 10mm; background: #00a651; }
+                .energy-B { width: 13mm; background: #50b748; }
+                .energy-C { width: 16mm; background: #bed630; }
+                .energy-D { width: 19mm; background: #fff200; color: #333; }
+                .energy-E { width: 22mm; background: #fcb813; }
+                .energy-F { width: 25mm; background: #f15a22; }
+                .energy-G { width: 28mm; background: #ed1c24; }
+                .energy-active {
+                    height: 4mm;
+                    font-size: 8pt;
+                    box-shadow: 0 0 0 0.5mm rgba(0,0,0,0.3);
+                    z-index: 1;
+                }
+
+                /* ====== REPAIRABILITY INDEX ====== */
+                .repair-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5mm;
+                }
+                .repair-icon { font-size: 14pt; }
+                .repair-score {
+                    padding: 1mm 3mm;
+                    border-radius: 2mm;
+                    font-weight: bold;
+                    text-align: center;
+                }
+                .repair-value { font-size: 12pt; }
+                .repair-max { font-size: 7pt; opacity: 0.7; }
+                .repair-color-green { background: #00a651; color: white; }
+                .repair-color-lightgreen { background: #8cc63f; color: white; }
+                .repair-color-yellow { background: #fff200; color: #333; }
+                .repair-color-orange { background: #f7941d; color: white; }
+                .repair-color-red { background: #ed1c24; color: white; }
+
+                /* ====== BACK LABEL ====== */
+                .label-back {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-bottom: 1px dashed #ccc;
+                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                }
+                .back-content { text-align: center; }
+                .back-product-name {
+                    font-size: 12pt;
+                    font-weight: bold;
+                    color: #333;
+                    margin-bottom: 3mm;
+                }
+                .back-reference {
+                    font-size: 10pt;
+                    color: #666;
+                    margin-bottom: 8mm;
+                }
+                .back-barcode { margin: 5mm auto; }
+                .barcode-image {
+                    width: 80mm;
+                    height: 30mm;
+                }
+                .back-barcode-text {
+                    font-size: 14pt;
+                    font-family: 'Courier New', monospace;
+                    letter-spacing: 2pt;
+                    color: #333;
+                    margin-top: 3mm;
+                }
+                .back-no-barcode {
+                    font-size: 12pt;
+                    color: #999;
+                    padding: 10mm;
+                    border: 2px dashed #ddd;
+                    border-radius: 3mm;
+                }
+
+                /* ====== PRINT ====== */
+                @media print {
+                    .label-page { page-break-after: always; }
+                    .label-half { page-break-inside: avoid; }
+                }
+            </style>
+        </xpath>
+    </template>
+
+</odoo>

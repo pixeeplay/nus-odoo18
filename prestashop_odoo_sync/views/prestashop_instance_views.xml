@@ -84,72 +84,43 @@
             </list>
         </field>
     </record>
-    <record id="view_prestashop_orders_form" model="ir.ui.view">
-        <field name="name">prestashop.orders.form</field>
+    <record id="view_sale_order_form_prestashop" model="ir.ui.view">
+        <field name="name">sale.order.form.prestashop</field>
         <field name="model">sale.order</field>
-        <field name="priority">99</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <form>
-                <header>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,sale,done"/>
-                </header>
-                <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
-                    </div>
+            <xpath expr="//field[@name='partner_id']" position="before">
+                <field name="prestashop_source" invisible="1"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="prestashop_info" string="PrestaShop" invisible="not prestashop_source">
                     <group>
-                        <group string="PrestaShop Info">
-                            <field name="prestashop_order_id" string="PS Order ID"/>
-                            <field name="prestashop_reference" string="PS Reference"/>
-                            <field name="prestashop_status" string="PS Status"/>
-                            <field name="prestashop_payment" string="Payment Method"/>
-                            <field name="prestashop_carrier" string="Carrier"/>
-                            <field name="prestashop_new_customer" string="New Customer"/>
-                            <field name="prestashop_delivery_country" string="Delivery Country"/>
-                            <field name="prestashop_instance_id" string="Instance"/>
+                        <group string="PrestaShop Details">
+                            <field name="prestashop_order_id" readonly="1"/>
+                            <field name="prestashop_reference" readonly="1"/>
+                            <field name="prestashop_status" readonly="1"/>
+                            <field name="prestashop_payment" readonly="1"/>
+                            <field name="prestashop_carrier" readonly="1"/>
+                            <field name="prestashop_new_customer" readonly="1"/>
+                            <field name="prestashop_delivery_country" readonly="1"/>
+                            <field name="prestashop_instance_id" readonly="1"/>
                         </group>
-                        <group string="Order Info">
-                            <field name="partner_id"/>
-                            <field name="partner_invoice_id" string="Invoice Address"/>
-                            <field name="partner_shipping_id" string="Shipping Address"/>
-                            <field name="date_order"/>
-                            <field name="origin" string="Reference"/>
-                            <field name="warehouse_id"/>
-                            <field name="company_id"/>
+                        <group string="Eco-Tax">
+                            <field name="prestashop_total_ecotax" readonly="1"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page name="order_lines" string="Order Lines">
-                            <field name="order_line" readonly="1">
-                                <list create="false" edit="false">
-                                    <field name="product_id"/>
-                                    <field name="name" string="Description"/>
-                                    <field name="product_uom_qty" string="Qty"/>
-                                    <field name="price_unit" string="Unit Price"/>
-                                    <field name="prestashop_ecotax" string="Eco-Tax"/>
-                                    <field name="price_subtotal" string="Subtotal"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
-                    <group>
-                        <group>
-                            <field name="prestashop_total_ecotax" string="Total Eco-Tax"/>
-                        </group>
-                        <group>
-                            <field name="amount_untaxed" string="Untaxed Amount"/>
-                            <field name="amount_tax" string="Taxes"/>
-                            <field name="amount_total" string="Total"/>
-                        </group>
-                    </group>
-                </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="message_ids"/>
-                </div>
-            </form>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_sale_order_line_prestashop" model="ir.ui.view">
+        <field name="name">sale.order.line.form.prestashop</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']//list//field[@name='price_subtotal']" position="before">
+                <field name="prestashop_ecotax" string="Eco-Tax" optional="hide"/>
+            </xpath>
         </field>
     </record>
     <record id="action_prestashop_instance" model="ir.actions.act_window">
@@ -167,12 +138,6 @@
         <field name="sequence">1</field>
         <field name="view_mode">list</field>
         <field name="view_id" ref="view_prestashop_orders_tree"/>
-        <field name="act_window_id" ref="action_prestashop_orders"/>
-    </record>
-    <record id="action_prestashop_orders_form" model="ir.actions.act_window.view">
-        <field name="sequence">2</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_prestashop_orders_form"/>
         <field name="act_window_id" ref="action_prestashop_orders"/>
     </record>
     <menuitem id="menu_prestashop_root" name="PrestaShop" sequence="10"/>

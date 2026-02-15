@@ -1,0 +1,25 @@
+{
+    'name': 'Product Label Print',
+    'summary': 'Professional product shelf labels / price tags for retail stores',
+    'version': '18.0.1.0.0',
+    'author': 'Planete Technologie',
+    'license': 'LGPL-3',
+    'category': 'Sales/Products',
+    'depends': [
+        'base',
+        'product',
+        'sale_management',
+        'product_brand',
+        'product_chatgpt_enrichment',
+        'planete_pim',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'reports/product_label_report.xml',
+        'reports/product_label_templates.xml',
+        'wizard/label_print_wizard_views.xml',
+        'views/product_template_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+}
