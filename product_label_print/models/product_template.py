@@ -344,14 +344,4 @@ class ProductTemplate(models.Model):
         self.ensure_one()
         if hasattr(self, 'action_enrich_with_chatgpt'):
             self.action_enrich_with_chatgpt()
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('AI Enrichment'),
-                    'message': _('Product enriched successfully.'),
-                    'type': 'success',
-                    'next': {'type': 'ir.actions.client', 'tag': 'reload'},
-                },
-            }
-        raise models.UserError(_('AI Enrichment module is not installed.'))
+        return True

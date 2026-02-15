@@ -114,21 +114,11 @@ class ProductLabelPrintWizard(models.TransientModel):
             msg += '\n' + _('Errors:') + '\n' + '\n'.join(errors)
 
         return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('AI Enrichment'),
-                'message': msg,
-                'type': 'success' if not errors else 'warning',
-                'sticky': bool(errors),
-                'next': {
-                    'type': 'ir.actions.act_window',
-                    'res_model': self._name,
-                    'res_id': self.id,
-                    'view_mode': 'form',
-                    'target': 'new',
-                },
-            },
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
         }
 
     def _auto_enrich_if_needed(self):
