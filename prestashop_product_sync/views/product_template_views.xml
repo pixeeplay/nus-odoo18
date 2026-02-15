@@ -19,6 +19,7 @@
                             <field name="prestashop_last_sync" readonly="1"/>
                             <field name="prestashop_manufacturer" readonly="1"/>
                             <field name="prestashop_ean13" readonly="1"/>
+                            <field name="prestashop_active" readonly="1"/>
                         </group>
                         <group string="SEO">
                             <field name="prestashop_meta_title" readonly="1"/>
@@ -46,6 +47,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='default_code']" position="after">
                 <field name="prestashop_id" string="PS ID" optional="hide"/>
+                <field name="prestashop_active" string="Active PS" optional="hide"/>
                 <field name="prestashop_manufacturer" string="PS Manufacturer" optional="hide"/>
             </xpath>
         </field>
@@ -63,6 +65,12 @@
                 <filter name="filter_prestashop"
                         string="PrestaShop Products"
                         domain="[('prestashop_instance_id', '!=', False)]"/>
+                <filter name="filter_prestashop_active"
+                        string="Active in PS"
+                        domain="[('prestashop_active', '=', True), ('prestashop_instance_id', '!=', False)]"/>
+                <filter name="filter_prestashop_inactive"
+                        string="Inactive in PS"
+                        domain="[('prestashop_active', '=', False), ('prestashop_instance_id', '!=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_by_instance"
                             string="PS Instance"

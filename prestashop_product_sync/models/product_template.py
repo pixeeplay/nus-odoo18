@@ -23,6 +23,10 @@ class ProductTemplate(models.Model):
     prestashop_meta_description = fields.Text('PS Meta Description', readonly=True)
     prestashop_manufacturer = fields.Char('PS Manufacturer', readonly=True)
     prestashop_ean13 = fields.Char('PS EAN13', readonly=True)
+    prestashop_active = fields.Boolean(
+        'Active in PrestaShop', readonly=True, default=True,
+        help="Whether this product is currently active in PrestaShop.",
+    )
 
 
 class ProductCategory(models.Model):

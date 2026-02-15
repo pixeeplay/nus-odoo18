@@ -1,8 +1,10 @@
 import base64
 import logging
+import threading
 
 import requests
 
+import odoo
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -23,6 +25,7 @@ class PrestaShopInstance(models.Model):
     sync_product_images = fields.Boolean('Sync Images', default=True)
     sync_product_features = fields.Boolean('Sync Features / Characteristics', default=True)
     sync_product_categories = fields.Boolean('Sync Categories', default=True)
+    sync_product_stock = fields.Boolean('Sync Stock Quantities', default=True)
     default_product_categ_id = fields.Many2one(
         'product.category', 'Default Product Category',
     )
@@ -30,15 +33,31 @@ class PrestaShopInstance(models.Model):
         'product.template', 'prestashop_instance_id', string='Synced Products',
     )
     product_count = fields.Integer('Product Count', compute='_compute_product_count')
+    preview_ids = fields.One2many(
+        'prestashop.product.preview', 'instance_id', string='Product Previews',
+    )
+    preview_count = fields.Integer('Preview Count', compute='_compute_preview_count')
+    preview_pending_count = fields.Integer(
+        'Pending', compute='_compute_preview_count',
+    )
     product_sync_interval = fields.Integer(
         'Product Sync Interval (min)', default=60,
         help="Auto-sync interval for products in minutes. 0 = disabled.",
     )
+    import_running = fields.Boolean('Import Running', default=False, readonly=True)
 
     @api.depends('product_ids')
     def _compute_product_count(self):
         for rec in self:
             rec.product_count = len(rec.product_ids)
+
+    @api.depends('preview_ids', 'preview_ids.state')
+    def _compute_preview_count(self):
+        for rec in self:
+            rec.preview_count = len(rec.preview_ids)
+            rec.preview_pending_count = len(
+                rec.preview_ids.filtered(lambda p: p.state in ('pending', 'error'))
+            )
 
     # ------------------------------------
     # Helpers – multi-language text
@@ -284,6 +303,51 @@ class PrestaShopInstance(models.Model):
                     })
 
     # ------------------------------------
+    # Helpers – stock quantity
+    # ------------------------------------
+    def _sync_product_stock(self, product_tmpl, ps_product_id):
+        """Fetch stock quantity from PrestaShop and update Odoo."""
+        try:
+            data = self._api_get_long(
+                'stock_availables', params={
+                    'filter[id_product]': str(ps_product_id),
+                    'filter[id_product_attribute]': '0',
+                    'display': '[quantity]',
+                }, timeout=30,
+            )
+            stocks = data.get('stock_availables', [])
+            if isinstance(stocks, dict):
+                stocks = [stocks]
+            if stocks:
+                qty = int(stocks[0].get('quantity', 0) or 0)
+                # Update the qty_available via stock.quant
+                product = product_tmpl.product_variant_id
+                if product and qty > 0:
+                    warehouse = self.warehouse_id
+                    location = warehouse.lot_stock_id if warehouse else False
+                    if location:
+                        quant = self.env['stock.quant'].search([
+                            ('product_id', '=', product.id),
+                            ('location_id', '=', location.id),
+                        ], limit=1)
+                        if quant:
+                            quant.sudo().write({'quantity': qty})
+                        else:
+                            self.env['stock.quant'].sudo().create({
+                                'product_id': product.id,
+                                'location_id': location.id,
+                                'quantity': qty,
+                            })
+                        _logger.info(
+                            "Stock updated for '%s' (PS-%s): %d",
+                            product_tmpl.name, ps_product_id, qty,
+                        )
+                return qty
+        except Exception as exc:
+            _logger.warning("Stock sync failed for PS-%s: %s", ps_product_id, exc)
+        return 0
+
+    # ------------------------------------
     # Core – sync a single product
     # ------------------------------------
     def _sync_single_product(self, ps_product):
@@ -307,6 +371,7 @@ class PrestaShopInstance(models.Model):
         meta_title = self._get_ps_text(ps_product.get('meta_title', ''))
         meta_description = self._get_ps_text(ps_product.get('meta_description', ''))
         link_rewrite = self._get_ps_text(ps_product.get('link_rewrite', ''))
+        ps_active = str(ps_product.get('active', '1')) == '1'
         associations = ps_product.get('associations', {}) or {}
 
         # Build the public product URL
@@ -352,6 +417,7 @@ class PrestaShopInstance(models.Model):
             'prestashop_meta_description': meta_description or False,
             'prestashop_manufacturer': manufacturer or False,
             'prestashop_ean13': ean13 or False,
+            'prestashop_active': ps_active,
             'type': 'consu',
         }
 
@@ -392,10 +458,331 @@ class PrestaShopInstance(models.Model):
                 feat_list = [feat_list]
             self._sync_product_features_to_odoo(product_tmpl, feat_list)
 
+        # --- stock ---
+        if self.sync_product_stock:
+            self._sync_product_stock(product_tmpl, ps_id)
+
         return product_tmpl
 
+    # =============================================
+    # Product Preview – Fetch & Import
+    # =============================================
+
+    def action_fetch_product_previews(self):
+        """Fetch all active products from PrestaShop into preview records.
+
+        This is a fast, lightweight call that creates preview records so
+        the user can SEE what's in PrestaShop before importing.
+        """
+        self.ensure_one()
+
+        # Step 1 – fetch lightweight product list with basic fields
+        try:
+            params = {
+                'display': '[id,name,reference,price,ean13,active]',
+                'filter[active]': '[1]',
+                'sort': '[id_ASC]',
+            }
+            if self.product_sync_limit and self.product_sync_limit > 0:
+                params['limit'] = self.product_sync_limit
+
+            data = self._api_get_long('products', params=params, timeout=60)
+            products = data.get('products', [])
+            if isinstance(products, dict):
+                products = [products]
+        except Exception as exc:
+            raise UserError(
+                _("Failed to fetch products from PrestaShop: %s") % exc
+            )
+
+        if not products:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Products'),
+                    'message': _('No active products found in PrestaShop.'),
+                    'type': 'info',
+                    'sticky': False,
+                },
+            }
+
+        Preview = self.env['prestashop.product.preview']
+        created = skipped = 0
+
+        for ps_prod in products:
+            ps_id = str(ps_prod.get('id', ''))
+            if not ps_id:
+                continue
+
+            # Already in preview?
+            existing_preview = Preview.search([
+                ('instance_id', '=', self.id),
+                ('prestashop_id', '=', ps_id),
+            ], limit=1)
+            if existing_preview:
+                # Update name/price if changed
+                name = self._get_ps_text(ps_prod.get('name', ''))
+                ref = ps_prod.get('reference', '') or ''
+                price = float(ps_prod.get('price', 0) or 0)
+                if name and existing_preview.name != name:
+                    existing_preview.write({
+                        'name': name,
+                        'reference': ref,
+                        'price': price,
+                    })
+                skipped += 1
+                continue
+
+            name = self._get_ps_text(ps_prod.get('name', ''))
+            reference = ps_prod.get('reference', '') or ''
+            price = float(ps_prod.get('price', 0) or 0)
+            ean13 = ps_prod.get('ean13', '') or ''
+            active_in_ps = str(ps_prod.get('active', '1')) == '1'
+
+            # Check if already imported in Odoo
+            odoo_product = self.env['product.template'].search([
+                ('prestashop_id', '=', ps_id),
+                ('prestashop_instance_id', '=', self.id),
+            ], limit=1)
+
+            Preview.create({
+                'instance_id': self.id,
+                'prestashop_id': ps_id,
+                'name': name or f'PS-{ps_id}',
+                'reference': reference,
+                'price': price,
+                'ean13': ean13,
+                'active_in_ps': active_in_ps,
+                'state': 'imported' if odoo_product else 'pending',
+                'imported_product_id': odoo_product.id if odoo_product else False,
+            })
+            created += 1
+
+            if created % 20 == 0:
+                self.env.cr.commit()
+
+        self.env.cr.commit()
+
+        # Open the preview list
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('PrestaShop Products - Preview (%d new, %d existing)') % (created, skipped),
+            'res_model': 'prestashop.product.preview',
+            'view_mode': 'list,form',
+            'domain': [('instance_id', '=', self.id)],
+            'context': {
+                'default_instance_id': self.id,
+                'search_default_filter_to_import': 1,
+            },
+        }
+
+    def action_import_all_previews(self):
+        """Import all pending preview products in background."""
+        self.ensure_one()
+        previews = self.env['prestashop.product.preview'].search([
+            ('instance_id', '=', self.id),
+            ('state', 'in', ('pending', 'error')),
+        ])
+        if not previews:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Nothing to Import'),
+                    'message': _('No pending products to import. Fetch products first.'),
+                    'type': 'warning',
+                    'sticky': False,
+                },
+            }
+
+        self._import_previews_background(previews.ids)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Import Started'),
+                'message': _(
+                    '%d products are being imported in background. '
+                    'The list will refresh automatically.'
+                ) % len(previews),
+                'type': 'info',
+                'sticky': True,
+            },
+        }
+
+    def action_open_product_previews(self):
+        """Open the product preview list for this instance."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('PrestaShop Product Preview'),
+            'res_model': 'prestashop.product.preview',
+            'view_mode': 'list,form',
+            'domain': [('instance_id', '=', self.id)],
+            'context': {
+                'default_instance_id': self.id,
+            },
+        }
+
+    def _import_previews_background(self, preview_ids):
+        """Run the import of preview products in a background thread."""
+        self.ensure_one()
+        db_name = self.env.cr.dbname
+        uid = self.env.uid
+        instance_id = self.id
+
+        # Mark as running
+        self.import_running = True
+        self.env.cr.commit()
+
+        def _run():
+            try:
+                db_registry = odoo.registry(db_name)
+                with db_registry.cursor() as cr:
+                    env = odoo.api.Environment(cr, uid, {})
+                    instance = env['prestashop.instance'].browse(instance_id)
+                    Preview = env['prestashop.product.preview']
+                    previews = Preview.browse(preview_ids).exists()
+
+                    total = len(previews)
+                    created = updated = errors = 0
+
+                    for idx, preview in enumerate(previews, 1):
+                        try:
+                            preview.write({
+                                'state': 'importing',
+                                'error_message': False,
+                            })
+                            cr.commit()
+
+                            # Send progress notification
+                            env['bus.bus']._sendone(
+                                env.user.partner_id,
+                                'simple_notification',
+                                {
+                                    'title': 'Import %d/%d' % (idx, total),
+                                    'message': '%s [%s]' % (
+                                        preview.name or '',
+                                        preview.reference or '',
+                                    ),
+                                    'type': 'info',
+                                    'sticky': False,
+                                },
+                            )
+                            cr.commit()
+
+                            # Check if already exists
+                            existing = env['product.template'].search([
+                                ('prestashop_id', '=', preview.prestashop_id),
+                                ('prestashop_instance_id', '=', instance.id),
+                            ], limit=1)
+
+                            # Fetch full product data from PS
+                            ps_product = instance._fetch_single_product_full(
+                                preview.prestashop_id
+                            )
+                            if not ps_product:
+                                preview.write({
+                                    'state': 'error',
+                                    'error_message': 'Empty API response',
+                                })
+                                errors += 1
+                                cr.commit()
+                                continue
+
+                            # Sync into Odoo
+                            product_tmpl = instance._sync_single_product(ps_product)
+
+                            new_name = product_tmpl.name if product_tmpl else preview.name
+                            if existing:
+                                updated += 1
+                                state = 'updated'
+                            else:
+                                created += 1
+                                state = 'imported'
+
+                            preview.write({
+                                'state': state,
+                                'imported_product_id': (
+                                    product_tmpl.id if product_tmpl else False
+                                ),
+                                'import_date': fields.Datetime.now(),
+                                'name': new_name,
+                                'error_message': False,
+                            })
+                            cr.commit()
+
+                            # Notify: success
+                            env['bus.bus']._sendone(
+                                env.user.partner_id,
+                                'simple_notification',
+                                {
+                                    'title': '%s %d/%d' % (
+                                        'Updated' if existing else 'Created',
+                                        idx, total,
+                                    ),
+                                    'message': new_name,
+                                    'type': 'success',
+                                    'sticky': False,
+                                },
+                            )
+                            cr.commit()
+
+                        except Exception as exc:
+                            errors += 1
+                            try:
+                                preview.write({
+                                    'state': 'error',
+                                    'error_message': str(exc),
+                                })
+                                cr.commit()
+                            except Exception:
+                                cr.rollback()
+                            _logger.error(
+                                "BG import error PS-%s: %s",
+                                preview.prestashop_id, exc,
+                            )
+
+                    # Done – final notification
+                    instance.write({
+                        'last_product_sync_date': fields.Datetime.now(),
+                        'import_running': False,
+                    })
+                    cr.commit()
+
+                    env['bus.bus']._sendone(
+                        env.user.partner_id,
+                        'simple_notification',
+                        {
+                            'title': 'Import Complete!',
+                            'message': (
+                                'Created: %d | Updated: %d | Errors: %d'
+                            ) % (created, updated, errors),
+                            'type': 'success' if not errors else 'warning',
+                            'sticky': True,
+                        },
+                    )
+                    cr.commit()
+
+            except Exception as exc:
+                _logger.error("Background import thread failed: %s", exc)
+                try:
+                    db_registry = odoo.registry(db_name)
+                    with db_registry.cursor() as cr:
+                        env = odoo.api.Environment(cr, uid, {})
+                        instance = env['prestashop.instance'].browse(instance_id)
+                        instance.import_running = False
+                        cr.commit()
+                except Exception:
+                    pass
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+
     # ------------------------------------
-    # Actions
+    # Actions (legacy, kept for backward compat)
     # ------------------------------------
     def _fetch_product_ids(self):
         """Fetch the list of active product IDs from PrestaShop (lightweight call)."""
@@ -549,6 +936,23 @@ class PrestaShopInstance(models.Model):
                     if self.product_sync_interval > 0
                     else _('Product auto-sync disabled')
                 ),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def action_clear_previews(self):
+        """Delete all preview records for this instance."""
+        self.ensure_one()
+        self.env['prestashop.product.preview'].search([
+            ('instance_id', '=', self.id),
+        ]).unlink()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Previews Cleared'),
+                'message': _('All preview records have been removed.'),
                 'type': 'success',
                 'sticky': False,
             },

@@ -12,13 +12,30 @@
 
             <!-- Add product sync buttons in the header -->
             <xpath expr="//header/button[@name='action_sync_orders']" position="after">
-                <button name="action_sync_products"
-                        string="Sync All Products"
+                <!-- Main flow: Fetch → Preview → Import -->
+                <button name="action_fetch_product_previews"
+                        string="Fetch PrestaShop Products"
                         type="object"
                         class="btn-primary"
                         invisible="not id"/>
+                <button name="action_import_all_previews"
+                        string="Import All Pending"
+                        type="object"
+                        class="btn-success"
+                        invisible="not id or preview_pending_count == 0"/>
+                <button name="action_open_product_previews"
+                        string="View Preview"
+                        type="object"
+                        class="btn-info"
+                        invisible="not id or preview_count == 0"/>
+                <!-- Legacy direct sync -->
+                <button name="action_sync_products"
+                        string="Direct Sync (legacy)"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not id"/>
                 <button name="action_open_test_sync_wizard"
-                        string="Test Sync (5 products)"
+                        string="Test Sync (5)"
                         type="object"
                         class="btn-warning"
                         invisible="not id"/>
@@ -31,12 +48,15 @@
                         <field name="sync_product_images"/>
                         <field name="sync_product_features"/>
                         <field name="sync_product_categories"/>
+                        <field name="sync_product_stock"/>
                         <field name="default_product_categ_id"/>
                     </group>
                     <group>
                         <field name="product_sync_limit"/>
                         <field name="product_sync_interval" string="Product Auto-Sync (min)"/>
                         <field name="last_product_sync_date"/>
+                        <field name="import_running" readonly="1"
+                               widget="boolean" string="Import Running"/>
                         <button name="action_update_product_cron_interval"
                                 string="Apply Product Sync Interval"
                                 type="object"
@@ -46,7 +66,7 @@
                 </group>
             </xpath>
 
-            <!-- Add a smart button for product count -->
+            <!-- Add smart buttons for product count and preview count -->
             <xpath expr="//sheet" position="inside">
                 <div class="oe_button_box" name="button_box">
                     <button name="action_view_synced_products"
@@ -56,11 +76,56 @@
                             invisible="not id">
                         <field name="product_count" widget="statinfo" string="Products"/>
                     </button>
+                    <button name="action_open_product_previews"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-list"
+                            invisible="not id">
+                        <field name="preview_count" widget="statinfo" string="Preview"/>
+                    </button>
                 </div>
             </xpath>
 
-            <!-- Add Synced Products notebook page -->
+            <!-- Add Synced Products and Preview notebook pages -->
             <xpath expr="//notebook" position="inside">
+                <page name="product_preview" string="Product Preview">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Workflow:</strong>
+                        1. Click <em>Fetch PrestaShop Products</em> to see what's available.
+                        2. Review the preview list.
+                        3. Click <em>Import All Pending</em> to import in background.
+                        Products will appear progressively (auto-refresh every 4s).
+                    </div>
+                    <field name="preview_ids" readonly="1">
+                        <list create="false" edit="false"
+                              default_order="state_sequence asc, prestashop_id asc"
+                              decoration-info="state == 'importing'"
+                              decoration-success="state in ('imported', 'updated')"
+                              decoration-danger="state == 'error'"
+                              decoration-muted="state == 'skipped'">
+                            <field name="state_sequence" column_invisible="1"/>
+                            <field name="prestashop_id" string="PS ID"/>
+                            <field name="name" string="Product"/>
+                            <field name="reference" string="SKU"/>
+                            <field name="price" string="Price"/>
+                            <field name="active_in_ps" string="Active PS"/>
+                            <field name="state" string="Status" widget="badge"
+                                   decoration-info="state == 'importing'"
+                                   decoration-success="state in ('imported', 'updated')"
+                                   decoration-danger="state == 'error'"
+                                   decoration-warning="state == 'pending'"/>
+                            <field name="import_date" string="Imported"/>
+                        </list>
+                    </field>
+                    <div>
+                        <button name="action_clear_previews"
+                                string="Clear All Previews"
+                                type="object"
+                                class="btn-link text-danger"
+                                invisible="not id or preview_count == 0"
+                                confirm="Delete all preview records for this instance?"/>
+                    </div>
+                </page>
                 <page name="products" string="Synced Products">
                     <field name="product_ids" readonly="1">
                         <list create="false" edit="false" default_order="prestashop_id desc">
@@ -71,6 +136,7 @@
                             <field name="list_price" string="Price" widget="monetary"/>
                             <field name="prestashop_manufacturer" string="Manufacturer"/>
                             <field name="prestashop_ean13" string="EAN13"/>
+                            <field name="prestashop_active" string="Active PS"/>
                             <field name="prestashop_last_sync" string="Last Sync"/>
                         </list>
                     </field>
