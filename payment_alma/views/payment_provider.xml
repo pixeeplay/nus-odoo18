@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="payment_provider_form" model="ir.ui.view">
+        <field name="name">Alma Provider Form</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+            <group name="provider_credentials" position='inside'>
+                <group invisible="code != 'alma'">
+                    <field name="alma_api_key" password="1"/>
+                    <field name="alma_api_test_key"/>
+                </group>
+            </group>
+            <group name="provider_config" position="inside">
+                <group string='Alma options' invisible="code != 'alma'">
+                    <field name="alma_1x"/>
+                    <field name="alma_2x"/>
+                    <field name="alma_3x"/>
+                    <field name="alma_4x"/>
+                    <field name="deferred_payment_days"/>
+                    <field name="deferred_payment_months"/>
+                </group>
+            </group>
+            <xpath expr="//field[@name='available_currency_ids']" position="attributes">
+                <attribute name='readonly'>[('code', '=', 'alma')]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

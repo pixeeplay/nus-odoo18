@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Inherit the PrestaShop Instance form to add product sync UI
+         ============================================================ -->
+    <record id="view_prestashop_instance_form_product_sync" model="ir.ui.view">
+        <field name="name">prestashop.instance.form.product.sync</field>
+        <field name="model">prestashop.instance</field>
+        <field name="inherit_id" ref="prestashop_odoo_sync.view_prestashop_instance_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add product sync buttons in the header -->
+            <xpath expr="//header/button[@name='action_sync_orders']" position="after">
+                <button name="action_sync_products"
+                        string="Sync Products"
+                        type="object"
+                        class="btn-primary"
+                        invisible="not id"/>
+            </xpath>
+
+            <!-- Add product configuration fields -->
+            <xpath expr="//group[@string='Odoo Configuration']" position="after">
+                <group string="Product Sync Configuration">
+                    <field name="sync_product_images"/>
+                    <field name="sync_product_features"/>
+                    <field name="sync_product_categories"/>
+                    <field name="default_product_categ_id"/>
+                    <field name="product_sync_limit"/>
+                    <field name="product_sync_interval" string="Product Auto-Sync (min)"/>
+                    <field name="last_product_sync_date"/>
+                    <button name="action_update_product_cron_interval"
+                            string="Apply Product Sync Interval"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not id"/>
+                </group>
+            </xpath>
+
+            <!-- Add a smart button for product count -->
+            <xpath expr="//sheet" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_synced_products"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-cube"
+                            invisible="not id">
+                        <field name="product_count" widget="statinfo" string="Products"/>
+                    </button>
+                </div>
+            </xpath>
+
+            <!-- Add Synced Products notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page name="products" string="Synced Products">
+                    <field name="product_ids" readonly="1">
+                        <list create="false" edit="false" default_order="prestashop_id desc">
+                            <field name="prestashop_id" string="PS ID"/>
+                            <field name="default_code" string="Reference"/>
+                            <field name="name" string="Product Name"/>
+                            <field name="categ_id" string="Category"/>
+                            <field name="list_price" string="Price" widget="monetary"/>
+                            <field name="prestashop_manufacturer" string="Manufacturer"/>
+                            <field name="prestashop_ean13" string="EAN13"/>
+                            <field name="prestashop_last_sync" string="Last Sync"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Menu item: Synced Products (under PrestaShop root menu)
+         ============================================================ -->
+    <record id="action_prestashop_products" model="ir.actions.act_window">
+        <field name="name">PrestaShop Products</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('prestashop_instance_id', '!=', False)]</field>
+        <field name="context">{'search_default_group_by_instance': 1}</field>
+    </record>
+
+    <menuitem id="menu_prestashop_products"
+              name="Products"
+              parent="prestashop_odoo_sync.menu_prestashop_root"
+              action="action_prestashop_products"
+              sequence="15"/>
+
+</odoo>

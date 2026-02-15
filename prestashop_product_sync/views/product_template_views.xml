@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Extend product.template form: add PrestaShop tab
+         ============================================================ -->
+    <record id="view_product_template_form_prestashop" model="ir.ui.view">
+        <field name="name">product.template.form.prestashop</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="prestashop" string="PrestaShop" invisible="not prestashop_id">
+                    <group>
+                        <group string="PrestaShop Info">
+                            <field name="prestashop_id" readonly="1"/>
+                            <field name="prestashop_instance_id" readonly="1"/>
+                            <field name="prestashop_url" readonly="1" widget="url"/>
+                            <field name="prestashop_last_sync" readonly="1"/>
+                            <field name="prestashop_manufacturer" readonly="1"/>
+                            <field name="prestashop_ean13" readonly="1"/>
+                        </group>
+                        <group string="SEO">
+                            <field name="prestashop_meta_title" readonly="1"/>
+                            <field name="prestashop_meta_description" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Full Description (HTML)">
+                        <field name="prestashop_description_html" readonly="1" nolabel="1"/>
+                    </group>
+                    <group string="Short Description (HTML)">
+                        <field name="prestashop_description_short_html" readonly="1" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Product list: add PS columns
+         ============================================================ -->
+    <record id="view_product_template_tree_prestashop" model="ir.ui.view">
+        <field name="name">product.template.list.prestashop</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="prestashop_id" string="PS ID" optional="hide"/>
+                <field name="prestashop_manufacturer" string="PS Manufacturer" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Search view: filter / group by PrestaShop
+         ============================================================ -->
+    <record id="view_product_template_search_prestashop" model="ir.ui.view">
+        <field name="name">product.template.search.prestashop</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="filter_prestashop"
+                        string="PrestaShop Products"
+                        domain="[('prestashop_instance_id', '!=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance"
+                            string="PS Instance"
+                            context="{'group_by': 'prestashop_instance_id'}"/>
+                    <filter name="group_by_manufacturer"
+                            string="PS Manufacturer"
+                            context="{'group_by': 'prestashop_manufacturer'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

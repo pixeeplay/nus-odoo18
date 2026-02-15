@@ -1,0 +1,16 @@
+<odoo>
+    <record id="payment.payment_method_alma" model="payment.method">
+        <field name="supported_country_ids" eval="[Command.set([
+            ref('base.fr'),
+            ref('base.es'),
+            ref('base.pt'),
+            ref('base.de'),
+            ref('base.it'),
+            ref('base.be'),
+            ref('base.nl'),
+            ref('base.lu'),
+            ref('base.at'),
+            ref('base.ie')
+        ])]"/>
+    </record>
+</odoo>

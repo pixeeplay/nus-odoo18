@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="payment_provider_alma" model="payment.provider">
+            <field name="name">Alma</field>
+            <field name="image_128" type="base64" file="payment_alma/static/description/icon.png"/>
+            <field name="module_id" ref="base.module_payment_alma"/>
+            <field name="payment_method_ids" eval="[Command.set([ref('payment.payment_method_alma')])]"/>
+            <field name="code">alma</field>
+            <field name="inline_form_view_id" ref="inline_form"/>
+            <field name="redirect_form_view_id" ref="redirect_form"/>
+            <field name="allow_tokenization">True</field>
+            <field name="available_currency_ids" eval="[Command.set([ref('base.EUR')])]"/>
+        </record>
+
+    </data>
+</odoo>

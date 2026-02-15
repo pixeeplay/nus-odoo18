@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="redirect_form">
+        <form t-att-action="api_url" method="get"/>
+    </template>
+
+    <template id="inline_form">
+        <div t-attf-id="demo-container-{{provider_id}}">
+            <div class="row">
+                <div class="mb-3">
+                    <input name="provider_id" type="hidden" id="provider_id" t-att-value="id"/>
+                    <input name="partner_id" type="hidden" t-att-value="partner_id"/>
+                </div>
+                <div class="col mt-0 mb-0">
+                    <label for="installments_count" class="mt-0">
+                        <small><b>Payment count</b></small>
+                    </label>
+                    <select id="alma_options" class="form-select">
+                        <t t-foreach="alma_eligibility" t-as="alma_elig">
+                            <t t-if="alma_elig['eligible']">
+                                <option t-att-value="(alma_elig['installments_count'], alma_elig['deferred_months'], alma_elig['deferred_days'])" title="alma_options">
+                                    <t t-esc="alma_elig['installments_count']"/> X 
+                                    <t t-if="alma_elig['deferred_months']">
+                                        (
+                                        <t t-esc="alma_elig['deferred_months']"/>
+                                        deferred months)
+                                    </t>
+                                    <t t-if="alma_elig['deferred_days']">
+                                        (
+                                        <t t-esc="alma_elig['deferred_days']"/>
+                                        deferred days)
+                                    </t>
+                                </option>
+                            </t>
+                            <t t-if="not alma_elig['eligible']">
+                                <option disabled="1" t-att-value="(alma_elig['installments_count'], alma_elig['deferred_months'], alma_elig['deferred_days'])" title="alma_options">
+                                    <t t-esc="alma_elig['installments_count']"/> X 
+                                    <t t-if="alma_elig['deferred_months']">
+                                        (
+                                        <t t-esc="alma_elig['deferred_months']"/>
+                                        deferred months)
+                                    </t>
+                                    <t t-if="alma_elig['deferred_days']">
+                                        (
+                                        <t t-esc="alma_elig['deferred_days']"/>
+                                        deferred days)
+                                    </t>
+                                    <t t-foreach="alma_plan" t-as="plan">
+                                        <t t-if="plan['installments_count'] == alma_elig['installments_count'] and plan['deferred_months'] == alma_elig['deferred_months'] and plan['deferred_days'] == alma_elig['deferred_days']">
+                                            <t t-if="amount &lt; plan['min_purchase_amount']">
+                                                The minimum amount is <t t-esc="plan['min_purchase_amount'] / 100"
+                                                t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                            </t>
+                                            <t t-if="amount &gt; plan['max_purchase_amount']">
+                                                The maximum amount is <t t-esc="plan['max_purchase_amount'] / 100"
+                                                t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                                            </t>
+                                        </t>
+                                    </t>
+                                </option>
+                            </t>
+                        </t>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</odoo>

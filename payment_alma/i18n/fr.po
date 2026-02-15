@@ -1,0 +1,217 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* payment_alma
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-04-17 12:36+0000\n"
+"PO-Revision-Date: 2024-04-17 14:45+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.4.1\n"
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.inline_form
+msgid "<small><b>Payment count</b></small>"
+msgstr "<small><b>Nombre de paiement</b></small>"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__alma_api_key
+msgid "API key for production (Alma)"
+msgstr "Clé API de production (Alma)"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__alma_api_test_key
+msgid "API key for test (Alma)"
+msgstr "Clé API pour test (Alma)"
+
+#. module: payment_alma
+#: model:ir.model.fields.selection,name:payment_alma.selection__payment_provider__code__alma
+#: model:payment.provider,name:payment_alma.payment_provider_alma
+msgid "Alma"
+msgstr "Alma"
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.payment_provider_form
+msgid "Alma options"
+msgstr "Options Alma"
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/controllers/portal.py:0
+#, python-format
+msgid "Alma payment is not selectable."
+msgstr "Le paiement Alma n’est pas sélectionnable."
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/models/payment_provider.py:0
+#, python-format
+msgid "Alma provider is disabled"
+msgstr "Le fournisseur Alma est désactivé"
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/models/payment_transaction.py:0
+#, python-format
+msgid ""
+"An error occurred during the processing of your payment (status %s). Please "
+"try again."
+msgstr ""
+"Une erreur s’est produite lors du traitement de votre paiement (statut %s). "
+"Veuillez réessayer."
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__code
+msgid "Code"
+msgstr "Code"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__deferred_payment_days
+msgid "Deferred payment d+15"
+msgstr "Paiement différé j+15"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__deferred_payment_months
+msgid "Deferred payment m+1"
+msgstr "Paiement différé m+1"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_transaction__deferred_days
+msgid "Defferd days"
+msgstr "Jours différés"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_transaction__deferred_months
+msgid "Deffered months"
+msgstr "Mois différés"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_transaction__installments_count
+msgid "Installments count"
+msgstr "Nombre de versements"
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/models/payment_transaction.py:0
+#, python-format
+msgid "No transaction found matching provider reference %s."
+msgstr ""
+"Aucune transaction trouvée correspondant à la référence du fournisseur %s."
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__alma_1x
+msgid "Payment 1X"
+msgstr "Paiement 1X"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__alma_2x
+msgid "Payment 2X"
+msgstr "Paiement 2X"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__alma_3x
+msgid "Payment 3X"
+msgstr "Paiement 3X"
+
+#. module: payment_alma
+#: model:ir.model.fields,field_description:payment_alma.field_payment_provider__alma_4x
+msgid "Payment 4X"
+msgstr "Paiement 4X"
+
+#. module: payment_alma
+#: model:ir.model,name:payment_alma.model_payment_provider
+msgid "Payment Provider"
+msgstr "Fournisseur de paiement"
+
+#. module: payment_alma
+#: model:ir.model,name:payment_alma.model_payment_transaction
+msgid "Payment Transaction"
+msgstr "Transaction de paiement"
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/models/payment_transaction.py:0
+#, python-format
+msgid "Received data with missing reference."
+msgstr "Données reçues avec référence manquante."
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/models/payment_transaction.py:0
+#, python-format
+msgid "Something wrong with the alma api, please retry later"
+msgstr "Il y a un problème avec l’API Alma, veuillez réessayer plus tard"
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/controllers/portal.py:0
+#, python-format
+msgid "The following kwargs are not whitelisted: %s"
+msgstr "Les kwargs suivants ne sont pas sur liste blanche : %s"
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.inline_form
+msgid "The maximum amount is"
+msgstr "Le montant maximum est"
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.inline_form
+msgid "The minimum amount is"
+msgstr "Le montant minimum est"
+
+#. module: payment_alma
+#: model:ir.model.fields,help:payment_alma.field_payment_provider__code
+msgid "The technical code of this payment provider."
+msgstr "Le code technique de ce prestataire de paiement."
+
+#. module: payment_alma
+#. odoo-python
+#: code:addons/payment_alma/models/payment_transaction.py:0
+#, python-format
+msgid "Unknown payment status: %s"
+msgstr "Statut de paiement inconnu : %s"
+
+#. module: payment_alma
+#: model_terms:payment.provider,auth_msg:payment_alma.payment_provider_alma
+msgid "Your payment has been authorized."
+msgstr "Votre paiement a été autorisé."
+
+#. module: payment_alma
+#: model_terms:payment.provider,cancel_msg:payment_alma.payment_provider_alma
+msgid "Your payment has been cancelled."
+msgstr "Votre paiement a été annulé."
+
+#. module: payment_alma
+#: model_terms:payment.provider,pending_msg:payment_alma.payment_provider_alma
+msgid ""
+"Your payment has been successfully processed but is waiting for approval."
+msgstr ""
+"Votre paiement a été traité avec succès mais est en attente d’approbation."
+
+#. module: payment_alma
+#: model_terms:payment.provider,done_msg:payment_alma.payment_provider_alma
+msgid "Your payment has been successfully processed."
+msgstr "Votre paiement a été traité avec succès."
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.inline_form
+msgid "alma_options"
+msgstr "alma_options"
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.inline_form
+msgid "deferred days)"
+msgstr "jours différés)"
+
+#. module: payment_alma
+#: model_terms:ir.ui.view,arch_db:payment_alma.inline_form
+msgid "deferred months)"
+msgstr "mois différés)"
