@@ -18,6 +18,7 @@
             <form>
                 <header>
                     <button name="action_test_connection" string="Test Connection" type="object" class="btn-primary"/>
+                    <button name="action_check_permissions" string="Check API Permissions" type="object" class="btn-warning" invisible="not id"/>
                     <button name="action_sync_orders" string="Sync Orders (Last 50)" type="object" class="btn-success" invisible="not id"/>
                 </header>
                 <sheet>

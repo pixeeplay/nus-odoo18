@@ -142,15 +142,43 @@ class PrestaShopInstance(models.Model):
 
         return product
 
+    def action_check_permissions(self):
+        """Check which resources are available on the PrestaShop API"""
+        self.ensure_one()
+        try:
+            base_url = self.url.rstrip('/')
+            response = requests.get(base_url, auth=(self.api_key, ''), timeout=10)
+            if response.status_code == 200:
+                root = ET.fromstring(response.content)
+                resources = [elem.tag for elem in root.find('.//api') or []]
+                if not resources:
+                    resources = [elem.tag for elem in root.iter() if elem.get('xlink:href')]
+                msg = ', '.join(resources) if resources else response.text[:500]
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _('Available API Resources'),
+                        'message': msg,
+                        'type': 'info',
+                        'sticky': True,
+                    }
+                }
+            else:
+                raise UserError(_("API root returned status %s") % response.status_code)
+        except Exception as e:
+            raise UserError(_("Check failed: %s") % str(e))
+
     def action_sync_orders(self):
         """Synchronize orders from PrestaShop (last 50 orders)"""
         self.ensure_one()
 
         try:
-            # Fetch orders from PrestaShop - simplified without date filter first
+            # Fetch orders from PrestaShop
             params = {
                 'display': 'full',
-                'limit': 50,  # Limit to last 50 orders for testing
+                'limit': 50,
+                'output_format': 'XML',
             }
 
             orders_xml = self._api_get('orders', params=params)
