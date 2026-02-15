@@ -1,6 +1,9 @@
 import math
+import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class ProductLabelPrintWizard(models.TransientModel):
@@ -47,6 +50,11 @@ class ProductLabelPrintWizard(models.TransientModel):
         default='both',
         required=True,
     )
+    auto_enrich = fields.Boolean(
+        string='Auto-enrich before print',
+        default=True,
+        help='Automatically enrich products with AI that have no features yet.',
+    )
     product_count = fields.Integer(
         string='Products Selected',
         compute='_compute_counts',
@@ -59,6 +67,10 @@ class ProductLabelPrintWizard(models.TransientModel):
         string='Total A4 Pages',
         compute='_compute_counts',
     )
+    products_needing_enrich = fields.Integer(
+        string='Need AI Enrichment',
+        compute='_compute_counts',
+    )
 
     @api.depends('product_ids', 'quantity')
     def _compute_counts(self):
@@ -68,6 +80,12 @@ class ProductLabelPrintWizard(models.TransientModel):
             wiz.product_count = count
             wiz.total_labels = total
             wiz.total_pages = math.ceil(total / 2)
+            # Count products without AI enrichment
+            need_enrich = 0
+            for p in wiz.product_ids:
+                if not p._get_label_bullet_points(1):
+                    need_enrich += 1
+            wiz.products_needing_enrich = need_enrich
 
     @api.constrains('quantity')
     def _check_quantity(self):
@@ -76,7 +94,7 @@ class ProductLabelPrintWizard(models.TransientModel):
                 raise UserError(_('Quantity must be at least 1.'))
 
     def action_enrich_products(self):
-        """Enrich all selected products with AI before printing."""
+        """Enrich all selected products with AI."""
         self.ensure_one()
         if not self.product_ids:
             raise UserError(_('Please select at least one product.'))
@@ -113,11 +131,28 @@ class ProductLabelPrintWizard(models.TransientModel):
             },
         }
 
+    def _auto_enrich_if_needed(self):
+        """Auto-enrich products that have no bullet points."""
+        enriched = 0
+        for product in self.product_ids:
+            if not product._get_label_bullet_points(1):
+                if hasattr(product, 'action_enrich_with_chatgpt'):
+                    try:
+                        product.action_enrich_with_chatgpt()
+                        enriched += 1
+                    except Exception as e:
+                        _logger.warning('Auto-enrich failed for %s: %s', product.name, e)
+        return enriched
+
     def action_print(self):
-        """Generate the PDF report."""
+        """Generate the PDF report, auto-enriching if enabled."""
         self.ensure_one()
         if not self.product_ids:
             raise UserError(_('Please select at least one product.'))
+
+        # Auto-enrich if enabled
+        if self.auto_enrich:
+            self._auto_enrich_if_needed()
 
         data = {
             'product_ids': self.product_ids.ids,

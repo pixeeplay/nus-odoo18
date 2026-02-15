@@ -23,6 +23,16 @@
                     <field name="show_repairability" widget="boolean_toggle"/>
                     <field name="show_deee" widget="boolean_toggle"/>
                 </group>
+                <separator string="AI Enrichment"/>
+                <group col="4">
+                    <field name="auto_enrich" widget="boolean_toggle"/>
+                    <field name="products_needing_enrich" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"
+                     invisible="products_needing_enrich == 0">
+                    <strong><field name="products_needing_enrich" readonly="1" class="d-inline"/></strong> product(s) have no features yet.
+                    Click "Enrich with AI" or enable auto-enrich.
+                </div>
                 <div class="alert alert-info" role="alert">
                     <strong>Summary: </strong>
                     <field name="total_labels" readonly="1" class="d-inline"/> labels on
@@ -30,8 +40,12 @@
                     (2 labels per page).
                 </div>
                 <footer>
-                    <button name="action_enrich_products" type="object" string="Enrich with AI" class="btn-warning" icon="fa-magic"/>
-                    <button name="action_print" type="object" string="Print Labels" class="btn-primary" icon="fa-print"/>
+                    <button name="action_enrich_products" type="object"
+                            string="Enrich with AI" class="btn-warning"
+                            icon="fa-magic"/>
+                    <button name="action_print" type="object"
+                            string="Print Labels" class="btn-primary"
+                            icon="fa-print"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

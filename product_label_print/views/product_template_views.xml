@@ -7,6 +7,26 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Label / Price Tag" name="label_info">
+                    <!-- Label Preview -->
+                    <div class="mb-3">
+                        <field name="label_preview" nolabel="1" readonly="1"/>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="mb-3">
+                        <button name="action_enrich_for_label"
+                                type="object"
+                                string="Enrich with AI"
+                                class="btn btn-warning me-2"
+                                icon="fa-magic"/>
+                        <button name="action_print_label"
+                                type="object"
+                                string="Print Label"
+                                class="btn btn-primary"
+                                icon="fa-print"/>
+                    </div>
+
+                    <!-- Fields -->
                     <group>
                         <group string="Energy &amp; Environment">
                             <field name="energy_label"/>
