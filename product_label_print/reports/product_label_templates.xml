@@ -90,9 +90,14 @@
                           t-esc="item['categ_name']"/>
                 </td>
                 <td style="text-align:right;">
-                    <t t-if="show_repairability and item.get('repairability_index', 0) &gt; 0">
-                        <t t-call="product_label_print.repairability_badge">
-                            <t t-set="score" t-value="item['repairability_index']"/>
+                    <t t-if="show_repairability">
+                        <t t-if="item.get('repairability_index', 0) &gt; 0">
+                            <t t-call="product_label_print.repairability_badge">
+                                <t t-set="score" t-value="item['repairability_index']"/>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <span style="font-size:7pt;color:#999;background:#f0f0f0;padding:1mm 2mm;">Ind. r&#233;par. : N/A</span>
                         </t>
                     </t>
                 </td>
@@ -162,9 +167,11 @@
     <!-- REPAIRABILITY INDEX BADGE                                    -->
     <!-- ============================================================ -->
     <template id="repairability_badge">
-        <div t-attf-class="repair-badge repair-color-{{'green' if score >= 8 else 'lightgreen' if score >= 6 else 'yellow' if score >= 4 else 'orange' if score >= 2 else 'red'}}">
-            <span class="repair-val" t-esc="'%.1f' % score"/><span class="repair-of">/10</span>
-        </div>
+        <t t-set="repair_color" t-value="'#00a651' if score >= 8 else '#8cc63f' if score >= 6 else '#fff200' if score >= 4 else '#f7941d' if score >= 2 else '#ed1c24'"/>
+        <t t-set="repair_text" t-value="'#fff' if score >= 6 or score &lt; 2 else '#333'"/>
+        <span t-attf-style="background-color:{{repair_color}};color:{{repair_text}};padding:1mm 3mm;font-weight:bold;font-size:9pt;">
+            <t t-esc="'%.1f' % score"/>/10
+        </span>
     </template>
 
     <!-- ============================================================ -->
