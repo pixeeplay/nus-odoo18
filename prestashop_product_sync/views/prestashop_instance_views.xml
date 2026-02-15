@@ -19,26 +19,30 @@
                         invisible="not id"/>
             </xpath>
 
-            <!-- Add product configuration fields -->
-            <xpath expr="//group[@string='Odoo Configuration']" position="after">
+            <!-- Add product configuration fields before the notebook -->
+            <xpath expr="//notebook" position="before">
                 <group string="Product Sync Configuration">
-                    <field name="sync_product_images"/>
-                    <field name="sync_product_features"/>
-                    <field name="sync_product_categories"/>
-                    <field name="default_product_categ_id"/>
-                    <field name="product_sync_limit"/>
-                    <field name="product_sync_interval" string="Product Auto-Sync (min)"/>
-                    <field name="last_product_sync_date"/>
-                    <button name="action_update_product_cron_interval"
-                            string="Apply Product Sync Interval"
-                            type="object"
-                            class="btn-secondary"
-                            invisible="not id"/>
+                    <group>
+                        <field name="sync_product_images"/>
+                        <field name="sync_product_features"/>
+                        <field name="sync_product_categories"/>
+                        <field name="default_product_categ_id"/>
+                    </group>
+                    <group>
+                        <field name="product_sync_limit"/>
+                        <field name="product_sync_interval" string="Product Auto-Sync (min)"/>
+                        <field name="last_product_sync_date"/>
+                        <button name="action_update_product_cron_interval"
+                                string="Apply Product Sync Interval"
+                                type="object"
+                                class="btn-secondary"
+                                invisible="not id"/>
+                    </group>
                 </group>
             </xpath>
 
             <!-- Add a smart button for product count -->
-            <xpath expr="//sheet" position="before">
+            <xpath expr="//sheet" position="inside">
                 <div class="oe_button_box" name="button_box">
                     <button name="action_view_synced_products"
                             type="object"
