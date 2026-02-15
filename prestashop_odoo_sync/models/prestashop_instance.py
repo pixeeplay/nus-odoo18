@@ -308,7 +308,7 @@ class PrestaShopInstance(models.Model):
             })
         return product
 
-    # ---- Carrier sync ----
+    # ---- Carrier & Status sync ----
 
     def _get_carrier_name(self, carrier_id):
         """Fetch carrier name from PrestaShop"""
@@ -320,6 +320,53 @@ class PrestaShopInstance(models.Model):
             return carrier.get('name', '') or ''
         except Exception:
             return ''
+
+    def _get_order_status_name(self, status_id):
+        """Fetch order status name from PrestaShop"""
+        try:
+            if not status_id or str(status_id) == '0':
+                return ''
+            data = self._api_get('order_histories', params={
+                'filter[id_order_state]': str(status_id),
+            })
+            # Try direct order_states endpoint
+            try:
+                data = self._api_get('order_states', str(status_id))
+                state = data.get('order_state', {})
+                name = state.get('name', '')
+                if isinstance(name, dict):
+                    return name.get('1', '') or name.get(list(name.keys())[0], '') if name else ''
+                return name or ''
+            except Exception:
+                return ''
+        except Exception:
+            return ''
+
+    def _get_delivery_country(self, address_id):
+        """Get delivery country name from address"""
+        try:
+            if not address_id or str(address_id) == '0':
+                return ''
+            data = self._api_get('addresses', str(address_id))
+            addr = data.get('address', {})
+            country_id_ps = str(addr.get('id_country', ''))
+            if country_id_ps and country_id_ps != '0':
+                country_data = self._api_get('countries', country_id_ps)
+                country = country_data.get('country', {})
+                name = country.get('name', '')
+                if isinstance(name, dict):
+                    return name.get('1', '') or name.get(list(name.keys())[0], '') if name else ''
+                return name or ''
+            return ''
+        except Exception:
+            return ''
+
+    def _is_new_customer(self, customer_id):
+        """Check if customer already had orders before"""
+        existing = self.env['res.partner'].search([
+            ('comment', 'ilike', f'PrestaShop ID: {customer_id}')
+        ], limit=1)
+        return not bool(existing)
 
     # ---- Order sync ----
 
@@ -371,7 +418,12 @@ class PrestaShopInstance(models.Model):
                 id_address_delivery = str(order.get('id_address_delivery', ''))
                 id_address_invoice = str(order.get('id_address_invoice', ''))
                 id_carrier = str(order.get('id_carrier', ''))
+                current_state = str(order.get('current_state', ''))
+                payment_method = order.get('payment', '')
                 total_shipping = float(order.get('total_shipping_tax_excl', 0) or order.get('total_shipping', 0) or 0)
+
+                # Check if new customer before creating
+                is_new = self._is_new_customer(customer_id)
 
                 # Find or create customer
                 partner = self._find_or_create_customer(customer_id)
@@ -383,8 +435,10 @@ class PrestaShopInstance(models.Model):
                 invoice_partner = self._find_or_create_address(id_address_invoice, partner, 'invoice')
                 delivery_partner = self._find_or_create_address(id_address_delivery, partner, 'delivery')
 
-                # Get carrier name
+                # Get carrier name and order status
                 carrier_name = self._get_carrier_name(id_carrier)
+                status_name = self._get_order_status_name(current_state)
+                delivery_country = self._get_delivery_country(id_address_delivery)
 
                 sale_order = self.env['sale.order'].create({
                     'partner_id': partner.id,
@@ -395,8 +449,13 @@ class PrestaShopInstance(models.Model):
                     'company_id': self.company_id.id,
                     'prestashop_instance_id': self.id,
                     'prestashop_order_id': order_id,
+                    'prestashop_reference': order_reference,
                     'prestashop_source': 'prestashop',
                     'prestashop_carrier': carrier_name,
+                    'prestashop_payment': payment_method,
+                    'prestashop_status': status_name,
+                    'prestashop_delivery_country': delivery_country,
+                    'prestashop_new_customer': is_new,
                     'origin': order_reference,
                 })
 

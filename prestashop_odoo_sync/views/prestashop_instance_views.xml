@@ -38,21 +38,45 @@
                     <notebook>
                         <page name="orders" string="Synchronized Orders">
                             <field name="order_ids" readonly="1">
-                                <list create="false" edit="false">
-                                    <field name="name"/>
-                                    <field name="date_order"/>
-                                    <field name="partner_id"/>
-                                    <field name="amount_total"/>
+                                <list create="false" edit="false" default_order="date_order desc">
+                                    <field name="prestashop_order_id" string="ID"/>
+                                    <field name="prestashop_reference" string="Reference"/>
+                                    <field name="prestashop_new_customer" string="New"/>
+                                    <field name="prestashop_delivery_country" string="Delivery"/>
+                                    <field name="partner_id" string="Client"/>
+                                    <field name="amount_total" string="Total"/>
                                     <field name="prestashop_total_ecotax" string="Eco-Tax"/>
+                                    <field name="prestashop_payment" string="Payment"/>
+                                    <field name="prestashop_status" string="PS Status"/>
                                     <field name="prestashop_carrier" string="Carrier"/>
-                                    <field name="state"/>
-                                    <field name="prestashop_order_id"/>
+                                    <field name="state" string="Odoo Status"/>
+                                    <field name="date_order" string="Date"/>
                                 </list>
                             </field>
                         </page>
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+    <record id="view_prestashop_orders_tree" model="ir.ui.view">
+        <field name="name">prestashop.orders.tree</field>
+        <field name="model">sale.order</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list default_order="date_order desc" decoration-danger="prestashop_status == 'Annulé'" decoration-muted="prestashop_status == 'Erreur de paiement'" decoration-success="prestashop_status == 'Livré'" decoration-info="prestashop_status == 'Expédié'">
+                <field name="prestashop_order_id" string="ID"/>
+                <field name="prestashop_reference" string="Reference"/>
+                <field name="prestashop_new_customer" string="New" widget="boolean"/>
+                <field name="prestashop_delivery_country" string="Delivery"/>
+                <field name="partner_id" string="Client"/>
+                <field name="amount_total" string="Total" widget="monetary"/>
+                <field name="prestashop_total_ecotax" string="Eco-Tax" optional="hide"/>
+                <field name="prestashop_payment" string="Payment"/>
+                <field name="prestashop_status" string="Status"/>
+                <field name="prestashop_carrier" string="Carrier" optional="hide"/>
+                <field name="date_order" string="Date"/>
+            </list>
         </field>
     </record>
     <record id="action_prestashop_instance" model="ir.actions.act_window">
@@ -65,6 +89,7 @@
         <field name="res_model">sale.order</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('prestashop_source', '=', 'prestashop')]</field>
+        <field name="view_id" ref="view_prestashop_orders_tree"/>
     </record>
     <menuitem id="menu_prestashop_root" name="PrestaShop" sequence="10"/>
     <menuitem id="menu_prestashop_instances" name="Instances" parent="menu_prestashop_root" action="action_prestashop_instance" sequence="10"/>
