@@ -39,37 +39,38 @@
     <template id="label_front">
         <div class="label-half label-front">
             <!-- HEADER: logo magasin | logo marque | energy -->
-            <div class="lbl-header">
-                <div class="lbl-header-store">
+            <table class="lbl-header" cellpadding="0" cellspacing="0"><tr>
+                <td class="lbl-header-store">
                     <img t-if="item.get('company_logo')"
                          t-att-src="item['company_logo']"
                          class="store-logo" alt="Store"/>
-                </div>
-                <div class="lbl-header-brand">
+                </td>
+                <td class="lbl-header-brand">
                     <img t-if="item.get('brand_logo')"
                          t-att-src="item['brand_logo']"
                          class="brand-logo" alt="Brand"/>
                     <span t-elif="item.get('brand_name')"
                           class="brand-name-txt"
                           t-esc="item['brand_name']"/>
-                </div>
-                <div class="lbl-header-energy"
-                     t-if="show_energy_label and item.get('energy_label')">
-                    <t t-call="product_label_print.energy_label_badge">
-                        <t t-set="grade" t-value="item['energy_label']"/>
+                </td>
+                <td class="lbl-header-energy">
+                    <t t-if="show_energy_label and item.get('energy_label')">
+                        <t t-call="product_label_print.energy_label_badge">
+                            <t t-set="grade" t-value="item['energy_label']"/>
+                        </t>
                     </t>
-                </div>
-            </div>
+                </td>
+            </tr></table>
 
             <!-- BODY: photo + nom + bullets -->
-            <div class="lbl-body">
-                <div class="lbl-photo">
+            <table class="lbl-body" cellpadding="0" cellspacing="0"><tr>
+                <td class="lbl-photo">
                     <img t-if="item.get('product_image')"
                          t-att-src="item['product_image']"
                          class="product-img" alt="Product"/>
                     <div t-else="" class="no-photo-box">Pas d'image</div>
-                </div>
-                <div class="lbl-info">
+                </td>
+                <td class="lbl-info">
                     <div class="product-name" t-esc="item['name']"/>
                     <div class="product-bullets" t-if="item.get('bullets')">
                         <t t-foreach="item['bullets']" t-as="bullet">
@@ -79,39 +80,45 @@
                             </div>
                         </t>
                     </div>
-                </div>
-            </div>
+                </td>
+            </tr></table>
 
             <!-- META: categorie + reparabilite -->
-            <div class="lbl-meta">
-                <span class="categ-tag" t-if="item.get('categ_name')"
-                      t-esc="item['categ_name']"/>
-                <div t-if="show_repairability and item.get('repairability_index', 0) &gt; 0">
-                    <t t-call="product_label_print.repairability_badge">
-                        <t t-set="score" t-value="item['repairability_index']"/>
+            <table class="lbl-meta" cellpadding="0" cellspacing="0"><tr>
+                <td>
+                    <span class="categ-tag" t-if="item.get('categ_name')"
+                          t-esc="item['categ_name']"/>
+                </td>
+                <td style="text-align:right;">
+                    <t t-if="show_repairability and item.get('repairability_index', 0) &gt; 0">
+                        <t t-call="product_label_print.repairability_badge">
+                            <t t-set="score" t-value="item['repairability_index']"/>
+                        </t>
                     </t>
-                </div>
-            </div>
+                </td>
+            </tr></table>
 
             <!-- PRICE BAR -->
-            <div class="lbl-price-bar">
-                <div class="price-left">
-                    <t t-if="show_promo and item.get('promo_active') and item.get('promo_price', 0) &gt; 0">
-                        <div class="price-old"><t t-esc="'%.2f €' % item['list_price']"/></div>
-                        <div class="price-promo"><t t-esc="'%.2f €' % item['promo_price']"/></div>
-                    </t>
-                    <t t-else="">
-                        <div class="price-normal"><t t-esc="'%.2f €' % item['list_price']"/></div>
-                    </t>
-                </div>
-                <div class="price-right">
-                    <div class="price-deee"
-                         t-if="show_deee and item.get('deee_amount', 0) &gt; 0">
-                        Dont éco-part.<br/>
-                        <t t-esc="'%.2f €' % item['deee_amount']"/>
-                    </div>
-                </div>
-            </div>
+            <table class="lbl-price-bar" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="price-left">
+                        <t t-if="show_promo and item.get('promo_active') and item.get('promo_price', 0) &gt; 0">
+                            <div class="price-old"><t t-esc="'%.2f' % item['list_price']"/> &#8364;</div>
+                            <div class="price-promo"><t t-esc="'%.2f' % item['promo_price']"/> &#8364;</div>
+                        </t>
+                        <t t-else="">
+                            <div class="price-normal"><t t-esc="'%.2f' % item['list_price']"/> &#8364;</div>
+                        </t>
+                    </td>
+                    <td class="price-right">
+                        <div class="price-deee"
+                             t-if="show_deee and item.get('deee_amount', 0) &gt; 0">
+                            Dont &#233;co-part.<br/>
+                            <t t-esc="'%.2f' % item['deee_amount']"/> &#8364;
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </template>
 
@@ -209,17 +216,12 @@
 
             /* Header */
             .lbl-header {
-                display: table;
                 width: 100%;
-                table-layout: fixed;
                 height: 14mm;
                 border-bottom: 1.5px solid #0066cc;
                 margin-bottom: 2mm;
             }
-            .lbl-header-store,
-            .lbl-header-brand,
-            .lbl-header-energy {
-                display: table-cell;
+            .lbl-header td {
                 vertical-align: middle;
             }
             .lbl-header-store { width: 28mm; }
@@ -231,13 +233,10 @@
 
             /* Body */
             .lbl-body {
-                display: table;
                 width: 100%;
-                table-layout: fixed;
                 height: 72mm;
             }
             .lbl-photo {
-                display: table-cell;
                 width: 38mm;
                 vertical-align: middle;
                 text-align: center;
@@ -258,7 +257,6 @@
                 font-size: 7pt;
             }
             .lbl-info {
-                display: table-cell;
                 vertical-align: top;
                 padding-top: 1mm;
             }
@@ -287,14 +285,11 @@
 
             /* Meta */
             .lbl-meta {
-                display: table;
                 width: 100%;
-                table-layout: fixed;
                 height: 8mm;
                 margin-bottom: 1mm;
             }
-            .lbl-meta > * {
-                display: table-cell;
+            .lbl-meta td {
                 vertical-align: middle;
             }
             .categ-tag {
@@ -309,40 +304,36 @@
 
             /* Price bar */
             .lbl-price-bar {
-                display: table;
                 width: 100%;
-                table-layout: fixed;
                 height: 16mm;
-                background: linear-gradient(135deg, #0066cc, #003d99);
-                border-radius: 2mm;
+                background-color: #0055aa;
                 color: #fff;
             }
-            .price-left, .price-right {
-                display: table-cell;
+            .lbl-price-bar td {
                 vertical-align: middle;
                 padding: 1mm 3mm;
             }
             .price-left { width: 65%; }
             .price-right { width: 35%; text-align: right; }
             .price-normal {
-                font-size: 20pt;
+                font-size: 18pt;
                 font-weight: 800;
                 letter-spacing: -0.5pt;
+                color: #fff;
             }
             .price-old {
                 font-size: 10pt;
                 text-decoration: line-through;
-                opacity: 0.7;
+                color: #ccc;
             }
             .price-promo {
-                font-size: 20pt;
+                font-size: 18pt;
                 font-weight: 800;
                 color: #ff4444;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
             }
             .price-deee {
                 font-size: 6pt;
-                opacity: 0.75;
+                color: #ccc;
                 line-height: 1.3;
             }
 
