@@ -7,49 +7,30 @@
         <field name="arch" type="xml">
             <form string="Product Sync">
 
-                <!-- Progress bar header -->
-                <div invisible="state == 'draft'" class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-bold">
-                            Progress: <field name="current" class="d-inline"/> / <field name="total" class="d-inline"/>
-                        </span>
-                        <span class="badge bg-primary fs-6">
-                            <field name="progress" class="d-inline"/>%
-                        </span>
-                    </div>
-                    <div class="progress" style="height: 24px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                             role="progressbar"
-                             t-attf-style="width: #{record.progress.raw_value}%;"
-                             style="width: 0%; transition: width 0.3s;">
-                        </div>
-                    </div>
-                </div>
+                <!-- Progress bar -->
+                <field name="state" invisible="1"/>
+                <group invisible="state == 'draft'">
+                    <field name="progress" widget="progressbar"/>
+                </group>
 
-                <!-- Stats badges -->
-                <div invisible="state == 'draft'" class="mb-3 d-flex gap-3">
-                    <span class="badge bg-success fs-6 p-2">
-                        Created: <field name="created_count" class="d-inline"/>
-                    </span>
-                    <span class="badge bg-info fs-6 p-2">
-                        Updated: <field name="updated_count" class="d-inline"/>
-                    </span>
-                    <span class="badge bg-danger fs-6 p-2">
-                        Errors: <field name="error_count" class="d-inline"/>
-                    </span>
-                </div>
+                <!-- Stats -->
+                <group invisible="state == 'draft'" col="4">
+                    <field name="current" string="Current"/>
+                    <field name="total" string="Total"/>
+                    <field name="created_count" string="Created"/>
+                    <field name="updated_count" string="Updated"/>
+                    <field name="error_count" string="Errors"/>
+                </group>
 
                 <!-- Config (only in draft) -->
                 <group invisible="state != 'draft'">
                     <field name="instance_id" readonly="1"/>
                     <field name="product_limit"/>
                 </group>
-                <field name="state" invisible="1"/>
 
                 <!-- Log area -->
                 <group string="Sync Log" invisible="state == 'draft'">
-                    <field name="log" nolabel="1" class="o_field_html"
-                           style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"/>
+                    <field name="log" nolabel="1"/>
                 </group>
 
                 <footer>
@@ -66,7 +47,6 @@
         </field>
     </record>
 
-    <!-- Action to open the wizard -->
     <record id="action_prestashop_product_sync_wizard" model="ir.actions.act_window">
         <field name="name">Test Product Sync</field>
         <field name="res_model">prestashop.product.sync.wizard</field>
