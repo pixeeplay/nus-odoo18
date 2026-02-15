@@ -21,8 +21,11 @@ class PrestaShopInstance(models.Model):
     order_ids = fields.One2many('sale.order', 'prestashop_instance_id', string='Synchronized Orders')
 
     def _get_base_url(self):
-        """Return clean base URL for API calls"""
-        return self.url.rstrip('/')
+        """Return clean base URL for API calls, always ending with /api"""
+        url = self.url.rstrip('/')
+        if not url.endswith('/api'):
+            url = url + '/api'
+        return url
 
     def action_test_connection(self):
         """Test connection to PrestaShop API"""
