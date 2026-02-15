@@ -21,5 +21,5 @@
         'views/product_template_views.xml',
     ],
     'installable': True,
-    'application': False,
+    'application': True,
 }

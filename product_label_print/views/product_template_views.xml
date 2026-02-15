@@ -45,4 +45,23 @@
             </field>
         </field>
     </record>
+    <record id="action_product_label_products" model="ir.actions.act_window">
+        <field name="name">Products - Labels</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Select products and print shelf labels
+            </p>
+        </field>
+    </record>
+    <menuitem id="menu_product_label_root"
+              name="Labels"
+              web_icon="product_label_print,static/description/icon.png"
+              sequence="25"/>
+    <menuitem id="menu_product_label_products"
+              name="Products"
+              parent="menu_product_label_root"
+              action="action_product_label_products"
+              sequence="10"/>
 </odoo>
