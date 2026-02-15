@@ -18,7 +18,15 @@ class PrestaShopInstance(models.Model):
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     last_sync_date = fields.Datetime(string='Last Sync Date', readonly=True)
+    sync_interval = fields.Integer(string='Sync Interval (min)', default=5, help="Auto-sync interval in minutes. Set to 0 to disable auto-sync.")
+    order_limit = fields.Integer(string='Orders to Fetch', default=50, help="Number of recent orders to fetch per sync.")
     order_ids = fields.One2many('sale.order', 'prestashop_instance_id', string='Synchronized Orders')
+    order_count = fields.Integer(string='Order Count', compute='_compute_order_count')
+
+    @api.depends('order_ids')
+    def _compute_order_count(self):
+        for rec in self:
+            rec.order_count = len(rec.order_ids)
 
     def _get_base_url(self):
         """Return clean base URL for API calls, always ending with /api"""
@@ -375,9 +383,10 @@ class PrestaShopInstance(models.Model):
         self.ensure_one()
 
         try:
+            limit = self.order_limit or 50
             data = self._api_get('orders', params={
                 'display': 'full',
-                'limit': 50,
+                'limit': limit,
                 'sort': '[id_DESC]',
             })
 
@@ -514,6 +523,61 @@ class PrestaShopInstance(models.Model):
         except Exception as e:
             _logger.error("Order sync failed: %s", str(e))
             raise UserError(_("Synchronization failed: %s") % str(e))
+
+    def action_delete_all_orders(self):
+        """Delete all imported PrestaShop orders for this instance"""
+        self.ensure_one()
+        orders = self.env['sale.order'].search([
+            ('prestashop_instance_id', '=', self.id),
+            ('state', '=', 'draft'),
+        ])
+        count = len(orders)
+        if not count:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Nothing to Delete'),
+                    'message': _('No draft PrestaShop orders to delete. Only draft orders can be deleted.'),
+                    'type': 'warning',
+                    'sticky': False,
+                }
+            }
+        orders.unlink()
+        self.last_sync_date = False
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Orders Deleted'),
+                'message': _('%d draft orders deleted. You can now re-sync.') % count,
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    def action_update_cron_interval(self):
+        """Update the cron interval based on instance settings"""
+        self.ensure_one()
+        cron = self.env.ref('prestashop_odoo_sync.ir_cron_prestashop_sync', raise_if_not_found=False)
+        if cron:
+            if self.sync_interval > 0:
+                cron.write({
+                    'interval_number': self.sync_interval,
+                    'active': True,
+                })
+            else:
+                cron.write({'active': False})
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Cron Updated'),
+                'message': _('Auto-sync set to every %d minutes') % self.sync_interval if self.sync_interval > 0 else _('Auto-sync disabled'),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     @api.model
     def _cron_sync_orders(self):

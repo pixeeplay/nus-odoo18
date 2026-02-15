@@ -19,7 +19,9 @@
                 <header>
                     <button name="action_test_connection" string="Test Connection" type="object" class="btn-primary"/>
                     <button name="action_check_permissions" string="Check API Permissions" type="object" class="btn-warning" invisible="not id"/>
-                    <button name="action_sync_orders" string="Sync Orders (Last 50)" type="object" class="btn-success" invisible="not id"/>
+                    <button name="action_sync_orders" string="Sync Orders" type="object" class="btn-success" invisible="not id"/>
+                    <button name="action_delete_all_orders" string="Delete Draft Orders" type="object" class="btn-danger" invisible="not id" confirm="This will delete ALL draft PrestaShop orders for this instance. Are you sure?"/>
+                    <button name="action_update_cron_interval" string="Apply Sync Interval" type="object" class="btn-secondary" invisible="not id"/>
                 </header>
                 <sheet>
                     <group>
@@ -33,6 +35,9 @@
                             <field name="company_id"/>
                             <field name="active"/>
                             <field name="last_sync_date"/>
+                            <field name="sync_interval" string="Auto-Sync (min)"/>
+                            <field name="order_limit" string="Orders to Fetch"/>
+                            <field name="order_count" string="Imported Orders"/>
                         </group>
                     </group>
                     <notebook>
@@ -64,7 +69,7 @@
         <field name="model">sale.order</field>
         <field name="priority">99</field>
         <field name="arch" type="xml">
-            <list default_order="date_order desc" decoration-danger="prestashop_status == 'Annulé'" decoration-muted="prestashop_status == 'Erreur de paiement'" decoration-success="prestashop_status == 'Livré'" decoration-info="prestashop_status == 'Expédié'">
+            <list default_order="date_order desc" decoration-danger="prestashop_status in ('Annulé', 'Erreur de paiement')" decoration-success="prestashop_status in ('Livré', 'Expédié')" decoration-info="prestashop_status in ('En cours de préparation', 'En Cours de Traitement')" decoration-warning="prestashop_status in ('En attente de virement bancaire', 'En attente de réapprovisionnement (payé)', 'En attente PRISE RDV Livraison IDF')" decoration-bf="state == 'draft'">
                 <field name="prestashop_order_id" string="ID"/>
                 <field name="prestashop_reference" string="Reference"/>
                 <field name="prestashop_new_customer" string="New" widget="boolean"/>
