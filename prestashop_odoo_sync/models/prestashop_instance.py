@@ -46,10 +46,11 @@ class PrestaShopInstance(models.Model):
         """Helper method to make API calls to PrestaShop"""
         self.ensure_one()
         try:
+            base_url = self.url.rstrip('/')
             if resource_id:
-                url = f"{self.url}/{resource}/{resource_id}"
+                url = f"{base_url}/{resource}/{resource_id}"
             else:
-                url = f"{self.url}/{resource}"
+                url = f"{base_url}/{resource}"
 
             _logger.info(f"PrestaShop API call: {url} with params: {params}")
             response = requests.get(url, auth=(self.api_key, ''), params=params, timeout=30)
