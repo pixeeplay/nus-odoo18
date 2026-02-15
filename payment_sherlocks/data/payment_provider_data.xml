@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="payment_provider_sherlocks" model="payment.provider">
+        <field name="name">Sherlocks</field>
+        <field name="code">sherlocks</field>
+        <field name="module_id" ref="base.module_payment_sherlocks"/>
+        <field name="redirect_form_view_id" ref="redirect_form"/>
+        <field name="available_currency_ids" eval="[Command.set([ref('base.EUR')])]"/>
+    </record>
+</odoo>

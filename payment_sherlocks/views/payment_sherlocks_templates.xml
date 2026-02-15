@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Redirect form: auto-submitted to the Sips Paypage POST endpoint -->
+    <template id="redirect_form" name="Sherlocks: Redirect Form">
+        <form t-att-action="api_url" method="post">
+            <input type="hidden" name="Data" t-att-value="Data"/>
+            <input type="hidden" name="InterfaceVersion" t-att-value="InterfaceVersion"/>
+            <input type="hidden" name="Seal" t-att-value="Seal"/>
+            <input type="hidden" name="SealAlgorithm" t-att-value="SealAlgorithm"/>
+        </form>
+    </template>
+</odoo>
