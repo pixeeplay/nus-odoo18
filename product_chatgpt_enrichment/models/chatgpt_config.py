@@ -377,11 +377,11 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
         return base + endpoint
 
     def _get_model_name(self):
-        """Get model name from Many2one or manual field."""
-        if self.model_id:
-            return self.model_id.code
+        """Get model name: manual field takes priority, then Many2one, then provider default."""
         if self.ai_model_name:
             return self.ai_model_name
+        if self.model_id:
+            return self.model_id.code
         return PROVIDER_DEFAULTS.get(self.provider, {}).get('model', 'gpt-4o-mini')
 
     def _get_headers(self):
