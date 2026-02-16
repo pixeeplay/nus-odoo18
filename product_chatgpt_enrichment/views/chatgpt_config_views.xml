@@ -123,16 +123,15 @@
             <field name="arch" type="xml">
                 <form string="AI Configuration">
                     <header>
-                        <button name="action_test_connection" 
-                                string="Test Connection" 
-                                type="object" 
+                        <button name="action_test_connection"
+                                string="Test Connection"
+                                type="object"
                                 class="btn-primary"
                                 help="Test the connection to the selected AI provider"/>
-                        <button name="action_discover_models" 
-                                string="Discover Models" 
-                                type="object" 
-                                invisible="provider not in ['ollama', 'llamacpp', 'openai']"
-                                help="Try to fetch available models from the provider"/>
+                        <button name="action_discover_models"
+                                string="Discover Models"
+                                type="object"
+                                help="Fetch available models from the provider"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
@@ -144,15 +143,32 @@
                         <group>
                             <group string="Provider Settings">
                                 <field name="provider"/>
-                                <field name="api_key" password="True" invisible="provider in ['ollama', 'llamacpp'] and not api_key"/>
-                                <field name="base_url" 
-                                       placeholder="e.g. http://localhost:11434" 
-                                       invisible="provider in ['openai', 'gemini', 'anthropic', 'perplexity']"/>
-                                <field name="model_id" 
+
+                                <!-- API Key: always show for cloud, show for Ollama only if web search or user typed one -->
+                                <field name="api_key" password="True"
+                                       invisible="provider in ['ollama', 'llamacpp'] and not ollama_web_search and not api_key"/>
+
+                                <!-- Base URL: visible for ALL providers -->
+                                <field name="base_url"
+                                       placeholder="Auto-detected from provider"/>
+
+                                <!-- Ollama-specific settings -->
+                                <field name="ollama_api_mode"
+                                       invisible="provider != 'ollama'"/>
+                                <field name="ollama_web_search" widget="boolean_toggle"
+                                       invisible="provider != 'ollama'"/>
+
+                                <!-- API Endpoint: advanced, visible for local providers -->
+                                <field name="api_endpoint"
+                                       invisible="provider not in ['ollama', 'llamacpp']"/>
+
+                                <!-- Model selection -->
+                                <field name="model_id"
                                        domain="[('provider', '=', provider)]"
                                        options="{'no_create': True}"/>
-                                <field name="ai_model_name" 
-                                       invisible="model_id"/>
+                                <field name="ai_model_name"
+                                       invisible="model_id"
+                                       placeholder="e.g. llama3.2, gpt-4o-mini"/>
                             </group>
                             <group string="Behavior">
                                 <field name="auto_enrich"/>
@@ -164,6 +180,35 @@
                                 <field name="active"/>
                             </group>
                         </group>
+
+                        <!-- Provider-specific help banners -->
+                        <div class="alert alert-light border mt-2 mb-2" role="alert"
+                             invisible="provider != 'ollama'">
+                            <strong>Ollama</strong> &amp;mdash;
+                            Local: <code>http://localhost:11434</code> |
+                            Remote (Mac Mini): <code>http://192.168.x.x:11434</code><br/>
+                            <small class="text-muted">
+                                Make sure Ollama is running (<code>ollama serve</code>).
+                                For web search, get an API key at
+                                <a href="https://ollama.com/settings/keys" target="_blank">ollama.com/settings/keys</a>.
+                            </small>
+                        </div>
+                        <div class="alert alert-light border mt-2 mb-2" role="alert"
+                             invisible="provider != 'llamacpp'">
+                            <strong>Llama.cpp</strong> &amp;mdash;
+                            Default: <code>http://localhost:8080</code> |
+                            Remote: <code>http://192.168.x.x:8080</code><br/>
+                            <small class="text-muted">
+                                Start with: <code>llama-server -m model.gguf --port 8080 --host 0.0.0.0</code>
+                            </small>
+                        </div>
+
+                        <!-- Last test result -->
+                        <group invisible="not last_test_result">
+                            <field name="last_test_result" readonly="1" nolabel="1"
+                                   widget="text" class="text-muted"/>
+                        </group>
+
                         <group string="Market Analysis &amp; Price Alignment" invisible="not use_deep_enrichment and not use_web_search">
                             <group>
                                 <field name="price_alignment_strategy" widget="radio"/>
