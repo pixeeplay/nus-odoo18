@@ -65,33 +65,86 @@ class PrestaShopInstance(models.Model):
     def _get_ps_text(self, field_data, lang_id=1):
         """Extract text value from a PrestaShop multi-language field.
 
-        PrestaShop may return:
-        - a plain string
-        - a list like [{"id": "1", "value": "text"}, ...]
-        - a dict  {"language": [{"attrs": {"id": "1"}, "value": "text"}, ...]}
+        PrestaShop JSON API returns multi-language fields in many formats:
+        1. Plain string:  "text"
+        2. Integer / number:  0  (empty field)
+        3. List of dicts:  [{"id":"1","value":"text"}, {"id":"2","value":"en"}]
+        4. Dict with language list:
+           {"language": [{"attrs":{"id":"1"},"value":"text"}, ...]}
+        5. Dict with single language (not a list):
+           {"language": {"attrs":{"id":"1"},"value":"text"}}
+        6. Dict with simple id/value:
+           {"language": {"id":"1","value":"text"}}
+        7. Dict with just "value":
+           {"value": "text"}
         """
-        if not field_data:
+        if field_data is None or field_data == '':
             return ''
+        # int / float (e.g. 0 for empty fields)
+        if isinstance(field_data, (int, float)):
+            return str(field_data) if field_data else ''
+        # plain string
         if isinstance(field_data, str):
             return field_data
+
+        lang_str = str(lang_id)
+
+        # --- list of dicts: [{"id":"1","value":"text"}, ...] ---
         if isinstance(field_data, list):
+            # try to find matching language
             for item in field_data:
-                if isinstance(item, dict) and str(item.get('id', '')) == str(lang_id):
-                    return item.get('value', '') or ''
-            # fallback: first item
-            if field_data and isinstance(field_data[0], dict):
-                return field_data[0].get('value', '') or ''
+                if isinstance(item, dict):
+                    item_id = str(item.get('id', item.get('attrs', {}).get('id', '')))
+                    if item_id == lang_str:
+                        return str(item.get('value', '') or '')
+            # fallback: first item with a value
+            for item in field_data:
+                if isinstance(item, dict):
+                    val = item.get('value', '')
+                    if val:
+                        return str(val)
+            # last resort: first non-empty string in the list
+            for item in field_data:
+                if isinstance(item, str) and item:
+                    return item
+            return ''
+
+        # --- dict ---
         if isinstance(field_data, dict):
-            langs = field_data.get('language', [])
-            if isinstance(langs, list):
-                for item in langs:
-                    if isinstance(item, dict):
-                        attrs = item.get('attrs', {})
-                        if str(attrs.get('id', '')) == str(lang_id):
-                            return item.get('value', '') or ''
-                if langs and isinstance(langs[0], dict):
-                    return langs[0].get('value', '') or ''
-            return field_data.get('value', '') or ''
+            langs = field_data.get('language')
+
+            if langs is not None:
+                # Normalize: if single dict, wrap in list
+                if isinstance(langs, dict):
+                    langs = [langs]
+                if isinstance(langs, str):
+                    return langs
+
+                if isinstance(langs, list):
+                    # Try exact language match
+                    for item in langs:
+                        if isinstance(item, dict):
+                            # Check both {"id":"1"} and {"attrs":{"id":"1"}}
+                            item_id = str(
+                                item.get('id',
+                                         item.get('attrs', {}).get('id', ''))
+                            )
+                            if item_id == lang_str:
+                                return str(item.get('value', '') or '')
+                    # Fallback: first item with a value
+                    for item in langs:
+                        if isinstance(item, dict):
+                            val = item.get('value', '')
+                            if val:
+                                return str(val)
+
+            # No "language" key, try direct "value"
+            val = field_data.get('value', '')
+            if val:
+                return str(val)
+
+            return ''
+
         return str(field_data)
 
     # ------------------------------------
@@ -358,11 +411,17 @@ class PrestaShopInstance(models.Model):
             return None
 
         # --- text fields ---
-        name = self._get_ps_text(ps_product.get('name', ''))
+        raw_name = ps_product.get('name', '')
+        name = self._get_ps_text(raw_name)
+        if not name:
+            _logger.warning(
+                "PS-%s: name field empty. Raw value type=%s, repr=%r",
+                ps_id, type(raw_name).__name__, raw_name,
+            )
         description = self._get_ps_text(ps_product.get('description', ''))
         description_short = self._get_ps_text(ps_product.get('description_short', ''))
-        reference = ps_product.get('reference', '') or ''
-        ean13 = ps_product.get('ean13', '') or ''
+        reference = str(ps_product.get('reference', '') or '')
+        ean13 = str(ps_product.get('ean13', '') or '')
         price = float(ps_product.get('price', 0) or 0)
         wholesale_price = float(ps_product.get('wholesale_price', 0) or 0)
         weight = float(ps_product.get('weight', 0) or 0)

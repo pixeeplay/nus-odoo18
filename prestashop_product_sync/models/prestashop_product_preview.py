@@ -1,5 +1,5 @@
+import json
 import logging
-import threading
 
 import odoo
 from odoo import models, fields, api, _
@@ -41,6 +41,7 @@ class PrestaShopProductPreview(models.Model):
     )
     error_message = fields.Text('Error Details')
     import_date = fields.Datetime('Import Date', readonly=True)
+    raw_data = fields.Text('Raw API Data', readonly=True)
 
     _sql_constraints = [
         ('unique_ps_product_instance',
@@ -61,6 +62,44 @@ class PrestaShopProductPreview(models.Model):
         for rec in self:
             rec.state_sequence = order.get(rec.state, 9)
 
+    def action_debug_fetch(self):
+        """Fetch full API response and store as raw_data for debugging."""
+        self.ensure_one()
+        instance = self.instance_id
+        try:
+            data = instance._api_get_long(
+                'products', resource_id=str(self.prestashop_id),
+                params={'display': 'full'},
+                timeout=120,
+            )
+            raw = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+            self.write({'raw_data': raw})
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Raw Data Fetched'),
+                    'message': _('Check the "Raw Data" tab on this preview record.'),
+                    'type': 'info',
+                    'sticky': False,
+                },
+            }
+        except Exception as exc:
+            self.write({
+                'raw_data': 'ERROR: %s' % exc,
+                'error_message': str(exc),
+            })
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Fetch Failed'),
+                    'message': str(exc),
+                    'type': 'danger',
+                    'sticky': True,
+                },
+            }
+
     def action_import_single(self):
         """Import this single product from PrestaShop."""
         self.ensure_one()
@@ -75,12 +114,22 @@ class PrestaShopProductPreview(models.Model):
             ], limit=1)
 
             ps_product = instance._fetch_single_product_full(self.prestashop_id)
+
+            # Store raw data for debugging
+            try:
+                self.raw_data = json.dumps(
+                    ps_product, indent=2, ensure_ascii=False, default=str,
+                )
+            except Exception:
+                pass
+
             if not ps_product or not ps_product.get('id'):
                 self.write({
                     'state': 'error',
                     'error_message': (
                         'Empty API response — product may have been deleted '
-                        'or deactivated in PrestaShop (PS-%s)'
+                        'or deactivated in PrestaShop (PS-%s). '
+                        'Use "Debug Fetch" to see raw API response.'
                     ) % self.prestashop_id,
                 })
                 self.env.cr.commit()

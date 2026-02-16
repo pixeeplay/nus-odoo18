@@ -76,6 +76,10 @@
                             type="object"
                             class="btn-primary"
                             invisible="state not in ('pending', 'error')"/>
+                    <button name="action_debug_fetch"
+                            string="Debug Fetch (Raw API)"
+                            type="object"
+                            class="btn-warning"/>
                     <button name="action_view_product"
                             string="Open Product"
                             type="object"
@@ -113,6 +117,13 @@
                                    invisible="not error_message"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page name="raw_data" string="Raw API Data"
+                              invisible="not raw_data">
+                            <field name="raw_data" readonly="1" nolabel="1"
+                                   widget="text"/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
