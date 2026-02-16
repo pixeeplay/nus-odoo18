@@ -20,7 +20,7 @@ Features:
     'author': 'Pixeeplay',
     'website': 'https://github.com/pixeeplay/nus-odoo18',
     'license': 'LGPL-3',
-    'depends': ['product', 'base', 'web'],
+    'depends': ['product', 'base', 'web', 'website_sale', 'stock'],
     'data': [
         'security/ir.model.access.csv',
         'data/chatgpt_config_data.xml',
@@ -28,6 +28,9 @@ Features:
         'data/ir_cron_data.xml',
         'views/chatgpt_config_views.xml',
         'views/product_template_views.xml',
+        'views/product_enrichment_queue_views.xml',
+        'views/batch_enrichment_wizard_views.xml',
+        'views/menus.xml',
     ],
     'images': ['static/description/icon.png'],
     'installable': True,

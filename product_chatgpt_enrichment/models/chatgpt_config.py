@@ -3,6 +3,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import requests
 import logging
+from odoo.addons.product_chatgpt_enrichment.services.searxng_client import SearXNGClient
 
 _logger = logging.getLogger(__name__)
 
@@ -176,6 +177,101 @@ Answer in {language}.""",
     serpapi_gl = fields.Char(string='Google Geolocation', default='fr')
     max_scrape_pages = fields.Integer(string='Max Pages to Scrape', default=3)
     debug_show_raw_results = fields.Boolean(string='Show Raw Search Data', default=False)
+
+    # -------------------------------------------------------
+    # SearXNG Configuration
+    # -------------------------------------------------------
+    searxng_enabled = fields.Boolean(
+        string='SearXNG Web Search',
+        default=False,
+        help="Use self-hosted SearXNG for web search (free, no API key required).")
+    searxng_base_url = fields.Char(
+        string='SearXNG URL',
+        default='http://searxng:8080',
+        help="URL of the SearXNG instance.\n"
+             "Docker same network: http://searxng:8080\n"
+             "External: http://IP_SERVEUR:8888")
+    searxng_engines = fields.Char(
+        string='SearXNG Engines',
+        default='google,duckduckgo,amazon,wikipedia',
+        help="Comma-separated list of search engines to use.")
+    searxng_language = fields.Char(
+        string='SearXNG Language',
+        default='fr-FR',
+        help="Language code for search results.")
+    searxng_max_results = fields.Integer(
+        string='SearXNG Max Results',
+        default=8,
+        help="Maximum number of results per search query.")
+    searxng_timeout = fields.Integer(
+        string='SearXNG Timeout (s)',
+        default=15,
+        help="Connection timeout in seconds.")
+    searxng_delay = fields.Float(
+        string='Delay Between Requests (s)',
+        default=3.0,
+        help="Pause between SearXNG requests to avoid rate limiting.")
+
+    # -------------------------------------------------------
+    # Enrichment Pipeline Configuration
+    # -------------------------------------------------------
+    enrichment_batch_size_collect = fields.Integer(
+        string='Batch Size (Collect)',
+        default=20,
+        help="Number of products to collect web data per cron run.")
+    enrichment_batch_size_enrich = fields.Integer(
+        string='Batch Size (Enrich)',
+        default=10,
+        help="Number of products to enrich via AI per cron run.")
+    enrichment_auto_publish = fields.Boolean(
+        string='Auto-Publish to Standard Fields',
+        default=False,
+        help="Automatically copy AI results to website_description, description_sale, etc.")
+    enrichment_overwrite_existing = fields.Boolean(
+        string='Overwrite Existing Descriptions',
+        default=False,
+        help="Replace existing descriptions even if not empty.")
+    enrichment_prompt_template = fields.Text(
+        string='Enrichment Prompt Template',
+        default="""Tu es un expert e-commerce SEO francophone. Tu dois enrichir une fiche produit à partir de données web fraîches.
+
+## PRODUIT ACTUEL
+- Nom : {product_name}
+- EAN/Barcode : {ean}
+- Référence interne : {default_code}
+- Marque : {brand}
+- Catégorie actuelle : {categ_name}
+- Description actuelle : {current_description}
+- Prix : {list_price} €
+
+## DONNÉES WEB FRAÎCHES (SearXNG)
+{web_context}
+
+## INSTRUCTIONS
+À partir des données web ci-dessus, génère une fiche produit enrichie et optimisée SEO.
+Réponds UNIQUEMENT en JSON valide, sans commentaire, sans markdown.
+
+## FORMAT DE SORTIE ATTENDU
+{{
+  "titre_seo": "max 70 caractères, mot-clé principal en premier",
+  "meta_description": "max 155 caractères, incite au clic",
+  "description_courte": "max 300 caractères, résumé vendeur",
+  "description_longue_html": "<p>Description riche en 3-4 paragraphes HTML. Utilise <strong> pour les points importants.</p>",
+  "bullet_points": ["5 à 8 avantages ou caractéristiques clés"],
+  "tags": ["8 à 12 mots-clés pertinents pour le référencement"],
+  "categorie_suggeree": "catégorie produit la plus pertinente",
+  "marque_detectee": "marque si identifiée dans les sources",
+  "public_cible": "description courte du public visé",
+  "arguments_vente": ["3 arguments commerciaux principaux"],
+  "specs_techniques": {{"clé": "valeur"}},
+  "poids_estime_kg": null,
+  "confiance": "high/medium/low"
+}}
+Si tu ne trouves pas assez d'informations dans les données web, mets "confiance": "low" et remplis ce que tu peux.
+Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs).""",
+        help="Template for the SearXNG+Ollama enrichment pipeline. "
+             "Placeholders: {product_name}, {ean}, {default_code}, {brand}, "
+             "{categ_name}, {current_description}, {list_price}, {web_context}")
 
     auto_enrich_enabled = fields.Boolean(string='Automated Enrichment', default=False)
     auto_enrich_interval = fields.Selection([
@@ -533,6 +629,59 @@ Answer in {language}.""",
         except Exception as e:
             _logger.error("ScrapingBee error: %s", str(e))
             return ""
+
+    # -------------------------------------------------------
+    # SearXNG Search
+    # -------------------------------------------------------
+    def _get_searxng_client(self):
+        """Factory: create a SearXNGClient from current config."""
+        self.ensure_one()
+        return SearXNGClient(
+            base_url=self.searxng_base_url or 'http://searxng:8080',
+            engines=self.searxng_engines or 'google,duckduckgo',
+            language=self.searxng_language or 'fr-FR',
+            max_results=self.searxng_max_results or 8,
+            timeout=self.searxng_timeout or 15,
+            delay_between_requests=self.searxng_delay or 3.0,
+        )
+
+    def _search_with_searxng(self, query):
+        """Search using SearXNG and return results in same format as SerpApi."""
+        self.ensure_one()
+        if not self.searxng_enabled:
+            return []
+        client = self._get_searxng_client()
+        results = client.search(query)
+        # Normalize to same format as SerpApi organic_results
+        normalized = []
+        for r in results:
+            normalized.append({
+                'title': r.get('title', ''),
+                'snippet': r.get('content', ''),
+                'link': r.get('url', ''),
+                'source': r.get('engine', ''),
+            })
+        return normalized
+
+    def action_test_searxng(self):
+        """Button action: test SearXNG connectivity."""
+        self.ensure_one()
+        if not self.searxng_base_url:
+            raise UserError(_("Please set the SearXNG URL first."))
+        client = self._get_searxng_client()
+        success, message = client.test_connection()
+        if success:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('SearXNG Connection OK!'),
+                    'message': message,
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        raise UserError(_("SearXNG connection failed:\n%s\n\nURL: %s") % (message, self.searxng_base_url))
 
     # -------------------------------------------------------
     # Cron

@@ -8,15 +8,21 @@
                 
                 <!-- Add buttons in header -->
                 <xpath expr="//header" position="inside">
-                    <button name="action_enrich_with_chatgpt" 
-                            string="Enrich with ChatGPT" 
-                            type="object" 
+                    <button name="action_enrich_with_chatgpt"
+                            string="Enrich with ChatGPT"
+                            type="object"
                             class="btn-primary"
                             icon="fa-magic"
                             help="Generate enhanced product description using ChatGPT"/>
-                    <button name="action_clear_enrichment" 
-                            string="Clear AI Content" 
-                            type="object" 
+                    <button name="action_ai_enqueue"
+                            string="Enrichir (Queue IA)"
+                            type="object"
+                            class="btn-info"
+                            icon="fa-list-ol"
+                            help="Ajouter à la file d'attente d'enrichissement IA (SearXNG + Ollama)"/>
+                    <button name="action_clear_enrichment"
+                            string="Clear AI Content"
+                            type="object"
                             class="btn-secondary"
                             icon="fa-eraser"
                             invisible="not chatgpt_enriched"
@@ -25,9 +31,9 @@
 
                 <!-- Add enrichment status indicator -->
                 <xpath expr="//div[@name='button_box']" position="inside">
-                    <button class="oe_stat_button" 
+                    <button class="oe_stat_button"
                             name="action_view_chatgpt_enrichment"
-                            type="object" 
+                            type="object"
                             icon="fa-robot"
                             invisible="not chatgpt_enriched">
                         <div class="o_field_widget o_stat_info">
@@ -35,6 +41,18 @@
                             <span class="o_stat_value">
                                 <field name="chatgpt_last_enrichment" widget="date"/>
                             </span>
+                        </div>
+                    </button>
+                    <button class="oe_stat_button"
+                            name="action_ai_view_queue"
+                            type="object"
+                            icon="fa-list-ol"
+                            invisible="ai_queue_count == 0">
+                        <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="ai_queue_count"/>
+                            </span>
+                            <span class="o_stat_text">Queue IA</span>
                         </div>
                     </button>
                 </xpath>
@@ -172,11 +190,106 @@
                             </field>
                         </div>
                     </page>
+
+                    <!-- Enrichissement IA (Queue) Tab -->
+                    <page string="Enrichissement IA (Queue)" name="ai_enrichment_queue_page">
+                        <div class="alert alert-info mb-3" invisible="ai_enrichment_date">
+                            <i class="fa fa-info-circle me-2"/>
+                            Ce produit n'a pas encore été enrichi par le pipeline IA (SearXNG + Ollama).
+                            Cliquez sur "Enrichir (Queue IA)" pour l'ajouter à la file d'attente.
+                        </div>
+                        <div invisible="not ai_enrichment_date">
+                            <group>
+                                <group string="Statut">
+                                    <field name="ai_confidence" readonly="1" widget="badge"
+                                           decoration-success="ai_confidence == 'high'"
+                                           decoration-warning="ai_confidence == 'medium'"
+                                           decoration-danger="ai_confidence == 'low'"/>
+                                    <field name="ai_enrichment_date" readonly="1"/>
+                                    <field name="ai_enrichment_source" readonly="1"/>
+                                </group>
+                                <group string="Actions">
+                                    <div>
+                                        <button name="action_ai_enqueue"
+                                                string="Rafraîchir l'enrichissement"
+                                                type="object"
+                                                class="btn-primary mb-2"
+                                                icon="fa-refresh"/>
+                                    </div>
+                                    <div>
+                                        <button name="action_ai_apply_to_standard"
+                                                string="Appliquer aux champs standards"
+                                                type="object"
+                                                class="btn-success mb-2"
+                                                icon="fa-arrow-right"
+                                                confirm="Copier les données IA vers les champs Odoo standards (website_description, description_sale, SEO) ?"/>
+                                    </div>
+                                    <div>
+                                        <button name="action_ai_clear"
+                                                string="Effacer données IA"
+                                                type="object"
+                                                class="btn-secondary"
+                                                icon="fa-trash"
+                                                confirm="Effacer toutes les données d'enrichissement IA ?"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <group string="SEO">
+                                <field name="ai_seo_title" readonly="1"/>
+                                <field name="ai_meta_description" readonly="1"/>
+                                <field name="ai_tags" readonly="1"/>
+                            </group>
+                            <group string="Description courte IA">
+                                <field name="ai_short_description" nolabel="1" readonly="1"/>
+                            </group>
+                            <group string="Description longue IA (HTML)">
+                                <field name="ai_description_html" nolabel="1" readonly="1"/>
+                            </group>
+                            <group>
+                                <group string="Points clés">
+                                    <field name="ai_bullet_points" nolabel="1" readonly="1"/>
+                                </group>
+                                <group string="Arguments de vente">
+                                    <field name="ai_selling_points" nolabel="1" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Détection">
+                                    <field name="ai_detected_brand" readonly="1"/>
+                                    <field name="ai_suggested_category" readonly="1"/>
+                                    <field name="ai_target_audience" readonly="1"/>
+                                    <field name="ai_estimated_weight" readonly="1"/>
+                                </group>
+                                <group string="Specs techniques (JSON)">
+                                    <field name="ai_technical_specs" nolabel="1" readonly="1"/>
+                                </group>
+                            </group>
+                        </div>
+                    </page>
                 </xpath>
 
             </field>
         </record>
-        
+
+        <!-- Batch Queue Enrichment Action (server action for list view) -->
+        <record id="action_product_ai_enqueue_batch" model="ir.actions.server">
+            <field name="name">Enrichir avec IA (file d'attente)</field>
+            <field name="model_id" ref="product.model_product_template"/>
+            <field name="binding_model_id" ref="product.model_product_template"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">
+                action = {
+                    'name': 'Enrichissement IA par lot',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'batch.enrichment.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {'active_ids': records.ids},
+                }
+            </field>
+        </record>
+
         <!-- Batch Price Alignment Action -->
         <record id="action_product_align_price_batch" model="ir.actions.server">
             <field name="name">Align Price with AI Competitors</field>

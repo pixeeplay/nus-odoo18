@@ -11,5 +11,32 @@
             <field name="interval_type">hours</field>
             <field name="active" eval="False"/>
         </record>
+
+        <!-- Cron: Web Data Collection via SearXNG (every 5 min) -->
+        <record id="ir_cron_ai_collect_searxng" model="ir.cron">
+            <field name="name">AI Enrichment - Web Data Collection (SearXNG)</field>
+            <field name="model_id" ref="model_product_enrichment_queue"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_collect_web_data()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+            <field name="numbercall">-1</field>
+        </record>
+
+        <!-- Cron: Ollama AI Enrichment Processing (every 10 min) -->
+        <record id="ir_cron_ai_enrich_ollama" model="ir.cron">
+            <field name="name">AI Enrichment - Ollama Processing</field>
+            <field name="model_id" ref="model_product_enrichment_queue"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_enrich_ollama()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">10</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+            <field name="numbercall">-1</field>
+        </record>
+
 </odoo>
 

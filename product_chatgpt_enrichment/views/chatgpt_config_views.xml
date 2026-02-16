@@ -193,6 +193,7 @@
                                 <field name="auto_enrich"/>
                                 <field name="use_web_search"/>
                                 <field name="use_deep_enrichment"/>
+                                <field name="searxng_enabled" widget="boolean_toggle"/>
                                 <field name="media_discovery"/>
                                 <field name="max_tokens"/>
                                 <field name="temperature"/>
@@ -262,8 +263,55 @@
                                 <field name="debug_show_raw_results" widget="boolean_toggle"/>
                             </group>
                         </group>
+                        <!-- SearXNG Configuration -->
+                        <group string="SearXNG (Self-Hosted Web Search)" invisible="not searxng_enabled">
+                            <group>
+                                <field name="searxng_base_url" placeholder="http://searxng:8080"/>
+                                <field name="searxng_engines" placeholder="google,duckduckgo,amazon"/>
+                                <field name="searxng_language" placeholder="fr-FR"/>
+                            </group>
+                            <group>
+                                <field name="searxng_max_results"/>
+                                <field name="searxng_timeout"/>
+                                <field name="searxng_delay"/>
+                            </group>
+                        </group>
+                        <div class="mt-2 mb-2" invisible="not searxng_enabled">
+                            <button name="action_test_searxng"
+                                    string="Test SearXNG"
+                                    type="object"
+                                    class="btn-primary"
+                                    icon="fa-search"/>
+                        </div>
+                        <div class="alert alert-light border mt-2 mb-2" role="alert"
+                             invisible="not searxng_enabled">
+                            <strong>SearXNG</strong> &#8212; Moteur de recherche auto-h&#233;berg&#233; (gratuit, pas de cl&#233; API).<br/>
+                            <small class="text-muted">
+                                Docker (m&#234;me r&#233;seau) : <code>http://searxng:8080</code> |
+                                Externe : <code>http://IP:8888</code><br/>
+                                SearXNG doit avoir <code>format: json</code> activ&#233; dans <code>settings.yml</code>.
+                            </small>
+                        </div>
+
+                        <!-- Enrichment Pipeline Configuration -->
+                        <group string="Enrichment Pipeline (Queue)" invisible="not searxng_enabled">
+                            <group>
+                                <field name="enrichment_batch_size_collect"/>
+                                <field name="enrichment_batch_size_enrich"/>
+                            </group>
+                            <group>
+                                <field name="enrichment_auto_publish" widget="boolean_toggle"/>
+                                <field name="enrichment_overwrite_existing" widget="boolean_toggle"
+                                       invisible="not enrichment_auto_publish"/>
+                            </group>
+                        </group>
+
                         <notebook>
                             <page string="Prompts" name="prompts">
+                                <group string="SearXNG + Ollama Pipeline Prompt" invisible="not searxng_enabled">
+                                    <field name="enrichment_prompt_template" nolabel="1"
+                                           placeholder="Template for the queue-based enrichment pipeline..."/>
+                                </group>
                                 <group string="Custom Step Prompts">
                                     <field name="prompt_technical_research"/>
                                     <field name="prompt_deep_enrichment"/>

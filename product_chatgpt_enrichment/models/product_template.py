@@ -64,6 +64,146 @@ class ProductTemplate(models.Model):
     chatgpt_config_id = fields.Many2one('chatgpt.config', compute='_compute_chatgpt_config', string='Active AI Configuration')
     chatgpt_prompt_ids = fields.Many2many('chatgpt.product.prompt', string='Active Prompts', compute='_compute_chatgpt_config')
 
+    # -------------------------------------------------------
+    # AI Enrichment Pipeline Fields (ai_* prefix)
+    # -------------------------------------------------------
+    ai_seo_title = fields.Char(string='Titre SEO', size=70, readonly=True)
+    ai_meta_description = fields.Char(string='Meta Description', size=160, readonly=True)
+    ai_short_description = fields.Text(string='Description courte IA', readonly=True)
+    ai_description_html = fields.Html(string='Description longue IA', readonly=True)
+    ai_bullet_points = fields.Text(string='Points clés', readonly=True)
+    ai_tags = fields.Char(string='Tags SEO', size=500, readonly=True)
+    ai_suggested_category = fields.Char(string='Catégorie suggérée', readonly=True)
+    ai_detected_brand = fields.Char(string='Marque détectée', readonly=True)
+    ai_target_audience = fields.Char(string='Public cible', readonly=True)
+    ai_selling_points = fields.Text(string='Arguments de vente', readonly=True)
+    ai_technical_specs = fields.Text(string='Specs techniques (JSON)', readonly=True)
+    ai_estimated_weight = fields.Float(string='Poids estimé (kg)', readonly=True)
+    ai_confidence = fields.Selection([
+        ('high', 'Haute'),
+        ('medium', 'Moyenne'),
+        ('low', 'Basse'),
+    ], string='Confiance IA', readonly=True)
+    ai_enrichment_date = fields.Datetime(string='Date enrichissement IA', readonly=True)
+    ai_enrichment_source = fields.Char(string='Source enrichissement', readonly=True)
+
+    ai_enrichment_queue_ids = fields.One2many(
+        'product.enrichment.queue', 'product_id',
+        string='Enrichment Queue History')
+    ai_queue_count = fields.Integer(
+        compute='_compute_ai_queue_count', string='Queue Items')
+
+    def _compute_ai_queue_count(self):
+        for rec in self:
+            rec.ai_queue_count = len(rec.ai_enrichment_queue_ids)
+
+    # -------------------------------------------------------
+    # Queue Actions
+    # -------------------------------------------------------
+    def action_ai_enqueue(self):
+        """Add this product to the AI enrichment queue with high priority."""
+        self.ensure_one()
+        if not self.name:
+            raise UserError(_('Product must have a name before enrichment.'))
+
+        existing = self.env['product.enrichment.queue'].search([
+            ('product_id', '=', self.id),
+            ('state', 'not in', ['done', 'error', 'skipped']),
+        ], limit=1)
+        if existing:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Déjà en file d\'attente'),
+                    'message': _("'%s' est déjà en file d'attente (état: %s).") % (
+                        self.name, existing.state),
+                    'type': 'warning',
+                    'sticky': False,
+                },
+            }
+
+        self.env['product.enrichment.queue'].create({
+            'product_id': self.id,
+            'priority': '2',  # High priority for manual enqueue
+        })
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Ajouté à la file d\'attente'),
+                'message': _("'%s' ajouté à la file d'attente IA (priorité haute).") % self.name,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def action_ai_apply_to_standard(self):
+        """Copy ai_* fields to standard Odoo fields."""
+        self.ensure_one()
+        vals = {}
+        mapping = {
+            'ai_description_html': 'website_description',
+            'ai_short_description': 'description_sale',
+            'ai_seo_title': 'website_meta_title',
+            'ai_meta_description': 'website_meta_description',
+        }
+        for ai_field, std_field in mapping.items():
+            ai_value = getattr(self, ai_field, None)
+            if ai_value and std_field in self._fields:
+                vals[std_field] = ai_value
+
+        if vals:
+            self.write(vals)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Champs mis à jour'),
+                    'message': _("%d champ(s) standard mis à jour depuis les données IA.") % len(vals),
+                    'type': 'success',
+                    'sticky': False,
+                },
+            }
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Rien à appliquer'),
+                'message': _("Aucune donnée IA disponible à appliquer."),
+                'type': 'warning',
+                'sticky': False,
+            },
+        }
+
+    def action_ai_view_queue(self):
+        """Open enrichment queue for this product."""
+        self.ensure_one()
+        return {
+            'name': _('File d\'attente — %s') % self.name,
+            'type': 'ir.actions.act_window',
+            'res_model': 'product.enrichment.queue',
+            'view_mode': 'list,form',
+            'domain': [('product_id', '=', self.id)],
+        }
+
+    def action_ai_clear(self):
+        """Clear AI enrichment pipeline data."""
+        self.ensure_one()
+        ai_fields = {f: False for f in self._fields if f.startswith('ai_') and f not in (
+            'ai_enrichment_queue_ids', 'ai_queue_count')}
+        self.write(ai_fields)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Données IA effacées'),
+                'message': _('Les champs d\'enrichissement IA ont été vidés.'),
+                'type': 'info',
+                'sticky': False,
+            },
+        }
+
     def _compute_chatgpt_config(self):
         config = self.env['chatgpt.config'].search([('active', '=', True)], limit=1)
         for record in self:
@@ -129,8 +269,29 @@ class ProductTemplate(models.Model):
             'chatgpt_log': f"<p>Starting enrichment for <b>{self.name}</b>...</p>",
         }
         
-        # 1. Technical Fact Discovery (Web Search) - SPECIFICATIONS ONLY
+        # 0. SearXNG Web Search (if enabled) - adds context from fresh web data
         scraped_data = ""
+        if config.searxng_enabled:
+            try:
+                client = config._get_searxng_client()
+                ean = getattr(self, 'barcode', '') or ''
+                brand = ''
+                if hasattr(self, 'product_brand_id') and self.product_brand_id:
+                    brand = self.product_brand_id.name
+                result = client.search_product(self.name, ean=ean, brand=brand)
+                for r in result.get('results', [])[:8]:
+                    title = r.get('title', '')
+                    content = r.get('content', '')[:500]
+                    url = r.get('url', '')
+                    scraped_data += f"\n[{title}]({url}): {content}\n"
+                vals['chatgpt_web_search_log'] = (
+                    f"<p><i class='fa fa-search'/> SearXNG: {len(result.get('results', []))} results</p>"
+                    f"<pre>{scraped_data[:3000]}</pre>"
+                )
+            except Exception as e:
+                _logger.warning("SearXNG search failed for %s: %s", self.name, e)
+
+        # 1. Technical Fact Discovery (Web Search) - SPECIFICATIONS ONLY
         if config.use_web_search:
             vals['chatgpt_web_search_log'] = f"<p><i class='fa fa-microchip'/> Researching technical characteristics...</p>"
             # Use custom technical prompt if available

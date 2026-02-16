@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Queue menu under the existing AI Enrichment root menu -->
+    <menuitem id="menu_ai_queue"
+              name="Queue"
+              parent="menu_ai_enrichment_root"
+              sequence="30"/>
+
+    <menuitem id="menu_ai_queue_list"
+              name="File d'attente"
+              parent="menu_ai_queue"
+              action="action_product_enrichment_queue"
+              sequence="10"/>
+
+    <menuitem id="menu_ai_queue_dashboard"
+              name="Dashboard"
+              parent="menu_ai_queue"
+              action="action_product_enrichment_dashboard"
+              sequence="20"/>
+
+</odoo>

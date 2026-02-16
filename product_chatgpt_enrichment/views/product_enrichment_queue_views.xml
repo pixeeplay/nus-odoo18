@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_product_enrichment_queue_list" model="ir.ui.view">
+        <field name="name">product.enrichment.queue.list</field>
+        <field name="model">product.enrichment.queue</field>
+        <field name="arch" type="xml">
+            <list string="File d'attente enrichissement IA"
+                  decoration-danger="state in ('error', 'skipped')"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state in ('collecting', 'enriching')"
+                  decoration-info="state == 'collected'">
+                <field name="product_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('pending', 'collected')"
+                       decoration-warning="state in ('collecting', 'enriching')"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state in ('error', 'skipped')"/>
+                <field name="priority"/>
+                <field name="search_query_used" optional="hide"/>
+                <field name="attempt_count"/>
+                <field name="processing_time_search" optional="show" string="Search (s)"/>
+                <field name="processing_time_ollama" optional="show" string="AI (s)"/>
+                <field name="date_queued"/>
+                <field name="date_collected" optional="hide"/>
+                <field name="date_enriched" optional="hide"/>
+                <field name="error_message" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_product_enrichment_queue_form" model="ir.ui.view">
+        <field name="name">product.enrichment.queue.form</field>
+        <field name="model">product.enrichment.queue</field>
+        <field name="arch" type="xml">
+            <form string="Enrichment Queue Item">
+                <header>
+                    <button name="action_retry" string="Relancer"
+                            type="object" class="btn-primary"
+                            invisible="state not in ('error', 'skipped')"
+                            icon="fa-refresh"/>
+                    <button name="action_reset" string="Réinitialiser"
+                            type="object" class="btn-secondary"
+                            icon="fa-undo"/>
+                    <button name="action_force_done" string="Forcer terminé"
+                            type="object" class="btn-warning"
+                            invisible="state == 'done'"
+                            icon="fa-check"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,collected,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Produit">
+                            <field name="product_id"/>
+                            <field name="priority"/>
+                            <field name="search_query_used" readonly="1"/>
+                            <field name="attempt_count" readonly="1"/>
+                            <field name="max_attempts"/>
+                        </group>
+                        <group string="Timing">
+                            <field name="date_queued" readonly="1"/>
+                            <field name="date_collected" readonly="1"/>
+                            <field name="date_enriched" readonly="1"/>
+                            <field name="processing_time_search" readonly="1"/>
+                            <field name="processing_time_ollama" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-danger" invisible="state not in ('error', 'skipped')">
+                        <strong>Erreur :</strong>
+                        <field name="error_message" nolabel="1" readonly="1"/>
+                    </div>
+                    <notebook>
+                        <page string="Données web (SearXNG)" name="web_data">
+                            <field name="raw_web_data" readonly="1"
+                                   placeholder="Les résultats SearXNG apparaîtront ici après la phase de collecte..."/>
+                        </page>
+                        <page string="Réponse IA (Ollama)" name="ai_data">
+                            <group string="Réponse brute">
+                                <field name="raw_ollama_response" nolabel="1" readonly="1"/>
+                            </group>
+                            <group string="Données enrichies (JSON parsé)">
+                                <field name="enriched_data" nolabel="1" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_product_enrichment_queue_search" model="ir.ui.view">
+        <field name="name">product.enrichment.queue.search</field>
+        <field name="model">product.enrichment.queue</field>
+        <field name="arch" type="xml">
+            <search string="Queue">
+                <field name="product_id"/>
+                <field name="state"/>
+                <field name="error_message"/>
+                <filter name="pending" string="En attente" domain="[('state', '=', 'pending')]"/>
+                <filter name="collecting" string="Collecte" domain="[('state', '=', 'collecting')]"/>
+                <filter name="collected" string="Collecté" domain="[('state', '=', 'collected')]"/>
+                <filter name="enriching" string="Enrichissement" domain="[('state', '=', 'enriching')]"/>
+                <filter name="done" string="Terminé" domain="[('state', '=', 'done')]"/>
+                <filter name="error" string="Erreur" domain="[('state', 'in', ('error', 'skipped'))]"/>
+                <separator/>
+                <filter name="high_priority" string="Priorité haute" domain="[('priority', '=', '2')]"/>
+                <separator/>
+                <filter name="today" string="Aujourd'hui" domain="[('date_queued', '>=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="État" context="{'group_by': 'state'}"/>
+                    <filter name="group_priority" string="Priorité" context="{'group_by': 'priority'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date_queued:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Graph View (Dashboard) -->
+    <record id="view_product_enrichment_queue_graph" model="ir.ui.view">
+        <field name="name">product.enrichment.queue.graph</field>
+        <field name="model">product.enrichment.queue</field>
+        <field name="arch" type="xml">
+            <graph string="Enrichissement IA — Statistiques" type="bar">
+                <field name="state" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View (Dashboard) -->
+    <record id="view_product_enrichment_queue_pivot" model="ir.ui.view">
+        <field name="name">product.enrichment.queue.pivot</field>
+        <field name="model">product.enrichment.queue</field>
+        <field name="arch" type="xml">
+            <pivot string="Enrichissement IA — Tableau croisé">
+                <field name="state" type="col"/>
+                <field name="date_queued" interval="day" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Action: Queue List -->
+    <record id="action_product_enrichment_queue" model="ir.actions.act_window">
+        <field name="name">File d'attente enrichissement</field>
+        <field name="res_model">product.enrichment.queue</field>
+        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="search_view_id" ref="view_product_enrichment_queue_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun produit dans la file d'attente
+            </p>
+            <p>
+                Ajoutez des produits via le bouton "Enrichir (Queue IA)" ou le wizard batch.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Dashboard -->
+    <record id="action_product_enrichment_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard enrichissement</field>
+        <field name="res_model">product.enrichment.queue</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="view_product_enrichment_queue_search"/>
+    </record>
+
+</odoo>
