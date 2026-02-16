@@ -106,10 +106,19 @@
             <field name="name">chatgpt.config.tree</field>
             <field name="model">chatgpt.config</field>
             <field name="arch" type="xml">
-                <list string="AI Configurations">
+                <list string="AI Configurations"
+                      decoration-bf="is_default"
+                      decoration-success="is_default">
+                    <field name="is_default" widget="boolean_toggle" string="Default"/>
                     <field name="name"/>
-                    <field name="provider"/>
+                    <field name="provider" widget="badge"
+                           decoration-info="provider in ['openai', 'anthropic']"
+                           decoration-success="provider in ['ollama', 'llamacpp']"
+                           decoration-warning="provider == 'perplexity'"
+                           decoration-danger="provider == 'gemini'"/>
+                    <field name="base_url" optional="show"/>
                     <field name="model_id"/>
+                    <field name="ai_model_name" optional="hide"/>
                     <field name="auto_enrich"/>
                     <field name="active"/>
                 </list>
@@ -132,10 +141,17 @@
                                 string="Discover Models"
                                 type="object"
                                 help="Fetch available models from the provider"/>
+                        <button name="action_set_default"
+                                string="Set as Default"
+                                type="object"
+                                class="btn-success"
+                                invisible="is_default"
+                                help="Use this configuration as the default for product enrichment"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
                             <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                            <widget name="web_ribbon" title="Default" bg_color="text-bg-success" invisible="not is_default"/>
                         </div>
                         <div class="oe_title">
                             <h1><field name="name" placeholder="Main AI Configuration"/></h1>

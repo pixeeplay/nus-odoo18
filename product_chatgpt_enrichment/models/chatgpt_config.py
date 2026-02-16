@@ -116,6 +116,11 @@ class ChatGPTConfig(models.Model):
 
     prompt_ids = fields.One2many('chatgpt.product.prompt', 'config_id', string='Prompts')
     active = fields.Boolean(default=True)
+    is_default = fields.Boolean(
+        string='Default Config',
+        default=False,
+        help="Mark this as the default AI configuration. Only one config can be default."
+    )
 
     price_alignment_strategy = fields.Selection([
         ('none', 'No Alignment'),
@@ -206,10 +211,32 @@ Answer in {language}.""",
 
     @api.model
     def get_active_config(self):
-        config = self.search([('active', '=', True)], limit=1)
+        """Return the default config, or the first active one."""
+        config = self.search([('is_default', '=', True), ('active', '=', True)], limit=1)
+        if not config:
+            config = self.search([('active', '=', True)], limit=1)
         if not config:
             raise UserError(_('No active AI configuration found. Go to AI Enrichment > Settings > AI Providers.'))
         return config
+
+    def action_set_default(self):
+        """Set this config as the default (unset all others)."""
+        self.ensure_one()
+        self.search([('is_default', '=', True)]).write({'is_default': False})
+        self.is_default = True
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Default Configuration'),
+                'message': _('"%s" (%s) is now the default AI provider.') % (self.name, self.get_provider_display()),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    def get_provider_display(self):
+        return dict(self._fields['provider'].selection).get(self.provider, self.provider)
 
     def _get_base_url(self):
         """Get the base URL (scheme + host + port only, no API path)."""
