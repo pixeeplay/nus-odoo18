@@ -157,6 +157,9 @@
                                        invisible="provider != 'ollama'"/>
                                 <field name="ollama_web_search" widget="boolean_toggle"
                                        invisible="provider != 'ollama'"/>
+                                <field name="ollama_cloud_key" password="True"
+                                       invisible="provider != 'ollama' or not ollama_web_search"
+                                       placeholder="sk-... (from ollama.com/settings/keys)"/>
 
                                 <!-- API Endpoint: advanced, visible for local providers -->
                                 <field name="api_endpoint"
@@ -184,14 +187,23 @@
                         <!-- Provider-specific help banners -->
                         <div class="alert alert-light border mt-2 mb-2" role="alert"
                              invisible="provider != 'ollama'">
-                            <strong>Ollama</strong> &amp;mdash;
-                            Local: <code>http://localhost:11434</code> |
-                            Remote (Mac Mini): <code>http://192.168.x.x:11434</code><br/>
+                            <strong>Ollama</strong><br/>
+                            <strong>Base URL</strong> (appels IA) :
+                            Local <code>http://localhost:11434</code> |
+                            Mac Mini <code>http://192.168.x.x:11434</code><br/>
                             <small class="text-muted">
-                                Make sure Ollama is running (<code>ollama serve</code>).
-                                For web search, get an API key at
-                                <a href="https://ollama.com/settings/keys" target="_blank">ollama.com/settings/keys</a>.
-                            </small>
+                                Assurez-vous que Ollama tourne (<code>ollama serve</code>
+                                ou <code>OLLAMA_HOST=0.0.0.0 ollama serve</code> pour le r&#233;seau).
+                            </small><br/>
+                            <span invisible="not ollama_web_search">
+                                <strong>Web Search</strong> (cloud, en parall&#232;le) :
+                                Les recherches web passent par <code>ollama.com/api/web_search</code> avec votre cl&#233; cloud.<br/>
+                                <small class="text-muted">
+                                    Cl&#233; API cloud &#224; r&#233;cup&#233;rer sur
+                                    <a href="https://ollama.com/settings/keys" target="_blank">ollama.com/settings/keys</a>.
+                                    L'IA locale et le web search cloud fonctionnent ensemble.
+                                </small>
+                            </span>
                         </div>
                         <div class="alert alert-light border mt-2 mb-2" role="alert"
                              invisible="provider != 'llamacpp'">

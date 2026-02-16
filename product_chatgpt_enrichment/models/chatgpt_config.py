@@ -67,8 +67,15 @@ class ChatGPTConfig(models.Model):
     ollama_web_search = fields.Boolean(
         string='Ollama Web Search',
         default=False,
-        help="Enable Ollama's built-in web search. Requires an API key from https://ollama.com/settings/keys. "
+        help="Enable Ollama's built-in web search. Requires a cloud API key from https://ollama.com/settings/keys. "
              "Uses ollama.com/api/web_search to search the web before answering."
+    )
+
+    ollama_cloud_key = fields.Char(
+        string='Ollama Cloud Key',
+        help="API key for Ollama cloud services (web search). "
+             "Get one at https://ollama.com/settings/keys\n"
+             "This is separate from the main API key — your local Ollama doesn't need a key."
     )
 
     model_id = fields.Many2one('chatgpt.model', string='AI Model',
@@ -437,13 +444,14 @@ Answer in {language}.""",
     # Ollama Web Search
     # -------------------------------------------------------
     def _ollama_web_search(self, query, max_results=5):
-        """Use Ollama's web search API (requires ollama.com API key)."""
-        if not self.api_key:
-            _logger.warning("Ollama web search requires an API key from ollama.com/settings/keys")
+        """Use Ollama's cloud web search API (requires ollama.com API key)."""
+        cloud_key = self.ollama_cloud_key or self.api_key
+        if not cloud_key:
+            _logger.warning("Ollama web search requires a cloud API key from ollama.com/settings/keys")
             return []
         url = "https://ollama.com/api/web_search"
         headers = {
-            'Authorization': f'Bearer {self.api_key}',
+            'Authorization': f'Bearer {cloud_key}',
             'Content-Type': 'application/json',
         }
         data = {'query': query, 'max_results': min(max_results, 10)}
