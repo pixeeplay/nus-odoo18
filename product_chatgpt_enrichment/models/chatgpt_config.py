@@ -205,17 +205,31 @@ Answer in {language}.""",
         return config
 
     def _get_base_url(self):
-        """Get the base URL with sensible defaults per provider."""
-        if self.base_url:
-            return self.base_url.rstrip('/')
-        return PROVIDER_DEFAULTS.get(self.provider, {}).get('base_url', 'http://localhost:11434')
+        """Get the base URL (scheme + host + port only, no API path)."""
+        url = (self.base_url or '').strip().rstrip('/')
+        if not url:
+            return PROVIDER_DEFAULTS.get(self.provider, {}).get('base_url', 'http://localhost:11434')
+        # Strip known API paths that may have been stored in old base_url format
+        # e.g. "https://api.openai.com/v1/chat/completions" → "https://api.openai.com"
+        for suffix in ['/v1/chat/completions', '/v1/messages', '/chat/completions',
+                       '/api/chat', '/api/generate', '/api/tags', '/api']:
+            if url.endswith(suffix):
+                url = url[:-len(suffix)]
+                break
+        return url.rstrip('/')
 
     def _get_full_url(self, endpoint_override=None):
         """Build the full API URL from base_url + endpoint."""
         base = self._get_base_url()
         endpoint = endpoint_override or self.api_endpoint or ''
+        # If endpoint is already a full URL, use it directly
+        if endpoint.startswith('http'):
+            return endpoint
         if endpoint and not endpoint.startswith('/'):
             endpoint = '/' + endpoint
+        # Avoid doubling if base already ends with the endpoint
+        if endpoint and base.endswith(endpoint):
+            return base
         return base + endpoint
 
     def _get_model_name(self):
