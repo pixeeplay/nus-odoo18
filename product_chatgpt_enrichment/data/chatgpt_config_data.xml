@@ -11,5 +11,33 @@
             <field name="temperature">0.7</field>
             <field name="active" eval="True"/>
         </record>
+
+        <!-- SearXNG + Ollama/Mistral Pipeline Configuration -->
+        <record id="searxng_ollama_config" model="chatgpt.config">
+            <field name="name">SearXNG + Ollama (Mistral)</field>
+            <field name="provider">ollama</field>
+            <field name="base_url">http://100.64.0.3:11434</field>
+            <field name="api_endpoint">/api/chat</field>
+            <field name="ollama_api_mode">native</field>
+            <field name="ai_model_name">mistral</field>
+            <field name="auto_enrich" eval="False"/>
+            <field name="max_tokens">4000</field>
+            <field name="temperature">0.3</field>
+            <field name="active" eval="True"/>
+            <field name="is_default" eval="False"/>
+            <!-- SearXNG enabled -->
+            <field name="searxng_enabled" eval="True"/>
+            <field name="searxng_base_url">http://searxng:8080</field>
+            <field name="searxng_engines">google,duckduckgo,amazon,wikipedia</field>
+            <field name="searxng_language">fr-FR</field>
+            <field name="searxng_max_results">8</field>
+            <field name="searxng_timeout">15</field>
+            <field name="searxng_delay">3.0</field>
+            <!-- Pipeline settings -->
+            <field name="enrichment_batch_size_collect">20</field>
+            <field name="enrichment_batch_size_enrich">10</field>
+            <field name="enrichment_auto_publish" eval="False"/>
+            <field name="enrichment_overwrite_existing" eval="False"/>
+        </record>
     </data>
 </odoo>

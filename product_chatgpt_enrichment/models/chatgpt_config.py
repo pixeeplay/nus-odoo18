@@ -315,6 +315,20 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
             raise UserError(_('No active AI configuration found. Go to AI Enrichment > Settings > AI Providers.'))
         return config
 
+    @api.model
+    def get_searxng_config(self):
+        """Return the active config with SearXNG enabled (for queue pipeline)."""
+        config = self.search([
+            ('searxng_enabled', '=', True),
+            ('active', '=', True),
+        ], limit=1)
+        if not config:
+            raise UserError(_(
+                'No active AI configuration with SearXNG enabled. '
+                'Go to AI Enrichment > Settings and enable SearXNG on a configuration.'
+            ))
+        return config
+
     def action_set_default(self):
         """Set this config as the default (unset all others)."""
         self.ensure_one()

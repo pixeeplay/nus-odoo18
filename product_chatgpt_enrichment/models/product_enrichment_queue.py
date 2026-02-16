@@ -99,9 +99,10 @@ class ProductEnrichmentQueue(models.Model):
     @api.model
     def _cron_collect_web_data(self):
         """Process pending queue items via SearXNG."""
-        config = self.env['chatgpt.config'].get_active_config()
-        if not config.searxng_enabled:
-            _logger.info("AI Queue Collect: SearXNG is disabled, skipping.")
+        try:
+            config = self.env['chatgpt.config'].get_searxng_config()
+        except Exception:
+            _logger.info("AI Queue Collect: No SearXNG config found, skipping.")
             return
 
         batch_size = config.enrichment_batch_size_collect or 20
@@ -173,7 +174,11 @@ class ProductEnrichmentQueue(models.Model):
     @api.model
     def _cron_enrich_ollama(self):
         """Process collected queue items via Ollama."""
-        config = self.env['chatgpt.config'].get_active_config()
+        try:
+            config = self.env['chatgpt.config'].get_searxng_config()
+        except Exception:
+            _logger.info("AI Queue Enrich: No SearXNG config found, skipping.")
+            return
         batch_size = config.enrichment_batch_size_enrich or 10
         items = self.search([
             ('state', '=', 'collected'),
