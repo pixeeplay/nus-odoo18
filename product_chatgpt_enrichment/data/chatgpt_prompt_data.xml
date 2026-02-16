@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data noupdate="1">
 
         <!-- 1. SEO eCommerce Description -->
         <record id="prompt_ecommerce_description_long" model="chatgpt.product.prompt">
             <field name="name">SEO eCommerce Description (Long)</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">10</field>
-            <field name="prompt_template">Generate a high-quality, SEO-optimized product description for {product_name}. 
-Include a catchy title (h2), compelling introduction (p), bullet points for features (ul/li), and technical benefits. 
+            <field name="prompt_template">Generate a high-quality, SEO-optimized product description for {product_name}.
+Include a catchy title (h2), compelling introduction (p), bullet points for features (ul/li), and technical benefits.
 Return ONLY clean HTML without markdown backticks.</field>
             <field name="active" eval="True"/>
         </record>
@@ -14,6 +16,7 @@ Return ONLY clean HTML without markdown backticks.</field>
         <!-- 2. Sales Description (Short) -->
         <record id="prompt_sales_pitch_alt" model="chatgpt.product.prompt">
             <field name="name">Sales Description (Short)</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">20</field>
             <field name="prompt_template">Generate a concise and powerful sales pitch (2-3 sentences) for {product_name}. No HTML, plain text only.</field>
             <field name="active" eval="True"/>
@@ -22,9 +25,10 @@ Return ONLY clean HTML without markdown backticks.</field>
         <!-- 3. Technical Specs JSON -->
         <record id="prompt_technical_specs_full" model="chatgpt.product.prompt">
             <field name="name">Technical Specs &amp; JSON Mapping</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">30</field>
             <field name="prompt_template">Extract all technical data for {product_name}.
-Return ONLY a JSON object with: 
+Return ONLY a JSON object with:
 - 'weight': float (kg)
 - 'volume': float (m3)
 - 'description_sale': 1 sentence summary
@@ -35,6 +39,7 @@ Return ONLY a JSON object with:
         <!-- 4. Meta Title SEO -->
         <record id="prompt_seo_title_alt" model="chatgpt.product.prompt">
             <field name="name">SEO Meta Title (CTR)</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">40</field>
             <field name="prompt_template">Generate an irresistible SEO Meta Title for {product_name} (max 60 chars).</field>
             <field name="active" eval="True"/>
@@ -43,6 +48,7 @@ Return ONLY a JSON object with:
         <!-- 5. Meta Description SEO -->
         <record id="prompt_seo_desc_alt" model="chatgpt.product.prompt">
             <field name="name">SEO Meta Description (High Conversion)</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">50</field>
             <field name="prompt_template">Generate a high-conversion SEO Meta Description for {product_name} (max 155 chars).</field>
             <field name="active" eval="True"/>
@@ -51,6 +57,7 @@ Return ONLY a JSON object with:
         <!-- 6. FAQ Generator -->
         <record id="prompt_faq_gen" model="chatgpt.product.prompt">
             <field name="name">Product FAQ (3 Q&amp;A)</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">60</field>
             <field name="prompt_template">Generate 3 frequently asked questions and answers for {product_name} in HTML (dt/dd).</field>
             <field name="active" eval="True"/>
@@ -59,6 +66,7 @@ Return ONLY a JSON object with:
         <!-- 7. Pros & Cons -->
         <record id="prompt_pros_cons_alt" model="chatgpt.product.prompt">
             <field name="name">Pros &amp; Cons List</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">70</field>
             <field name="prompt_template">List 3 Pros and 3 Cons for {product_name} based on market sentiment. Return HTML (ul/li).</field>
             <field name="active" eval="True"/>
@@ -67,6 +75,7 @@ Return ONLY a JSON object with:
         <!-- 8. Bullet Points Amazon -->
         <record id="prompt_amazon_style" model="chatgpt.product.prompt">
             <field name="name">Amazon Style Bullet Points</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">80</field>
             <field name="prompt_template">Generate 5 'Amazon style' bullet points for {product_name}, starting with BOLD keywords.</field>
             <field name="active" eval="True"/>
@@ -75,6 +84,7 @@ Return ONLY a JSON object with:
         <!-- 9. Instagram Post -->
         <record id="prompt_social_insta_alt" model="chatgpt.product.prompt">
             <field name="name">Social Media: Instagram Post</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">90</field>
             <field name="prompt_template">Write an engaging Instagram post for {product_name} with emojis and hashtags.</field>
             <field name="active" eval="True"/>
@@ -83,6 +93,7 @@ Return ONLY a JSON object with:
         <!-- 10. YouTube Script -->
         <record id="prompt_video_script_alt" model="chatgpt.product.prompt">
             <field name="name">YouTube Short Script (30s)</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">100</field>
             <field name="prompt_template">Write a 30-second script for a YouTube Short showing {product_name}.</field>
             <field name="active" eval="True"/>
@@ -91,6 +102,7 @@ Return ONLY a JSON object with:
         <!-- 11. Maintenance Guide -->
         <record id="prompt_care_guide" model="chatgpt.product.prompt">
             <field name="name">Maintenance &amp; Care Guide</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">110</field>
             <field name="prompt_template">Provide short maintenance and cleaning instructions for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -99,6 +111,7 @@ Return ONLY a JSON object with:
         <!-- 12. Comparison Analysis -->
         <record id="prompt_comp_analysis" model="chatgpt.product.prompt">
             <field name="name">Competitive Analysis</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">120</field>
             <field name="prompt_template">Describe how {product_name} compares to similar products in quality and price.</field>
             <field name="active" eval="False"/>
@@ -107,6 +120,7 @@ Return ONLY a JSON object with:
         <!-- 13. Blog Post Ideas -->
         <record id="prompt_blog_ideas_alt" model="chatgpt.product.prompt">
             <field name="name">Content Marketing: Blog Titles</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">130</field>
             <field name="prompt_template">Suggest 3 blog post titles that would drive traffic to {product_name}.</field>
             <field name="active" eval="False"/>
@@ -115,6 +129,7 @@ Return ONLY a JSON object with:
         <!-- 14. Taglines -->
         <record id="prompt_taglines_alt" model="chatgpt.product.prompt">
             <field name="name">5 Catchy Taglines</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">140</field>
             <field name="prompt_template">Create 5 short and catchy taglines for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -123,6 +138,7 @@ Return ONLY a JSON object with:
         <!-- 15. Market Positioning -->
         <record id="prompt_market_pos" model="chatgpt.product.prompt">
             <field name="name">Market Positioning</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">150</field>
             <field name="prompt_template">Define the target audience and market segment for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -131,6 +147,7 @@ Return ONLY a JSON object with:
         <!-- 16. Translation (EN) -->
         <record id="prompt_trans_en_alt" model="chatgpt.product.prompt">
             <field name="name">Translation: English Marketing</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">160</field>
             <field name="language">en_US</field>
             <field name="prompt_template">Translate the current data for {product_name} into high-end marketing English.</field>
@@ -140,6 +157,7 @@ Return ONLY a JSON object with:
         <!-- 17. Translation (DE) -->
         <record id="prompt_trans_de_alt" model="chatgpt.product.prompt">
             <field name="name">Translation: German Technical</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">170</field>
             <field name="language">de_DE</field>
             <field name="prompt_template">Translate the technical specs of {product_name} into professional German.</field>
@@ -149,6 +167,7 @@ Return ONLY a JSON object with:
         <!-- 18. Translation (ES) -->
         <record id="prompt_trans_es_alt" model="chatgpt.product.prompt">
             <field name="name">Translation: Spanish Sales Pitch</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">180</field>
             <field name="language">es_ES</field>
             <field name="prompt_template">Generate a sales pitch for {product_name} in Spanish.</field>
@@ -158,6 +177,7 @@ Return ONLY a JSON object with:
         <!-- 19. Translation (IT) -->
         <record id="prompt_trans_it_alt" model="chatgpt.product.prompt">
             <field name="name">Translation: Italian Description</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">190</field>
             <field name="language">it_IT</field>
             <field name="prompt_template">Translate the description of {product_name} into Italian.</field>
@@ -167,6 +187,7 @@ Return ONLY a JSON object with:
         <!-- 20. Gift Guide Idea -->
         <record id="prompt_gift_guide" model="chatgpt.product.prompt">
             <field name="name">Marketing: Gift Guide Pitch</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">200</field>
             <field name="prompt_template">Explain why {product_name} is a perfect gift for special occasions.</field>
             <field name="active" eval="False"/>
@@ -175,6 +196,7 @@ Return ONLY a JSON object with:
         <!-- 21. Installation Steps -->
         <record id="prompt_install_steps" model="chatgpt.product.prompt">
             <field name="name">Technical: Installation Steps</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">210</field>
             <field name="prompt_template">Generate a 5-step quick installation guide for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -183,6 +205,7 @@ Return ONLY a JSON object with:
         <!-- 22. Warning & Safety -->
         <record id="prompt_safety_info" model="chatgpt.product.prompt">
             <field name="name">Technical: Safety Information</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">220</field>
             <field name="prompt_template">List all important safety precautions and warnings for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -191,6 +214,7 @@ Return ONLY a JSON object with:
         <!-- 23. Newsletter Copy -->
         <record id="prompt_newsletter_copy" model="chatgpt.product.prompt">
             <field name="name">Marketing: Newsletter Section</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">230</field>
             <field name="prompt_template">Write an engaging newsletter blurb to promote {product_name} to subscribers.</field>
             <field name="active" eval="False"/>
@@ -199,6 +223,7 @@ Return ONLY a JSON object with:
         <!-- 24. Unboxing Experience -->
         <record id="prompt_unboxing" model="chatgpt.product.prompt">
             <field name="name">Marketing: Unboxing Script</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">240</field>
             <field name="prompt_template">Describe the unboxing experience of {product_name} to entice buyers.</field>
             <field name="active" eval="False"/>
@@ -207,6 +232,7 @@ Return ONLY a JSON object with:
         <!-- 25. SEO LSI Keywords -->
         <record id="prompt_lsi_keywords" model="chatgpt.product.prompt">
             <field name="name">SEO: Primary &amp; LSI Keywords</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">250</field>
             <field name="prompt_template">Provide a list of 10 keywords and 5 LSI terms for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -215,6 +241,7 @@ Return ONLY a JSON object with:
         <!-- 26. User Persona -->
         <record id="prompt_user_persona" model="chatgpt.product.prompt">
             <field name="name">Marketing: Ideal User Persona</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">260</field>
             <field name="prompt_template">Describe the ideal customer profile (age, interests, needs) for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -223,6 +250,7 @@ Return ONLY a JSON object with:
         <!-- 27. Cross-selling Ideas -->
         <record id="prompt_cross_sell" model="chatgpt.product.prompt">
             <field name="name">Sales: Cross-selling Table</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">270</field>
             <field name="prompt_template">Suggest 3 accessories or related products that pair well with {product_name}.</field>
             <field name="active" eval="False"/>
@@ -231,6 +259,7 @@ Return ONLY a JSON object with:
         <!-- 28. Review Highlights -->
         <record id="prompt_review_summary" model="chatgpt.product.prompt">
             <field name="name">Market: Summary of User Reviews</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">280</field>
             <field name="prompt_template">Summarize the general sentiment of online user reviews for {product_name}.</field>
             <field name="active" eval="False"/>
@@ -239,6 +268,7 @@ Return ONLY a JSON object with:
         <!-- 29. Comparison Chart -->
         <record id="prompt_comp_chart" model="chatgpt.product.prompt">
             <field name="name">Market: Comparison Chart Data</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">290</field>
             <field name="prompt_template">Generate a comparison chart data (HTML table) for {product_name} vs its 2 top competitors.</field>
             <field name="active" eval="False"/>
@@ -247,10 +277,11 @@ Return ONLY a JSON object with:
         <!-- 30. One-word Pitch -->
         <record id="prompt_one_word" model="chatgpt.product.prompt">
             <field name="name">Marketing: The One-Word Pitch</field>
+            <field name="config_id" ref="default_chatgpt_config"/>
             <field name="sequence">300</field>
             <field name="prompt_template">Provide the single most powerful word to describe {product_name}.</field>
             <field name="active" eval="False"/>
         </record>
 
+    </data>
 </odoo>
-
