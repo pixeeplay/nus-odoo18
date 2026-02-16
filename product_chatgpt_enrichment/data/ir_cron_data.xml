@@ -22,7 +22,6 @@
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
             <field name="active" eval="True"/>
-            <field name="numbercall">-1</field>
         </record>
 
         <!-- Cron: Ollama AI Enrichment Processing (every 10 min) -->
@@ -35,7 +34,6 @@
             <field name="interval_number">10</field>
             <field name="interval_type">minutes</field>
             <field name="active" eval="True"/>
-            <field name="numbercall">-1</field>
         </record>
 
 </odoo>
