@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Field Mapping – List View (standalone)
+         ============================================================ -->
+    <record id="view_prestashop_field_mapping_list" model="ir.ui.view">
+        <field name="name">prestashop.field.mapping.list</field>
+        <field name="model">prestashop.field.mapping</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="sequence">
+                <field name="sequence" widget="handle"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="ps_field_label" string="PrestaShop Field"/>
+                <field name="ps_field_name" string="PS Key" optional="hide"/>
+                <field name="field_type" string="Type" widget="badge"
+                       decoration-info="field_type == 'text'"
+                       decoration-success="field_type == 'html'"
+                       decoration-warning="field_type == 'float'"
+                       decoration-danger="field_type == 'image'"/>
+                <field name="odoo_field_label" string="Odoo Field"/>
+                <field name="odoo_field_name" string="Odoo Key" optional="hide"/>
+                <field name="notes" string="Notes" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Field Mapping – Form View
+         ============================================================ -->
+    <record id="view_prestashop_field_mapping_form" model="ir.ui.view">
+        <field name="name">prestashop.field.mapping.form</field>
+        <field name="model">prestashop.field.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Field Mapping">
+                <sheet>
+                    <group>
+                        <group string="PrestaShop">
+                            <field name="ps_field_name"/>
+                            <field name="ps_field_label"/>
+                        </group>
+                        <group string="Odoo">
+                            <field name="odoo_field_name"/>
+                            <field name="odoo_field_label"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="field_type"/>
+                        <field name="active"/>
+                        <field name="sequence"/>
+                        <field name="instance_id"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Field Mapping – Action
+         ============================================================ -->
+    <record id="action_prestashop_field_mapping" model="ir.actions.act_window">
+        <field name="name">Field Mappings</field>
+        <field name="res_model">prestashop.field.mapping</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_prestashop_field_mapping"
+              name="Field Mapping"
+              parent="prestashop_odoo_sync.menu_prestashop_root"
+              action="action_prestashop_field_mapping"
+              sequence="20"/>
+
+</odoo>

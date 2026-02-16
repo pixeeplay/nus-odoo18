@@ -6,3 +6,5 @@ access_product_category_ps_manager,product.category.prestashop.manager,product.m
 access_prestashop_product_sync_wizard_user,prestashop.product.sync.wizard.user,model_prestashop_product_sync_wizard,base.group_user,1,1,1,1
 access_prestashop_product_preview_user,prestashop.product.preview.user,model_prestashop_product_preview,base.group_user,1,1,1,0
 access_prestashop_product_preview_manager,prestashop.product.preview.manager,model_prestashop_product_preview,base.group_system,1,1,1,1
+access_prestashop_field_mapping_user,prestashop.field.mapping.user,model_prestashop_field_mapping,base.group_user,1,1,1,0
+access_prestashop_field_mapping_manager,prestashop.field.mapping.manager,model_prestashop_field_mapping,base.group_system,1,1,1,1

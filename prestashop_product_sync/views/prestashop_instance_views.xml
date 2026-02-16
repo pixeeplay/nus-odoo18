@@ -126,6 +126,38 @@
                                 confirm="Delete all preview records for this instance?"/>
                     </div>
                 </page>
+                <page name="field_mapping" string="Field Mapping (PS → Odoo)">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Mapping PrestaShop → Odoo:</strong>
+                        This table shows how each PrestaShop field maps to an Odoo field.
+                        Toggle <em>Active</em> to enable/disable specific fields during import.
+                    </div>
+                    <div class="mb-2">
+                        <button name="action_generate_mappings"
+                                string="Generate / Reset Default Mappings"
+                                type="object"
+                                class="btn-secondary"
+                                invisible="not id"/>
+                    </div>
+                    <field name="mapping_ids">
+                        <list editable="bottom" default_order="sequence">
+                            <field name="sequence" widget="handle"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="ps_field_label" string="PrestaShop Field"/>
+                            <field name="ps_field_name" string="PS Key (technical)"
+                                   column_invisible="1"/>
+                            <field name="field_type" string="Type" widget="badge"
+                                   decoration-info="field_type == 'text'"
+                                   decoration-success="field_type == 'html'"
+                                   decoration-warning="field_type in ('float', 'boolean')"
+                                   decoration-danger="field_type == 'image'"/>
+                            <field name="odoo_field_label" string="Odoo Field"/>
+                            <field name="odoo_field_name" string="Odoo Key (technical)"
+                                   column_invisible="1"/>
+                            <field name="notes" string="Notes" optional="show"/>
+                        </list>
+                    </field>
+                </page>
                 <page name="products" string="Synced Products">
                     <field name="product_ids" readonly="1">
                         <list create="false" edit="false" default_order="prestashop_id desc">

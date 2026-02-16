@@ -45,6 +45,15 @@ class PrestaShopInstance(models.Model):
         help="Auto-sync interval for products in minutes. 0 = disabled.",
     )
     import_running = fields.Boolean('Import Running', default=False, readonly=True)
+    mapping_ids = fields.One2many(
+        'prestashop.field.mapping', 'instance_id', string='Field Mappings',
+    )
+    mapping_count = fields.Integer('Mapping Count', compute='_compute_mapping_count')
+
+    @api.depends('mapping_ids')
+    def _compute_mapping_count(self):
+        for rec in self:
+            rec.mapping_count = len(rec.mapping_ids)
 
     @api.depends('product_ids')
     def _compute_product_count(self):
@@ -60,88 +69,169 @@ class PrestaShopInstance(models.Model):
             )
 
     # ------------------------------------
+    # Field mapping helpers
+    # ------------------------------------
+    def action_generate_mappings(self):
+        """Generate or reset the default field mappings."""
+        self.ensure_one()
+        self.env['prestashop.field.mapping']._create_defaults_for_instance(self.id)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Mappings Generated'),
+                'message': _('Default field mappings have been created.'),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def _is_mapping_active(self, ps_field, odoo_field=None):
+        """Check if a field mapping is active for this instance.
+
+        If no mappings exist yet, defaults to True (all fields active).
+        """
+        if not self.mapping_ids:
+            return True
+        domain = [
+            ('instance_id', '=', self.id),
+            ('ps_field_name', '=', ps_field),
+        ]
+        if odoo_field:
+            domain.append(('odoo_field_name', '=', odoo_field))
+        mapping = self.env['prestashop.field.mapping'].search(domain, limit=1)
+        if not mapping:
+            return True  # no mapping defined = active by default
+        return mapping.active
+
+    # ------------------------------------
     # Helpers – multi-language text
     # ------------------------------------
     def _get_ps_text(self, field_data, lang_id=1):
         """Extract text value from a PrestaShop multi-language field.
 
-        PrestaShop JSON API returns multi-language fields in many formats:
-        1. Plain string:  "text"
-        2. Integer / number:  0  (empty field)
-        3. List of dicts:  [{"id":"1","value":"text"}, {"id":"2","value":"en"}]
-        4. Dict with language list:
-           {"language": [{"attrs":{"id":"1"},"value":"text"}, ...]}
-        5. Dict with single language (not a list):
-           {"language": {"attrs":{"id":"1"},"value":"text"}}
-        6. Dict with simple id/value:
-           {"language": {"id":"1","value":"text"}}
-        7. Dict with just "value":
-           {"value": "text"}
+        PrestaShop JSON API returns multi-language fields in MANY formats
+        depending on PS version, webservice config, and XML→JSON conversion:
+
+         1. Plain string:  "text"
+         2. Integer / number:  0
+         3. List of dicts:  [{"id":"1","value":"text"}, ...]
+         4. Dict w/ language list:
+            {"language": [{"attrs":{"id":"1"},"value":"text"}, ...]}
+         5. Dict w/ single language:
+            {"language": {"attrs":{"id":"1"},"value":"text"}}
+         6. Dict w/ simple id/value:
+            {"language": {"id":"1","value":"text"}}
+         7. Dict w/ just "value":  {"value": "text"}
+         8. XML-to-JSON #text style:
+            {"language": {"@attributes":{"id":"1"},"#text":"text"}}
+         9. XML-to-JSON $ style:
+            {"language": [{"id":"1","$":"text"}]}
+        10. Nested value:
+            {"language": [{"id":"1","value":{"#text":"text"}}]}
         """
         if field_data is None or field_data == '':
             return ''
-        # int / float (e.g. 0 for empty fields)
         if isinstance(field_data, (int, float)):
             return str(field_data) if field_data else ''
-        # plain string
         if isinstance(field_data, str):
             return field_data
 
         lang_str = str(lang_id)
 
-        # --- list of dicts: [{"id":"1","value":"text"}, ...] ---
-        if isinstance(field_data, list):
-            # try to find matching language
-            for item in field_data:
-                if isinstance(item, dict):
-                    item_id = str(item.get('id', item.get('attrs', {}).get('id', '')))
-                    if item_id == lang_str:
-                        return str(item.get('value', '') or '')
-            # fallback: first item with a value
-            for item in field_data:
-                if isinstance(item, dict):
-                    val = item.get('value', '')
+        def _extract_value(item):
+            """Extract text from a single language dict, trying all known keys."""
+            if isinstance(item, str):
+                return item
+            if not isinstance(item, dict):
+                return ''
+            # Try 'value' first (most common)
+            val = item.get('value')
+            if val is not None:
+                if isinstance(val, dict):
+                    # Nested: {"value": {"#text": "..."}}
+                    return str(val.get('#text', val.get('$', '')) or '')
+                if val or val == 0:
+                    return str(val)
+            # Try '#text' (simplexml / XML-to-JSON)
+            val = item.get('#text')
+            if val:
+                return str(val)
+            # Try '$' (some converters)
+            val = item.get('$')
+            if val:
+                return str(val)
+            return ''
+
+        def _extract_id(item):
+            """Extract language ID from a dict, trying all known keys."""
+            if not isinstance(item, dict):
+                return ''
+            # Direct 'id'
+            item_id = item.get('id')
+            if item_id is not None:
+                return str(item_id)
+            # attrs.id
+            attrs = item.get('attrs')
+            if isinstance(attrs, dict) and 'id' in attrs:
+                return str(attrs['id'])
+            # @attributes.id (simplexml)
+            attrs = item.get('@attributes')
+            if isinstance(attrs, dict) and 'id' in attrs:
+                return str(attrs['id'])
+            return ''
+
+        def _search_items(items):
+            """Search a list of language items for the best match."""
+            if not isinstance(items, list):
+                return None
+            # 1) Exact language match
+            for item in items:
+                if _extract_id(item) == lang_str:
+                    val = _extract_value(item)
                     if val:
-                        return str(val)
-            # last resort: first non-empty string in the list
-            for item in field_data:
+                        return val
+            # 2) First item with any value
+            for item in items:
+                val = _extract_value(item)
+                if val:
+                    return val
+            # 3) First plain string
+            for item in items:
                 if isinstance(item, str) and item:
                     return item
-            return ''
+            return None
+
+        # --- list at top level ---
+        if isinstance(field_data, list):
+            result = _search_items(field_data)
+            return result or ''
 
         # --- dict ---
         if isinstance(field_data, dict):
             langs = field_data.get('language')
-
             if langs is not None:
-                # Normalize: if single dict, wrap in list
-                if isinstance(langs, dict):
-                    langs = [langs]
                 if isinstance(langs, str):
                     return langs
-
+                if isinstance(langs, dict):
+                    # Single language entry
+                    if _extract_id(langs) == lang_str or not lang_str:
+                        val = _extract_value(langs)
+                        if val:
+                            return val
+                    # Even if ID doesn't match, take the value
+                    val = _extract_value(langs)
+                    if val:
+                        return val
                 if isinstance(langs, list):
-                    # Try exact language match
-                    for item in langs:
-                        if isinstance(item, dict):
-                            # Check both {"id":"1"} and {"attrs":{"id":"1"}}
-                            item_id = str(
-                                item.get('id',
-                                         item.get('attrs', {}).get('id', ''))
-                            )
-                            if item_id == lang_str:
-                                return str(item.get('value', '') or '')
-                    # Fallback: first item with a value
-                    for item in langs:
-                        if isinstance(item, dict):
-                            val = item.get('value', '')
-                            if val:
-                                return str(val)
+                    result = _search_items(langs)
+                    if result:
+                        return result
 
-            # No "language" key, try direct "value"
-            val = field_data.get('value', '')
+            # No "language" key — try direct value extraction
+            val = _extract_value(field_data)
             if val:
-                return str(val)
+                return val
 
             return ''
 
@@ -410,14 +500,31 @@ class PrestaShopInstance(models.Model):
         if not ps_id:
             return None
 
+        # --- Debug: log all top-level keys and their types ---
+        _logger.info(
+            "PS-%s: syncing product. Top-level keys: %s",
+            ps_id,
+            {k: type(v).__name__ for k, v in ps_product.items()},
+        )
+
         # --- text fields ---
         raw_name = ps_product.get('name', '')
         name = self._get_ps_text(raw_name)
         if not name:
             _logger.warning(
-                "PS-%s: name field empty. Raw value type=%s, repr=%r",
+                "PS-%s: name field EMPTY after parsing. "
+                "Raw type=%s, repr=%r. "
+                "Trying all top-level keys for a name...",
                 ps_id, type(raw_name).__name__, raw_name,
             )
+            # Last resort: try to find any 'name' nested differently
+            for key in ('name', 'meta_title', 'link_rewrite'):
+                attempt = self._get_ps_text(ps_product.get(key, ''))
+                if attempt:
+                    name = attempt
+                    _logger.info("PS-%s: recovered name from '%s': %s", ps_id, key, name)
+                    break
+
         description = self._get_ps_text(ps_product.get('description', ''))
         description_short = self._get_ps_text(ps_product.get('description_short', ''))
         reference = str(ps_product.get('reference', '') or '')
@@ -433,6 +540,17 @@ class PrestaShopInstance(models.Model):
         ps_active = str(ps_product.get('active', '1')) == '1'
         associations = ps_product.get('associations', {}) or {}
 
+        # Debug: log parsed values
+        _logger.info(
+            "PS-%s parsed: name=%r, ref=%r, price=%s, ean=%r, "
+            "desc_len=%d, short_len=%d, manufacturer_id=%s, "
+            "category_id=%s, active=%s, associations_keys=%s",
+            ps_id, name, reference, price, ean13,
+            len(description or ''), len(description_short or ''),
+            id_manufacturer, id_category_default, ps_active,
+            list(associations.keys()) if associations else [],
+        )
+
         # Build the public product URL
         store_url = self.url.rstrip('/').replace('/api', '')
         product_url = f"{store_url}/{link_rewrite}" if link_rewrite else ''
@@ -447,48 +565,68 @@ class PrestaShopInstance(models.Model):
                 ('default_code', '=', reference),
             ], limit=1)
 
-        # --- category ---
+        # --- category (respects mapping) ---
         categ_id = False
-        if self.sync_product_categories and id_category_default:
+        if (self.sync_product_categories
+                and id_category_default
+                and self._is_mapping_active('id_category_default')):
             categ = self._get_or_create_category(id_category_default)
             if categ:
                 categ_id = categ.id
 
-        # --- manufacturer ---
-        manufacturer = self._get_manufacturer_name(id_manufacturer)
+        # --- manufacturer (respects mapping) ---
+        manufacturer = ''
+        if self._is_mapping_active('id_manufacturer'):
+            manufacturer = self._get_manufacturer_name(id_manufacturer)
 
-        # --- prepare vals ---
+        # --- prepare vals (always set PS tracking fields) ---
         vals = {
-            'name': name or f'Product PS-{ps_id}',
-            'default_code': reference or False,
-            'list_price': price,
-            'standard_price': wholesale_price,
-            'weight': weight,
-            'description': description or False,
-            'description_sale': description_short or False,
             'prestashop_id': ps_id,
             'prestashop_instance_id': self.id,
-            'prestashop_url': product_url or False,
             'prestashop_last_sync': fields.Datetime.now(),
-            'prestashop_description_html': description or False,
-            'prestashop_description_short_html': description_short or False,
-            'prestashop_meta_title': meta_title or False,
-            'prestashop_meta_description': meta_description or False,
-            'prestashop_manufacturer': manufacturer or False,
-            'prestashop_ean13': ean13 or False,
-            'prestashop_active': ps_active,
             'type': 'consu',
         }
 
-        # barcode – only set if valid length
-        if ean13 and len(ean13) in (8, 12, 13, 14):
-            # avoid duplicate barcode errors
-            dup = self.env['product.template'].search([
-                ('barcode', '=', ean13),
-                ('id', '!=', product_tmpl.id if product_tmpl else 0),
-            ], limit=1)
-            if not dup:
-                vals['barcode'] = ean13
+        # Map each field respecting active mappings
+        if self._is_mapping_active('name'):
+            vals['name'] = name or f'Product PS-{ps_id}'
+        if self._is_mapping_active('reference'):
+            vals['default_code'] = reference or False
+        if self._is_mapping_active('price'):
+            vals['list_price'] = price
+        if self._is_mapping_active('wholesale_price'):
+            vals['standard_price'] = wholesale_price
+        if self._is_mapping_active('weight'):
+            vals['weight'] = weight
+        if self._is_mapping_active('description', 'description'):
+            vals['description'] = description or False
+        if self._is_mapping_active('description_short', 'description_sale'):
+            vals['description_sale'] = description_short or False
+        if self._is_mapping_active('description', 'prestashop_description_html'):
+            vals['prestashop_description_html'] = description or False
+        if self._is_mapping_active('description_short', 'prestashop_description_short_html'):
+            vals['prestashop_description_short_html'] = description_short or False
+        if self._is_mapping_active('meta_title'):
+            vals['prestashop_meta_title'] = meta_title or False
+        if self._is_mapping_active('meta_description'):
+            vals['prestashop_meta_description'] = meta_description or False
+        if self._is_mapping_active('link_rewrite'):
+            vals['prestashop_url'] = product_url or False
+        if self._is_mapping_active('id_manufacturer'):
+            vals['prestashop_manufacturer'] = manufacturer or False
+        if self._is_mapping_active('active'):
+            vals['prestashop_active'] = ps_active
+
+        # barcode / ean13
+        if self._is_mapping_active('ean13'):
+            vals['prestashop_ean13'] = ean13 or False
+            if ean13 and len(ean13) in (8, 12, 13, 14):
+                dup = self.env['product.template'].search([
+                    ('barcode', '=', ean13),
+                    ('id', '!=', product_tmpl.id if product_tmpl else 0),
+                ], limit=1)
+                if not dup:
+                    vals['barcode'] = ean13
 
         if categ_id:
             vals['categ_id'] = categ_id
@@ -496,29 +634,37 @@ class PrestaShopInstance(models.Model):
         # --- create or update ---
         if product_tmpl:
             product_tmpl.write(vals)
-            _logger.info("Updated product '%s' (PS ID %s)", name, ps_id)
+            _logger.info("Updated product '%s' (PS ID %s)", vals.get('name', '?'), ps_id)
         else:
             product_tmpl = self.env['product.template'].create(vals)
-            _logger.info("Created product '%s' (PS ID %s)", name, ps_id)
+            _logger.info("Created product '%s' (PS ID %s)", vals.get('name', '?'), ps_id)
 
-        # --- images ---
-        if self.sync_product_images:
+        # --- images (respects mapping) ---
+        if (self.sync_product_images
+                and self._is_mapping_active('associations.images')):
             image_data = associations.get('images', {}) or {}
             image_list = image_data.get('image', [])
             if isinstance(image_list, dict):
                 image_list = [image_list]
+            _logger.info(
+                "PS-%s: %d images to sync (raw images key: %s)",
+                ps_id, len(image_list),
+                type(associations.get('images')).__name__,
+            )
             self._sync_product_images_to_odoo(product_tmpl, ps_id, image_list)
 
-        # --- features / characteristics ---
-        if self.sync_product_features:
+        # --- features / characteristics (respects mapping) ---
+        if (self.sync_product_features
+                and self._is_mapping_active('associations.product_features')):
             feat_data = associations.get('product_features', {}) or {}
             feat_list = feat_data.get('product_feature', [])
             if isinstance(feat_list, dict):
                 feat_list = [feat_list]
             self._sync_product_features_to_odoo(product_tmpl, feat_list)
 
-        # --- stock ---
-        if self.sync_product_stock:
+        # --- stock (respects mapping) ---
+        if (self.sync_product_stock
+                and self._is_mapping_active('stock_availables')):
             self._sync_product_stock(product_tmpl, ps_id)
 
         return product_tmpl
@@ -754,6 +900,9 @@ class PrestaShopInstance(models.Model):
                                 errors += 1
                                 cr.commit()
                                 continue
+
+                            # Update preview extra fields
+                            preview._update_preview_from_ps_data(ps_product)
 
                             # Sync into Odoo
                             product_tmpl = instance._sync_single_product(ps_product)

@@ -42,6 +42,15 @@ class PrestaShopProductPreview(models.Model):
     error_message = fields.Text('Error Details')
     import_date = fields.Datetime('Import Date', readonly=True)
     raw_data = fields.Text('Raw API Data', readonly=True)
+    # Extended preview fields (populated during import or debug fetch)
+    description_preview = fields.Text('Description (preview)', readonly=True)
+    description_short_preview = fields.Text('Short Description (preview)', readonly=True)
+    category_name = fields.Char('Category', readonly=True)
+    manufacturer_name = fields.Char('Manufacturer', readonly=True)
+    image_count = fields.Integer('Image Count', readonly=True)
+    feature_count = fields.Integer('Feature Count', readonly=True)
+    weight = fields.Float('Weight', readonly=True)
+    wholesale_price = fields.Float('Wholesale Price', readonly=True)
 
     _sql_constraints = [
         ('unique_ps_product_instance',
@@ -62,8 +71,87 @@ class PrestaShopProductPreview(models.Model):
         for rec in self:
             rec.state_sequence = order.get(rec.state, 9)
 
+    def _update_preview_from_ps_data(self, ps_product):
+        """Update preview extra fields from full PS product data."""
+        instance = self.instance_id
+        vals = {}
+
+        # Name (use parsed name from PS)
+        parsed_name = instance._get_ps_text(ps_product.get('name', ''))
+        if parsed_name:
+            vals['name'] = parsed_name
+
+        # Price
+        try:
+            vals['price'] = float(ps_product.get('price', 0) or 0)
+        except (ValueError, TypeError):
+            pass
+
+        # Reference
+        ref = ps_product.get('reference', '')
+        if ref:
+            vals['reference'] = str(ref)
+
+        # EAN13
+        ean = ps_product.get('ean13', '')
+        if ean:
+            vals['ean13'] = str(ean)
+
+        # Description preview (plain text, truncated)
+        desc = instance._get_ps_text(ps_product.get('description', ''))
+        if desc:
+            vals['description_preview'] = desc[:500]
+
+        desc_short = instance._get_ps_text(ps_product.get('description_short', ''))
+        if desc_short:
+            vals['description_short_preview'] = desc_short[:300]
+
+        # Weight / wholesale
+        try:
+            vals['weight'] = float(ps_product.get('weight', 0) or 0)
+        except (ValueError, TypeError):
+            pass
+        try:
+            vals['wholesale_price'] = float(ps_product.get('wholesale_price', 0) or 0)
+        except (ValueError, TypeError):
+            pass
+
+        # Associations-based counts
+        associations = ps_product.get('associations', {}) or {}
+        images = associations.get('images', {}) or {}
+        image_list = images.get('image', [])
+        if isinstance(image_list, dict):
+            image_list = [image_list]
+        vals['image_count'] = len(image_list) if isinstance(image_list, list) else 0
+
+        features = associations.get('product_features', {}) or {}
+        feat_list = features.get('product_feature', [])
+        if isinstance(feat_list, dict):
+            feat_list = [feat_list]
+        vals['feature_count'] = len(feat_list) if isinstance(feat_list, list) else 0
+
+        # Category name (from API)
+        cat_id = ps_product.get('id_category_default', '0')
+        if cat_id and str(cat_id) not in ('0', '1', '2'):
+            try:
+                cat_data = instance._api_get('categories', str(cat_id))
+                cat_name = instance._get_ps_text(
+                    cat_data.get('category', {}).get('name', '')
+                )
+                vals['category_name'] = cat_name or f'Category {cat_id}'
+            except Exception:
+                vals['category_name'] = f'Category {cat_id}'
+
+        # Manufacturer name
+        mfr_id = ps_product.get('id_manufacturer', '0')
+        if mfr_id and str(mfr_id) != '0':
+            vals['manufacturer_name'] = instance._get_manufacturer_name(mfr_id)
+
+        if vals:
+            self.write(vals)
+
     def action_debug_fetch(self):
-        """Fetch full API response and store as raw_data for debugging."""
+        """Fetch full API response, store raw_data and update preview fields."""
         self.ensure_one()
         instance = self.instance_id
         try:
@@ -74,12 +162,18 @@ class PrestaShopProductPreview(models.Model):
             )
             raw = json.dumps(data, indent=2, ensure_ascii=False, default=str)
             self.write({'raw_data': raw})
+
+            # Also extract the product and update preview extra fields
+            ps_product = instance._fetch_single_product_full(self.prestashop_id)
+            if ps_product:
+                self._update_preview_from_ps_data(ps_product)
+
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': _('Raw Data Fetched'),
-                    'message': _('Check the "Raw Data" tab on this preview record.'),
+                    'message': _('Check the "Raw Data" and "Descriptions" tabs.'),
                     'type': 'info',
                     'sticky': False,
                 },
@@ -134,6 +228,9 @@ class PrestaShopProductPreview(models.Model):
                 })
                 self.env.cr.commit()
                 return
+
+            # Update preview extra fields from PS data
+            self._update_preview_from_ps_data(ps_product)
 
             product_tmpl = instance._sync_single_product(ps_product)
             self.write({

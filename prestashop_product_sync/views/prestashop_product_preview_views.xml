@@ -45,6 +45,9 @@
                        decoration-danger="state == 'error'"
                        decoration-warning="state == 'pending'"
                        decoration-muted="state == 'skipped'"/>
+                <field name="category_name" string="Category" optional="hide"/>
+                <field name="manufacturer_name" string="Manufacturer" optional="hide"/>
+                <field name="image_count" string="Images" optional="hide"/>
                 <field name="imported_product_id" string="Odoo Product" optional="show"/>
                 <field name="import_date" string="Imported" optional="show"/>
                 <field name="error_message" string="Error" optional="hide"/>
@@ -105,7 +108,9 @@
                         <group string="PrestaShop Info">
                             <field name="prestashop_id" readonly="1"/>
                             <field name="reference" readonly="1"/>
-                            <field name="price" readonly="1"/>
+                            <field name="price" readonly="1" widget="monetary"/>
+                            <field name="wholesale_price" readonly="1" widget="monetary"/>
+                            <field name="weight" readonly="1"/>
                             <field name="ean13" readonly="1"/>
                             <field name="active_in_ps" readonly="1"/>
                             <field name="instance_id" readonly="1"/>
@@ -113,11 +118,50 @@
                         <group string="Import Status">
                             <field name="imported_product_id" readonly="1"/>
                             <field name="import_date" readonly="1"/>
+                            <field name="category_name" readonly="1"/>
+                            <field name="manufacturer_name" readonly="1"/>
+                            <field name="image_count" readonly="1"/>
+                            <field name="feature_count" readonly="1"/>
                             <field name="error_message" readonly="1"
                                    invisible="not error_message"/>
                         </group>
                     </group>
                     <notebook>
+                        <page name="mapping" string="Mapping PS → Odoo"
+                              invisible="not imported_product_id">
+                            <div class="alert alert-success" role="alert">
+                                <strong>Mapped data:</strong>
+                                This tab shows a side-by-side comparison of
+                                PrestaShop source values and what was imported into Odoo.
+                            </div>
+                            <group>
+                                <group string="PrestaShop Source">
+                                    <field name="name" string="Name" readonly="1"/>
+                                    <field name="reference" string="SKU" readonly="1"/>
+                                    <field name="price" string="Price (HT)" readonly="1"/>
+                                    <field name="wholesale_price" string="Wholesale" readonly="1"/>
+                                    <field name="ean13" string="EAN13" readonly="1"/>
+                                    <field name="category_name" string="Category" readonly="1"/>
+                                    <field name="manufacturer_name" string="Manufacturer" readonly="1"/>
+                                    <field name="image_count" string="Images" readonly="1"/>
+                                    <field name="feature_count" string="Features" readonly="1"/>
+                                </group>
+                                <group string="Odoo Product (imported)">
+                                    <field name="imported_product_id" string="Product" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="descriptions" string="Descriptions"
+                              invisible="not description_preview and not description_short_preview">
+                            <group string="Short Description (from PS)">
+                                <field name="description_short_preview"
+                                       readonly="1" nolabel="1"/>
+                            </group>
+                            <group string="Full Description (from PS)">
+                                <field name="description_preview"
+                                       readonly="1" nolabel="1"/>
+                            </group>
+                        </page>
                         <page name="raw_data" string="Raw API Data"
                               invisible="not raw_data">
                             <field name="raw_data" readonly="1" nolabel="1"
