@@ -30,6 +30,7 @@ Features:
         'views/product_template_views.xml',
         'views/product_enrichment_queue_views.xml',
         'views/batch_enrichment_wizard_views.xml',
+        'views/res_config_settings_views.xml',
         'views/menus.xml',
     ],
     'images': ['static/description/icon.png'],
