@@ -298,12 +298,20 @@
                             <group>
                                 <field name="enrichment_batch_size_collect"/>
                                 <field name="enrichment_batch_size_enrich"/>
+                                <field name="enrichment_paused" widget="boolean_toggle"/>
                             </group>
                             <group>
                                 <field name="enrichment_auto_publish" widget="boolean_toggle"/>
                                 <field name="enrichment_overwrite_existing" widget="boolean_toggle"
                                        invisible="not enrichment_auto_publish"/>
                             </group>
+                        </group>
+                        <group string="Parallel Processing" invisible="not searxng_enabled">
+                            <group>
+                                <field name="searxng_parallel_workers"/>
+                                <field name="ollama_parallel_workers"/>
+                            </group>
+                            <group/>
                         </group>
 
                         <!-- Field Mapping Reference -->

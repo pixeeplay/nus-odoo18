@@ -3,6 +3,8 @@ import json
 import time
 import re
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests as http_requests
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -244,15 +246,418 @@ class ProductEnrichmentQueue(models.Model):
         return super().create(vals_list)
 
     # -------------------------------------------------------
-    # Cron 1: SearXNG Web Data Collection
+    # STOP / RESUME Pipeline Controls
+    # -------------------------------------------------------
+    @api.model
+    def action_pause_pipeline(self):
+        """Pause the enrichment pipeline (STOP button)."""
+        try:
+            config = self.env['chatgpt.config'].get_searxng_config()
+        except Exception:
+            raise UserError(_("No SearXNG configuration found."))
+        config.sudo().write({'enrichment_paused': True})
+        self.env.cr.commit()
+        _logger.info("Pipeline PAUSED by user.")
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Pipeline en pause',
+                'message': 'L\'enrichissement automatique est arrêté. Cliquez sur Reprendre pour continuer.',
+                'type': 'warning',
+                'sticky': False,
+            },
+        }
+
+    @api.model
+    def action_resume_pipeline(self):
+        """Resume the enrichment pipeline (RESUME button)."""
+        try:
+            config = self.env['chatgpt.config'].get_searxng_config()
+        except Exception:
+            raise UserError(_("No SearXNG configuration found."))
+        config.sudo().write({'enrichment_paused': False})
+        self.env.cr.commit()
+        _logger.info("Pipeline RESUMED by user.")
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Pipeline relancé',
+                'message': 'L\'enrichissement automatique reprend au prochain cycle.',
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    # -------------------------------------------------------
+    # Unified Pipeline Cron (replaces 2 separate crons)
+    # -------------------------------------------------------
+    @api.model
+    def _cron_process_pipeline(self):
+        """Unified pipeline: collect (SearXNG) first, then enrich (Ollama).
+
+        SearXNG collection runs first so items can complete the full cycle
+        (pending → collected → done) in a single pass.
+        Both phases use ThreadPoolExecutor for parallel processing.
+        """
+        try:
+            config = self.env['chatgpt.config'].get_searxng_config()
+        except Exception:
+            _logger.info("Pipeline: No SearXNG config found, skipping.")
+            return
+
+        if config.enrichment_paused:
+            _logger.info("Pipeline: PAUSED, skipping this cycle.")
+            return
+
+        _logger.info("Pipeline: starting cycle...")
+
+        # Phase 1: Collect pending items via SearXNG (parallel)
+        self._process_collect_parallel(config)
+
+        # Phase 2: Enrich collected items via Ollama (parallel)
+        self._process_enrich_parallel(config)
+
+        _logger.info("Pipeline: cycle complete.")
+
+    # -------------------------------------------------------
+    # Parallel SearXNG Collection (ThreadPoolExecutor)
+    # -------------------------------------------------------
+    def _searxng_worker(self, searxng_params):
+        """Thread worker: execute SearXNG search (pure HTTP, no ORM).
+
+        Args:
+            searxng_params: dict with base_url, engines, language, max_results,
+                            timeout, delay, product_name, ean, brand, item_id
+        Returns:
+            dict with item_id, results, query_tech, elapsed, error
+        """
+        from odoo.addons.product_chatgpt_enrichment.services.searxng_client import SearXNGClient
+        item_id = searxng_params['item_id']
+        try:
+            client = SearXNGClient(
+                base_url=searxng_params['base_url'],
+                engines=searxng_params['engines'],
+                language=searxng_params['language'],
+                max_results=searxng_params['max_results'],
+                timeout=searxng_params['timeout'],
+                delay_between_requests=searxng_params['delay'],
+            )
+            t0 = time.time()
+            result = client.search_product(
+                product_name=searxng_params['product_name'],
+                ean=searxng_params['ean'],
+                brand=searxng_params['brand'],
+            )
+            elapsed = time.time() - t0
+            return {
+                'item_id': item_id,
+                'results': result.get('results', []),
+                'query_tech': result.get('query_tech', ''),
+                'elapsed': round(elapsed, 2),
+                'error': None,
+            }
+        except Exception as e:
+            return {
+                'item_id': item_id,
+                'results': [],
+                'query_tech': '',
+                'elapsed': 0,
+                'error': str(e)[:2000],
+            }
+
+    def _process_collect_parallel(self, config):
+        """Collect web data for pending items using parallel SearXNG workers."""
+        batch_size = config.enrichment_batch_size_collect or 20
+        items = self.search([
+            ('state', '=', 'pending'),
+        ], limit=batch_size, order='priority desc, date_queued asc')
+
+        if not items:
+            _logger.info("Pipeline Collect: nothing to process.")
+            return
+
+        # Mark all as collecting
+        items.write({'state': 'collecting'})
+        self.env.cr.commit()
+
+        # Prepare search parameters (read ORM data in main thread)
+        tasks = []
+        for item in items:
+            product = item.product_id
+            ean = ''
+            if hasattr(product, 'barcode') and product.barcode:
+                ean = product.barcode
+            brand = ''
+            if hasattr(product, 'product_brand_id') and product.product_brand_id:
+                brand = product.product_brand_id.name
+            tasks.append({
+                'item_id': item.id,
+                'product_name': product.name or '',
+                'ean': ean,
+                'brand': brand,
+                'base_url': config.searxng_base_url or 'http://searxng:8080',
+                'engines': config.searxng_engines or 'google,duckduckgo',
+                'language': config.searxng_language or 'fr-FR',
+                'max_results': config.searxng_max_results or 8,
+                'timeout': config.searxng_timeout or 15,
+                'delay': config.searxng_delay or 3.0,
+            })
+
+        max_workers = max(1, config.searxng_parallel_workers or 4)
+        _logger.info("Pipeline Collect: processing %d items with %d parallel workers...",
+                      len(tasks), max_workers)
+
+        # Run searches in parallel (pure HTTP, no ORM in threads)
+        results_map = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(self._searxng_worker, t): t['item_id'] for t in tasks}
+            for future in as_completed(futures):
+                result = future.result()
+                results_map[result['item_id']] = result
+
+        # Write results back in main thread (ORM-safe)
+        for item in items:
+            result = results_map.get(item.id)
+            if not result:
+                continue
+            try:
+                if result['error']:
+                    attempt = item.attempt_count + 1
+                    new_state = 'skipped' if attempt >= item.max_attempts else 'error'
+                    item.write({
+                        'state': new_state,
+                        'error_message': result['error'],
+                        'attempt_count': attempt,
+                    })
+                    _logger.error("Pipeline Collect FAIL: %s: %s",
+                                  item.product_id.name, result['error'][:200])
+                else:
+                    item.write({
+                        'search_query_used': result['query_tech'],
+                        'raw_web_data': json.dumps(result['results'],
+                                                   ensure_ascii=False, indent=2),
+                        'processing_time_search': result['elapsed'],
+                        'date_collected': fields.Datetime.now(),
+                        'state': 'collected',
+                        'error_message': False,
+                    })
+                    _logger.info("Pipeline Collect OK: %s (%d results, %.1fs)",
+                                 item.product_id.name, len(result['results']),
+                                 result['elapsed'])
+            except Exception as e:
+                _logger.error("Pipeline Collect write error for item %s: %s", item.id, e)
+        self.env.cr.commit()
+
+    # -------------------------------------------------------
+    # Parallel Ollama Enrichment (ThreadPoolExecutor)
+    # -------------------------------------------------------
+    def _ollama_worker(self, ollama_params):
+        """Thread worker: call Ollama API (pure HTTP, no ORM).
+
+        Args:
+            ollama_params: dict with base_url, model, prompt, max_tokens,
+                           temperature, item_id
+        Returns:
+            dict with item_id, response, elapsed, error
+        """
+        item_id = ollama_params['item_id']
+        try:
+            url = f"{ollama_params['base_url']}/api/chat"
+            data = {
+                'model': ollama_params['model'],
+                'messages': [
+                    {'role': 'system', 'content': 'Expert product marketer. HTML output.'},
+                    {'role': 'user', 'content': ollama_params['prompt']},
+                ],
+                'stream': False,
+                'options': {
+                    'num_predict': ollama_params['max_tokens'],
+                    'temperature': ollama_params['temperature'],
+                },
+            }
+            t0 = time.time()
+            resp = http_requests.post(url, json=data, timeout=180)
+            elapsed = time.time() - t0
+
+            if resp.status_code != 200:
+                return {
+                    'item_id': item_id,
+                    'response': '',
+                    'elapsed': round(elapsed, 2),
+                    'error': f"Ollama HTTP {resp.status_code}: {resp.text[:500]}",
+                }
+
+            res = resp.json()
+            if 'error' in res:
+                return {
+                    'item_id': item_id,
+                    'response': '',
+                    'elapsed': round(elapsed, 2),
+                    'error': f"Ollama error: {res.get('error', 'Unknown')}",
+                }
+
+            msg = res.get('message', {})
+            content = msg.get('content', '') if isinstance(msg, dict) else ''
+            if not content:
+                content = res.get('response', '')
+            # Clean markdown
+            content = content.replace('```html', '').replace('```json', '').replace('```', '').strip()
+
+            return {
+                'item_id': item_id,
+                'response': content,
+                'elapsed': round(elapsed, 2),
+                'error': None,
+            }
+        except Exception as e:
+            return {
+                'item_id': item_id,
+                'response': '',
+                'elapsed': 0,
+                'error': str(e)[:2000],
+            }
+
+    def _process_enrich_parallel(self, config):
+        """Enrich collected items using parallel Ollama workers."""
+        # Safety check: detect and fix wrong model for Ollama
+        resolved_model = config._get_model_name()
+        model_override = None
+
+        OPENAI_MODELS = {'gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'}
+        if config.provider == 'ollama' and resolved_model in OPENAI_MODELS:
+            _logger.warning("Pipeline Enrich: model '%s' invalid for Ollama, auto-detecting...",
+                            resolved_model)
+            model_override = self._auto_detect_ollama_model(config)
+            if model_override:
+                config.sudo().write({'ai_model_name': model_override, 'model_id': False})
+                self.env.cr.commit()
+                _logger.info("Pipeline Enrich: fixed config → model='%s'", model_override)
+            else:
+                _logger.error("Pipeline Enrich: no Ollama models found! Aborting.")
+                return
+
+        effective_model = model_override or resolved_model
+        batch_size = config.enrichment_batch_size_enrich or 10
+        items = self.search([
+            ('state', '=', 'collected'),
+        ], limit=batch_size, order='priority desc, date_collected asc')
+
+        if not items:
+            _logger.info("Pipeline Enrich: nothing to process.")
+            return
+
+        # Mark all as enriching
+        items.write({'state': 'enriching'})
+        self.env.cr.commit()
+
+        # Build prompts in main thread (needs ORM)
+        prompt_template = config.enrichment_prompt_template or ''
+        base_url = config._get_base_url()
+        tasks = []
+        for item in items:
+            product = item.product_id
+            # Build web context
+            web_results = json.loads(item.raw_web_data or '[]')
+            web_context_parts = []
+            for r in web_results[:10]:
+                title = r.get('title', '')
+                content = r.get('content', '')[:500]
+                url = r.get('url', '')
+                web_context_parts.append(f"[{title}]({url}): {content}")
+            web_context = "\n\n".join(web_context_parts) or "Aucune donnée web disponible."
+
+            # Build product context
+            ean = getattr(product, 'barcode', '') or ''
+            brand = ''
+            if hasattr(product, 'product_brand_id') and product.product_brand_id:
+                brand = product.product_brand_id.name
+            categ_name = product.categ_id.complete_name if product.categ_id else ''
+            current_desc = ''
+            if product.description_sale:
+                current_desc = product.description_sale[:300]
+
+            prompt = prompt_template.format(
+                product_name=product.name or '',
+                ean=ean,
+                default_code=product.default_code or '',
+                brand=brand,
+                categ_name=categ_name,
+                current_description=current_desc,
+                list_price=product.list_price or 0,
+                web_context=web_context,
+            )
+            tasks.append({
+                'item_id': item.id,
+                'prompt': prompt,
+                'base_url': base_url,
+                'model': effective_model,
+                'max_tokens': config.max_tokens or 4000,
+                'temperature': config.temperature if config.temperature is not None else 0.3,
+            })
+
+        max_workers = max(1, config.ollama_parallel_workers or 2)
+        _logger.info("Pipeline Enrich: processing %d items with %d parallel workers (model=%s)...",
+                      len(tasks), max_workers, effective_model)
+
+        # Run AI calls in parallel (pure HTTP, no ORM in threads)
+        results_map = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(self._ollama_worker, t): t['item_id'] for t in tasks}
+            for future in as_completed(futures):
+                result = future.result()
+                results_map[result['item_id']] = result
+
+        # Write results back in main thread (ORM-safe)
+        for item in items:
+            result = results_map.get(item.id)
+            if not result:
+                continue
+            try:
+                if result['error']:
+                    attempt = item.attempt_count + 1
+                    new_state = 'skipped' if attempt >= item.max_attempts else 'error'
+                    item.write({
+                        'state': new_state,
+                        'error_message': result['error'],
+                        'attempt_count': attempt,
+                    })
+                    _logger.error("Pipeline Enrich FAIL: %s: %s",
+                                  item.product_id.name, result['error'][:200])
+                else:
+                    parsed = self._parse_ai_response(result['response'])
+                    item.write({
+                        'raw_ollama_response': result['response'][:50000],
+                        'enriched_data': json.dumps(parsed, ensure_ascii=False, indent=2) if parsed else '',
+                        'processing_time_ollama': result['elapsed'],
+                        'date_enriched': fields.Datetime.now(),
+                        'state': 'done',
+                        'error_message': False,
+                    })
+                    if parsed:
+                        self._apply_enrichment(item, parsed, config)
+                    confidence = parsed.get('confiance', '?') if parsed else '?'
+                    _logger.info("Pipeline Enrich OK: %s (confidence=%s, %.1fs)",
+                                 item.product_id.name, confidence, result['elapsed'])
+            except Exception as e:
+                _logger.error("Pipeline Enrich write error for item %s: %s", item.id, e)
+        self.env.cr.commit()
+
+    # -------------------------------------------------------
+    # Legacy Cron 1: SearXNG Web Data Collection (kept as fallback)
     # -------------------------------------------------------
     @api.model
     def _cron_collect_web_data(self):
-        """Process pending queue items via SearXNG."""
+        """Process pending queue items via SearXNG (sequential fallback)."""
         try:
             config = self.env['chatgpt.config'].get_searxng_config()
         except Exception:
             _logger.info("AI Queue Collect: No SearXNG config found, skipping.")
+            return
+
+        if config.enrichment_paused:
+            _logger.info("AI Queue Collect: pipeline paused, skipping.")
             return
 
         batch_size = config.enrichment_batch_size_collect or 20
@@ -319,15 +724,19 @@ class ProductEnrichmentQueue(models.Model):
                               item.product_id.name if item.exists() else '?', str(e))
 
     # -------------------------------------------------------
-    # Cron 2: Ollama AI Enrichment
+    # Legacy Cron 2: Ollama AI Enrichment (kept as fallback)
     # -------------------------------------------------------
     @api.model
     def _cron_enrich_ollama(self):
-        """Process collected queue items via Ollama."""
+        """Process collected queue items via Ollama (sequential fallback)."""
         try:
             config = self.env['chatgpt.config'].get_searxng_config()
         except Exception:
             _logger.info("AI Queue Enrich: No SearXNG config found, skipping.")
+            return
+
+        if config.enrichment_paused:
+            _logger.info("AI Queue Enrich: pipeline paused, skipping.")
             return
 
         # -------------------------------------------------------
@@ -468,12 +877,11 @@ class ProductEnrichmentQueue(models.Model):
     # -------------------------------------------------------
     def _auto_detect_ollama_model(self, config):
         """Query Ollama /api/tags to find available models. Returns model name or None."""
-        import requests as req
         base_url = config._get_base_url()
         url = f"{base_url}/api/tags"
         _logger.info("Auto-detecting Ollama models at %s", url)
         try:
-            resp = req.get(url, timeout=10)
+            resp = http_requests.get(url, timeout=10)
             if resp.status_code != 200:
                 _logger.error("Ollama /api/tags failed: %s %s", resp.status_code, resp.text[:200])
                 return None
@@ -612,16 +1020,22 @@ class ProductEnrichmentQueue(models.Model):
 
     @api.model
     def action_process_queue_now(self):
-        """Manual trigger: run both crons immediately (collect + enrich)."""
-        _logger.info("Manual queue processing triggered...")
-        self._cron_collect_web_data()
-        self._cron_enrich_ollama()
+        """Manual trigger: run unified pipeline immediately (bypasses pause)."""
+        _logger.info("Manual queue processing triggered (bypasses pause)...")
+        try:
+            config = self.env['chatgpt.config'].get_searxng_config()
+        except Exception:
+            raise UserError(_("No SearXNG configuration found."))
+        # Phase 1: Collect pending items via SearXNG (parallel)
+        self._process_collect_parallel(config)
+        # Phase 2: Enrich collected items via Ollama (parallel)
+        self._process_enrich_parallel(config)
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Traitement lancé',
-                'message': 'Les files de collecte et d\'enrichissement ont été traitées.',
+                'message': 'Pipeline parallèle exécuté (collecte + enrichissement).',
                 'type': 'success',
                 'sticky': False,
             },

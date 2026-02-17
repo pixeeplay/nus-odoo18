@@ -9,6 +9,22 @@
         <field name="code">model.action_process_queue_now()</field>
     </record>
 
+    <!-- Server Action: Pause Pipeline -->
+    <record id="action_pause_pipeline" model="ir.actions.server">
+        <field name="name">Arrêter le pipeline</field>
+        <field name="model_id" ref="model_product_enrichment_queue"/>
+        <field name="state">code</field>
+        <field name="code">model.action_pause_pipeline()</field>
+    </record>
+
+    <!-- Server Action: Resume Pipeline -->
+    <record id="action_resume_pipeline" model="ir.actions.server">
+        <field name="name">Reprendre le pipeline</field>
+        <field name="model_id" ref="model_product_enrichment_queue"/>
+        <field name="state">code</field>
+        <field name="code">model.action_resume_pipeline()</field>
+    </record>
+
     <!-- List View -->
     <record id="view_product_enrichment_queue_list" model="ir.ui.view">
         <field name="name">product.enrichment.queue.list</field>
@@ -24,6 +40,16 @@
                             string="Traiter maintenant"
                             type="action"
                             class="btn-primary"
+                            icon="fa-play"/>
+                    <button name="%(action_pause_pipeline)d"
+                            string="STOP"
+                            type="action"
+                            class="btn-danger"
+                            icon="fa-stop"/>
+                    <button name="%(action_resume_pipeline)d"
+                            string="Reprendre"
+                            type="action"
+                            class="btn-success"
                             icon="fa-play"/>
                 </header>
                 <field name="product_id"/>

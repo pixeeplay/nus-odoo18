@@ -41,6 +41,10 @@
             <field name="enrichment_batch_size_enrich">10</field>
             <field name="enrichment_auto_publish" eval="False"/>
             <field name="enrichment_overwrite_existing" eval="False"/>
+            <field name="enrichment_paused" eval="False"/>
+            <!-- Parallel processing -->
+            <field name="searxng_parallel_workers">4</field>
+            <field name="ollama_parallel_workers">2</field>
         </record>
     </data>
 </odoo>
