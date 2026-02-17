@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_code2asin_config,code2asin.config,model_code2asin_config,base.group_system,1,1,1,0
+access_code2asin_import_log,code2asin.import.log,model_code2asin_import_log,base.group_user,1,1,1,1
+access_code2asin_dashboard,code2asin.dashboard,model_code2asin_dashboard,base.group_user,1,1,1,0
+access_code2asin_product_processor,code2asin.product.processor,model_code2asin_product_processor,base.group_system,1,1,1,0
+access_code2asin_monitor,code2asin.monitor,model_code2asin_monitor,base.group_user,1,1,1,0

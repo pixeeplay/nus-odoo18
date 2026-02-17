@@ -1,0 +1,53 @@
+<odoo>
+    <data>
+        <!-- Action pour la configuration Code2ASIN -->
+        <record id="action_code2asin_config" model="ir.actions.act_window">
+            <field name="name">Code2ASIN Configuration</field>
+            <field name="res_model">code2asin.config</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{}</field>
+        </record>
+
+        <!-- Action pour le dashboard Code2ASIN -->
+        <record id="action_code2asin_dashboard" model="ir.actions.act_window">
+            <field name="name">Code2ASIN Dashboard</field>
+            <field name="res_model">code2asin.dashboard</field>
+            <field name="view_mode">form</field>
+            <field name="target">current</field>
+            <field name="context">{'form_view_initial_mode': 'readonly'}</field>
+        </record>
+
+        <!-- Action pour les logs d'import -->
+        <record id="action_code2asin_import_log" model="ir.actions.act_window">
+            <field name="name">Import Logs</field>
+            <field name="res_model">code2asin.import.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_group_by_session': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No import logs found
+                </p>
+                <p>
+                    Import logs will appear here when you import products from Code2ASIN.
+                </p>
+            </field>
+        </record>
+
+        <!-- Action pour le monitoring d'import -->
+        <record id="action_code2asin_monitor" model="ir.actions.act_window">
+            <field name="name">Monitor Import</field>
+            <field name="res_model">code2asin.import.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_group_by_session': 0}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No import running
+                </p>
+                <p>
+                    Monitor running import process and view logs in real-time.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

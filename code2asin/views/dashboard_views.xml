@@ -1,0 +1,86 @@
+<odoo>
+    <data>
+        <!-- Vue principale Code2ASIN Dashboard -->
+        <record id="view_code2asin_dashboard" model="ir.ui.view">
+            <field name="name">code2asin.dashboard</field>
+            <field name="model">code2asin.dashboard</field>
+            <field name="arch" type="xml">
+                <form string="Code2ASIN Dashboard" create="false" edit="false" delete="false">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        
+                        <div class="container-fluid">
+                            <div class="row mt-3">
+                                <div class="col-md-6 col-sm-12 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fa fa-cog fa-2x text-primary mb-2"></i><br/>
+                                                Import Configuration
+                                            </h5>
+                                            <p class="card-text">Configure and start a new CSV import from Code2ASIN</p>
+                                            <button name="action_open_config" type="object" class="btn btn-primary btn-lg">
+                                                <i class="fa fa-upload"></i> New Import
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 col-sm-12 mb-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fa fa-list fa-2x text-info mb-2"></i><br/>
+                                                Import History
+                                            </h5>
+                                            <p class="card-text">View logs and history of previous imports</p>
+                                            <button name="action_view_all_logs" type="object" class="btn btn-info btn-lg">
+                                                <i class="fa fa-history"></i> View Logs
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12 mb-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fa fa-download fa-2x text-success mb-2"></i><br/>
+                                                Export Barcodes
+                                            </h5>
+                                            <p class="card-text">Export existing product barcodes for Code2ASIN</p>
+                                            <button name="action_export_barcode_direct" type="object" class="btn btn-success btn-lg">
+                                                <i class="fa fa-file-excel-o"></i> Export CSV
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 col-sm-12 mb-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fa fa-eye fa-2x text-warning mb-2"></i><br/>
+                                                Current Import
+                                            </h5>
+                                            <p class="card-text">Monitor running import process</p>
+                                            <button name="action_view_current_import" type="object" class="btn btn-warning btn-lg">
+                                                <i class="fa fa-refresh"></i> Monitor
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

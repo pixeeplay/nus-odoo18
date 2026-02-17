@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu racine Code2ASIN -->
+        <record id="menu_code2asin_root" model="ir.ui.menu">
+            <field name="name">Code2ASIN</field>
+            <field name="sequence">100</field>
+            <field name="web_icon">code2asin,static/description/icon.png</field>
+            <field name="action" ref="action_code2asin_dashboard"/>
+        </record>
+        
+        <!-- Menu Dashboard -->
+        <menuitem id="menu_code2asin_dashboard" 
+                  name="📊 Dashboard" 
+                  parent="menu_code2asin_root" 
+                  sequence="5" 
+                  action="action_code2asin_dashboard"/>
+        
+        <!-- Menu Configuration -->
+        <menuitem id="menu_code2asin_config" 
+                  name="⚙️ Configuration" 
+                  parent="menu_code2asin_root" 
+                  sequence="10" 
+                  action="action_code2asin_config"/>
+                  
+        <!-- Menu Logs -->
+        <menuitem id="menu_code2asin_logs" 
+                  name="📋 Logs" 
+                  parent="menu_code2asin_root" 
+                  sequence="20" 
+                  action="action_code2asin_import_log"/>
+
+        <!-- Menu Monitor Import -->
+        <menuitem id="menu_code2asin_monitor" 
+                  name="📺 Monitor Import" 
+                  parent="menu_code2asin_root" 
+                  sequence="15" 
+                  action="action_code2asin_monitor"/>
+    </data>
+</odoo>

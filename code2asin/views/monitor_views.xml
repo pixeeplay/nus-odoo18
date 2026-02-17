@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vue Monitor Import avec design amélioré -->
+    <record id="view_code2asin_monitor_form" model="ir.ui.view">
+        <field name="name">code2asin.monitor.form</field>
+        <field name="model">code2asin.monitor</field>
+        <field name="arch" type="xml">
+            <form string="Import Monitor" create="false" edit="false">
+                
+                <!-- En-tête avec boutons de contrôle -->
+                <header>
+                    <button name="action_refresh_status" string="🔄 Rafraîchir" type="object" class="btn-primary"/>
+                    <button name="action_stop_import" string="⏹️ Arrêter Import" type="object" class="btn-danger" 
+                            invisible="not import_running"/>
+                    <button name="action_view_detailed_logs" string="📋 Logs Détaillés" type="object" class="btn-secondary"/>
+                </header>
+                
+                <sheet>
+                    <!-- Titre avec session -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="session_title" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="current_status" readonly="1"/>
+                        </h3>
+                    </div>
+                    
+                    <!-- Statistiques visuelles -->
+                    <group col="4">
+                        <field name="total_products" string="Produits Total"/>
+                        <field name="processed_count" string="Traités"/>
+                        <field name="success_count" string="Succès"/>
+                        <field name="error_count" string="Erreurs"/>
+                    </group>
+                    
+                    <!-- Barre de progression visuelle -->
+                    <group string="📊 Progression" col="1">
+                        <field name="progress_percentage" widget="progressbar" readonly="1"/>
+                        <field name="progress_text" readonly="1"/>
+                    </group>
+                    
+                    <!-- Informations contextuelles -->
+                    <group string="🗂️ Informations Fichier" col="2">
+                        <field name="filename" readonly="1" invisible="not filename"/>
+                        <field name="supplier_name" readonly="1" invisible="not supplier_name"/>
+                        <field name="file_size" readonly="1" invisible="not file_size"/>
+                        <field name="start_time" readonly="1"/>
+                        <field name="estimated_end_time" readonly="1" invisible="not import_running"/>
+                        <field name="duration" readonly="1" invisible="import_running"/>
+                    </group>
+                    
+                    <!-- Résumé des actions -->
+                    <group string="📋 Résumé des Actions" col="1">
+                        <field name="last_actions" readonly="1" nolabel="1" widget="html"/>
+                    </group>
+                    
+                    <!-- Détails de performance -->
+                    <group string="⚡ Performance" col="3" invisible="not import_running">
+                        <field name="products_per_minute" readonly="1"/>
+                        <field name="images_processed" readonly="1"/>
+                        <field name="current_phase" readonly="1"/>
+                    </group>
+                    
+                    <!-- Champs techniques cachés -->
+                    <group invisible="1">
+                        <field name="import_running"/>
+                        <field name="import_session_id"/>
+                    </group>
+                    
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action pour ouvrir le monitor -->
+    <record id="action_code2asin_monitor" model="ir.actions.act_window">
+        <field name="name">Import Monitor</field>
+        <field name="res_model">code2asin.monitor</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'form_view_initial_mode': 'readonly'}</field>
+    </record>
+    
+</odoo>

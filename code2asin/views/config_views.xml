@@ -1,0 +1,138 @@
+<odoo>
+    <data>
+        <!-- Vue pour la configuration Code2ASIN -->
+        <record id="view_code2asin_config_form" model="ir.ui.view">
+            <field name="name">code2asin.config.form</field>
+            <field name="model">code2asin.config</field>
+            <field name="arch" type="xml">
+                <form string="Code2ASIN Configuration">
+                    <sheet>
+                        <div class="container mt16">
+                            <div class="row">
+                                <div class="col">
+                                    <field name="csv_file" filename="filename"/>
+                                    <field name="csv_supplier_name" string="Fournisseur du CSV" placeholder="Nom du fournisseur (optionnel)" help="Nom du fournisseur correspondant au fichier CSV importé"/>
+                                    <field name="import_running" invisible="1"/>
+                                    <p>Please save configuration with the file before starting import</p>
+                                    
+                                    <!-- Option Skip existing EAN -->
+                                    <div class="mt-3 mb-3">
+                                        <div class="alert alert-info">
+                                            <div class="row align-items-center">
+                                                <div class="col-auto">
+                                                    <field name="skip_existing_ean" widget="boolean_toggle" nolabel="1"/>
+                                                </div>
+                                                <div class="col">
+                                                    <strong>Skip existing EAN</strong><br/>
+                                                    <small class="text-muted">Ignore products with EAN codes already present in the database. Useful when processing multiple supplier files with common products.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 class="mt-4">Import Options</h3>
+                                    <div class="mt-3">
+                                        <p class="text-muted">Enable/disable import for each field. EAN barcode is used to identify products and will not be modified.</p>
+                                        <table class="table table-sm table-striped">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th style="width: 30%">Field</th>
+                                                    <th style="width: 15%">Import</th>
+                                                    <th style="width: 20%">Update Mode</th>
+                                                    <th style="width: 35%">Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><strong>Product Name</strong><br/><small class="text-muted">From: Titre</small></td>
+                                                    <td><field name="import_name" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="name_update_mode" nolabel="1" invisible="not import_name"/></td>
+                                                    <td class="text-muted">Product display name from CSV title</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Internal Reference</strong><br/><small class="text-muted">From: ASIN</small></td>
+                                                    <td><field name="import_default_code" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="default_code_update_mode" nolabel="1" invisible="not import_default_code"/></td>
+                                                    <td class="text-muted">Product internal reference from ASIN</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Sale Price</strong><br/><small class="text-muted">From: Prix Amazon (€)</small></td>
+                                                    <td><field name="import_price" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="price_update_mode" nolabel="1" invisible="not import_price"/></td>
+                                                    <td class="text-muted">Product sale price from Amazon price</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Weight</strong><br/><small class="text-muted">From: Poids de l'article (g)</small></td>
+                                                    <td><field name="import_weight" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="weight_update_mode" nolabel="1" invisible="not import_weight"/></td>
+                                                    <td class="text-muted">Product weight (converted from grams to kg)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Dimensions</strong><br/><small class="text-muted">From: L/l/H de l'article (cm)</small></td>
+                                                    <td><field name="import_dimensions" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="dimensions_update_mode" nolabel="1" invisible="not import_dimensions"/></td>
+                                                    <td class="text-muted">Add dimensions to product description</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Brand</strong><br/><small class="text-muted">From: Marque</small></td>
+                                                    <td><field name="import_brand" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="brand_update_mode" nolabel="1" invisible="not import_brand"/></td>
+                                                    <td class="text-muted">Product brand information</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Color</strong><br/><small class="text-muted">From: Couleur</small></td>
+                                                    <td><field name="import_color" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="color_update_mode" nolabel="1" invisible="not import_color"/></td>
+                                                    <td class="text-muted">Product color information</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Description</strong><br/><small class="text-muted">From: Fonctionnalités + dimensions</small></td>
+                                                    <td><field name="import_description" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="description_update_mode" nolabel="1" invisible="not import_description"/></td>
+                                                    <td class="text-muted">Enhanced product description</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Images</strong><br/><small class="text-muted">From: Images</small></td>
+                                                    <td><field name="import_images" widget="boolean_toggle" nolabel="1"/></td>
+                                                    <td><field name="images_update_mode" nolabel="1" invisible="not import_images"/></td>
+                                                    <td class="text-muted">Product images from Amazon</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="alert alert-warning mt-3">
+                                            <strong><i class="fa fa-info-circle"/> Important:</strong> EAN barcode is used to identify and match products. It will not be modified during import.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </sheet>
+                    <footer>
+                        <button name="save_config" string="Save Configuration" type="object" class="btn-secondary"/>
+                        <button name="action_import_products_from_code2asin"
+                                string="🚀 Start Import"
+                                type="object"
+                                class="oe_highlight"
+                                title="Start CSV import from Code2ASIN"
+                                invisible="import_running"
+                        />
+                        <button name="action_stop_import"
+                                string="⏹️ Stop Import"
+                                type="object"
+                                class="btn-danger"
+                                title="Stop import in progress"
+                                invisible="not import_running"
+                        />
+                        <button name="action_open_monitor" 
+                                string="📊 Monitor Import" 
+                                type="object" 
+                                class="btn-info"
+                                title="Monitor import progress"
+                        />
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

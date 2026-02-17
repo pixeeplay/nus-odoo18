@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="code2asin.ImportDialog" owl="1">
+        <Dialog title="'Import Products from Code2ASIN'" size="'medium'">
+            <div class="o_code2asin_import_dialog">
+                <div class="mb-3">
+                    <p>You are about to import products from the file: <strong t-esc="filename"/></p>
+                    <p>This process will:</p>
+                    <ul>
+                        <li>Create new products if they don't exist</li>
+                        <li>Update existing products if they match by barcode or name</li>
+                        <li>Download and associate images with products</li>
+                    </ul>
+                    <div class="form-check mt-3 mb-3">
+                        <input type="checkbox" class="form-check-input o_code2asin_replace_images" id="replaceImages"/>
+                        <label class="form-check-label" for="replaceImages">
+                            Replace existing product images
+                        </label>
+                        <div class="text-muted small">
+                            If checked, existing product images will be replaced with new ones from the CSV file.
+                            Otherwise, images will only be added to products that don't have images yet.
+                        </div>
+                    </div>
+                    <p>The import process may take several minutes depending on the file size and number of products.</p>
+                </div>
+                
+                <div class="o_code2asin_progress mb-3" t-att-style="state.importStarted ? '' : 'display: none;'">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="o_code2asin_progress_stage" t-esc="state.progressStage"/>
+                        <span class="o_code2asin_progress_value" t-esc="state.progressValue + '%'"/>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar o_code2asin_progress_bar" role="progressbar" t-att-style="'width: ' + state.progressValue + '%'"/>
+                    </div>
+                </div>
+                
+                <div class="o_code2asin_import_info_container" t-att-style="state.importStarted ? '' : 'display: none;'">
+                    <h6>Import Progress:</h6>
+                    <div t-ref="importInfo" class="o_code2asin_import_info border p-2" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.9em;">
+                        <p t-foreach="state.info" t-as="message" t-key="message_index" t-esc="message"/>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button t-if="!state.importStarted" class="btn btn-secondary o_code2asin_cancel_import" t-on-click="onCancelImport">Cancel</button>
+                <button t-if="!state.importStarted" class="btn btn-primary o_code2asin_start_import" t-on-click="onStartImport">Start Import</button>
+                <button t-if="state.importStarted" class="btn btn-secondary" disabled="disabled">Importing...</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
