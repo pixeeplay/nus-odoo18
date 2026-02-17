@@ -75,6 +75,155 @@ class ProductEnrichmentQueue(models.Model):
     date_collected = fields.Datetime(string='Collected')
     date_enriched = fields.Datetime(string='Enriched')
 
+    # Computed display fields
+    web_data_html = fields.Html(
+        string='Résultats web (formaté)', compute='_compute_web_data_html',
+        sanitize=False)
+    enriched_data_html = fields.Html(
+        string='Données enrichies (formaté)', compute='_compute_enriched_data_html',
+        sanitize=False)
+    parsed_confidence = fields.Char(
+        string='Confiance', compute='_compute_parsed_fields')
+    parsed_seo_title = fields.Char(
+        string='Titre SEO', compute='_compute_parsed_fields')
+    parsed_brand = fields.Char(
+        string='Marque', compute='_compute_parsed_fields')
+    parsed_category = fields.Char(
+        string='Catégorie', compute='_compute_parsed_fields')
+    web_result_count = fields.Integer(
+        string='Nb résultats web', compute='_compute_web_data_html')
+
+    # -------------------------------------------------------
+    # Computed Display Fields
+    # -------------------------------------------------------
+    @api.depends('raw_web_data')
+    def _compute_web_data_html(self):
+        for rec in self:
+            if not rec.raw_web_data:
+                rec.web_data_html = False
+                rec.web_result_count = 0
+                continue
+            try:
+                results = json.loads(rec.raw_web_data)
+                rec.web_result_count = len(results)
+                parts = []
+                for i, r in enumerate(results, 1):
+                    title = r.get('title', 'Sans titre')
+                    url = r.get('url', '')
+                    content = (r.get('content', '') or '')[:300]
+                    engine = r.get('engine', '')
+                    parts.append(
+                        f'<div class="card mb-2">'
+                        f'<div class="card-body p-2">'
+                        f'<div class="d-flex justify-content-between">'
+                        f'<strong>{i}. <a href="{url}" target="_blank">{title}</a></strong>'
+                        f'<span class="badge text-bg-secondary">{engine}</span>'
+                        f'</div>'
+                        f'<small class="text-muted">{content}</small>'
+                        f'</div></div>'
+                    )
+                rec.web_data_html = ''.join(parts)
+            except (json.JSONDecodeError, TypeError):
+                rec.web_data_html = '<div class="text-muted">Erreur de parsing JSON</div>'
+                rec.web_result_count = 0
+
+    @api.depends('enriched_data')
+    def _compute_enriched_data_html(self):
+        LABELS = {
+            'titre_seo': ('Titre SEO', 'fa-search'),
+            'meta_description': ('Meta Description', 'fa-file-text-o'),
+            'description_courte': ('Description courte', 'fa-align-left'),
+            'description_longue_html': ('Description longue', 'fa-file-code-o'),
+            'bullet_points': ('Points clés', 'fa-list-ul'),
+            'tags': ('Tags', 'fa-tags'),
+            'arguments_vente': ('Arguments de vente', 'fa-bullhorn'),
+            'categorie_suggeree': ('Catégorie suggérée', 'fa-folder'),
+            'marque_detectee': ('Marque détectée', 'fa-trademark'),
+            'public_cible': ('Public cible', 'fa-users'),
+            'specs_techniques': ('Specs techniques', 'fa-cogs'),
+            'poids_estime_kg': ('Poids estimé', 'fa-balance-scale'),
+            'confiance': ('Confiance', 'fa-shield'),
+        }
+        CONFIDENCE_BADGE = {
+            'high': 'text-bg-success',
+            'medium': 'text-bg-warning',
+            'low': 'text-bg-danger',
+        }
+        for rec in self:
+            if not rec.enriched_data:
+                rec.enriched_data_html = False
+                continue
+            try:
+                data = json.loads(rec.enriched_data)
+                parts = ['<div class="container-fluid p-0">']
+                # Confidence badge at top
+                conf = data.get('confiance', '')
+                if conf:
+                    badge_cls = CONFIDENCE_BADGE.get(conf, 'text-bg-secondary')
+                    parts.append(
+                        f'<div class="mb-3"><span class="badge {badge_cls} fs-6">'
+                        f'<i class="fa fa-shield me-1"/> Confiance: {conf.upper()}</span></div>'
+                    )
+                # Fields in a nice grid
+                parts.append('<div class="row">')
+                for key, (label, icon) in LABELS.items():
+                    if key == 'confiance':
+                        continue
+                    value = data.get(key)
+                    if not value or value == 'null':
+                        continue
+                    # Format value
+                    if isinstance(value, list):
+                        formatted = '<ul class="mb-0 ps-3">' + ''.join(
+                            f'<li>{v}</li>' for v in value) + '</ul>'
+                    elif isinstance(value, dict):
+                        formatted = '<table class="table table-sm table-bordered mb-0">'
+                        for k, v in value.items():
+                            formatted += f'<tr><td class="fw-bold">{k}</td><td>{v}</td></tr>'
+                        formatted += '</table>'
+                    elif key == 'description_longue_html':
+                        formatted = str(value)
+                    else:
+                        formatted = f'<span>{value}</span>'
+                    # Full width for long content
+                    col_class = 'col-12' if key in (
+                        'description_longue_html', 'description_courte',
+                        'specs_techniques', 'bullet_points', 'arguments_vente'
+                    ) else 'col-md-6'
+                    parts.append(
+                        f'<div class="{col_class} mb-2">'
+                        f'<div class="border rounded p-2 h-100">'
+                        f'<div class="text-muted small mb-1">'
+                        f'<i class="fa {icon} me-1"/>{label}</div>'
+                        f'{formatted}'
+                        f'</div></div>'
+                    )
+                parts.append('</div></div>')
+                rec.enriched_data_html = ''.join(parts)
+            except (json.JSONDecodeError, TypeError):
+                rec.enriched_data_html = '<div class="text-muted">Erreur de parsing JSON</div>'
+
+    @api.depends('enriched_data')
+    def _compute_parsed_fields(self):
+        for rec in self:
+            if not rec.enriched_data:
+                rec.parsed_confidence = False
+                rec.parsed_seo_title = False
+                rec.parsed_brand = False
+                rec.parsed_category = False
+                continue
+            try:
+                data = json.loads(rec.enriched_data)
+                rec.parsed_confidence = data.get('confiance', '')
+                rec.parsed_seo_title = data.get('titre_seo', '')
+                rec.parsed_brand = data.get('marque_detectee', '')
+                rec.parsed_category = data.get('categorie_suggeree', '')
+            except (json.JSONDecodeError, TypeError):
+                rec.parsed_confidence = False
+                rec.parsed_seo_title = False
+                rec.parsed_brand = False
+                rec.parsed_category = False
+
     # -------------------------------------------------------
     # Duplicate prevention
     # -------------------------------------------------------

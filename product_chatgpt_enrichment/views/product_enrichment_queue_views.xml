@@ -18,13 +18,13 @@
                        decoration-success="state == 'done'"
                        decoration-danger="state in ('error', 'skipped')"/>
                 <field name="priority"/>
-                <field name="search_query_used" optional="hide"/>
-                <field name="attempt_count"/>
+                <field name="parsed_confidence" optional="show"/>
+                <field name="parsed_brand" optional="show"/>
+                <field name="web_result_count" optional="show" string="Web"/>
                 <field name="processing_time_search" optional="show" string="Search (s)"/>
                 <field name="processing_time_ollama" optional="show" string="AI (s)"/>
                 <field name="date_queued"/>
-                <field name="date_collected" optional="hide"/>
-                <field name="date_enriched" optional="hide"/>
+                <field name="date_enriched" optional="show"/>
                 <field name="error_message" optional="hide"/>
             </list>
         </field>
@@ -52,6 +52,29 @@
                            statusbar_visible="pending,collected,done"/>
                 </header>
                 <sheet>
+                    <!-- Summary banner for done items -->
+                    <div class="alert alert-success d-flex align-items-center"
+                         invisible="state != 'done'">
+                        <i class="fa fa-check-circle fa-2x me-3"/>
+                        <div>
+                            <strong>Enrichissement terminé</strong>
+                            <div class="d-flex gap-3 mt-1">
+                                <span><i class="fa fa-search me-1"/>
+                                    <field name="web_result_count" class="d-inline"/> résultats web</span>
+                                <span><i class="fa fa-clock-o me-1"/>
+                                    Recherche: <field name="processing_time_search" class="d-inline"/>s
+                                    | IA: <field name="processing_time_ollama" class="d-inline"/>s</span>
+                                <span><i class="fa fa-shield me-1"/>
+                                    Confiance: <field name="parsed_confidence" class="d-inline fw-bold"/></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger" invisible="state not in ('error', 'skipped')">
+                        <strong><i class="fa fa-exclamation-triangle me-1"/>Erreur :</strong>
+                        <field name="error_message" nolabel="1" readonly="1"/>
+                    </div>
+
                     <group>
                         <group string="Produit">
                             <field name="product_id"/>
@@ -60,7 +83,14 @@
                             <field name="attempt_count" readonly="1"/>
                             <field name="max_attempts"/>
                         </group>
-                        <group string="Timing">
+                        <group string="Résumé IA" invisible="state != 'done'">
+                            <field name="parsed_seo_title" readonly="1"/>
+                            <field name="parsed_brand" readonly="1"/>
+                            <field name="parsed_category" readonly="1"/>
+                            <field name="parsed_confidence" readonly="1"/>
+                            <field name="date_enriched" readonly="1"/>
+                        </group>
+                        <group string="Timing" invisible="state == 'done'">
                             <field name="date_queued" readonly="1"/>
                             <field name="date_collected" readonly="1"/>
                             <field name="date_enriched" readonly="1"/>
@@ -68,21 +98,52 @@
                             <field name="processing_time_ollama" readonly="1"/>
                         </group>
                     </group>
-                    <div class="alert alert-danger" invisible="state not in ('error', 'skipped')">
-                        <strong>Erreur :</strong>
-                        <field name="error_message" nolabel="1" readonly="1"/>
-                    </div>
+
                     <notebook>
-                        <page string="Données web (SearXNG)" name="web_data">
-                            <field name="raw_web_data" readonly="1"
-                                   placeholder="Les résultats SearXNG apparaîtront ici après la phase de collecte..."/>
+                        <!-- Tab 1: Enriched Data (formatted) -->
+                        <page string="Données enrichies" name="enriched_view"
+                              invisible="not enriched_data">
+                            <field name="enriched_data_html" nolabel="1" readonly="1"/>
                         </page>
-                        <page string="Réponse IA (Ollama)" name="ai_data">
-                            <group string="Réponse brute">
-                                <field name="raw_ollama_response" nolabel="1" readonly="1"/>
+
+                        <!-- Tab 2: Web Data (formatted) -->
+                        <page string="Données web (SearXNG)" name="web_data">
+                            <div invisible="not raw_web_data">
+                                <div class="mb-2">
+                                    <strong><i class="fa fa-search me-1"/>Requête :</strong>
+                                    <field name="search_query_used" class="d-inline" readonly="1"/>
+                                    <span class="ms-3 badge text-bg-info">
+                                        <field name="web_result_count" class="d-inline"/> résultats
+                                    </span>
+                                </div>
+                                <field name="web_data_html" nolabel="1" readonly="1"/>
+                            </div>
+                            <div invisible="raw_web_data" class="text-muted p-4 text-center">
+                                <i class="fa fa-spinner fa-spin fa-2x mb-2"/><br/>
+                                Les résultats SearXNG apparaîtront ici après la phase de collecte...
+                            </div>
+                        </page>
+
+                        <!-- Tab 3: Raw data (debug) -->
+                        <page string="Données brutes (debug)" name="raw_data">
+                            <group string="Réponse brute Ollama">
+                                <field name="raw_ollama_response" nolabel="1" readonly="1"
+                                       widget="text"/>
                             </group>
-                            <group string="Données enrichies (JSON parsé)">
-                                <field name="enriched_data" nolabel="1" readonly="1"/>
+                            <group string="JSON enrichi (parsé)">
+                                <field name="enriched_data" nolabel="1" readonly="1"
+                                       widget="text"/>
+                            </group>
+                            <group string="JSON web brut">
+                                <field name="raw_web_data" nolabel="1" readonly="1"
+                                       widget="text"/>
+                            </group>
+                            <group string="Timing détaillé">
+                                <field name="date_queued" readonly="1"/>
+                                <field name="date_collected" readonly="1"/>
+                                <field name="date_enriched" readonly="1"/>
+                                <field name="processing_time_search" readonly="1"/>
+                                <field name="processing_time_ollama" readonly="1"/>
                             </group>
                         </page>
                     </notebook>
