@@ -756,10 +756,11 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
     # -------------------------------------------------------
     # Main AI dispatcher
     # -------------------------------------------------------
-    def call_ai_api(self, prompt, max_tokens=None, temperature=None):
+    def call_ai_api(self, prompt, max_tokens=None, temperature=None, model_override=None):
         self.ensure_one()
-        _logger.info("AI call [%s] model=%s url=%s",
-                      self.provider, self._get_model_name(), self._get_base_url())
+        effective_model = model_override or self._get_model_name()
+        _logger.info("AI call [%s] model=%s (override=%s) url=%s",
+                      self.provider, effective_model, model_override or 'none', self._get_base_url())
 
         # If Ollama web search is enabled, prepend web context
         if self.provider == 'ollama' and self.ollama_web_search:
@@ -791,7 +792,7 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
                                                  base_url='https://api.perplexity.ai',
                                                  endpoint='/chat/completions')
         elif self.provider == 'ollama':
-            return self._call_ollama(prompt, max_tokens, temperature)
+            return self._call_ollama(prompt, max_tokens, temperature, model_override=model_override)
         elif self.provider == 'llamacpp':
             return self._call_openai_compatible(prompt, max_tokens, temperature)
         return False
@@ -844,7 +845,7 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
     # -------------------------------------------------------
     # Ollama native /api/chat endpoint
     # -------------------------------------------------------
-    def _call_ollama(self, prompt, max_tokens, temperature):
+    def _call_ollama(self, prompt, max_tokens, temperature, model_override=None):
         """Call Ollama using native /api/chat or OpenAI-compatible mode."""
         if self.ollama_api_mode == 'openai':
             return self._call_openai_compatible(prompt, max_tokens, temperature)
@@ -852,7 +853,7 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
         # Native Ollama /api/chat
         base = self._get_base_url()
         url = f"{base}/api/chat"
-        model = self._get_model_name()
+        model = model_override or self._get_model_name()
 
         data = {
             'model': model,

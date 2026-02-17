@@ -180,16 +180,42 @@ class ProductEnrichmentQueue(models.Model):
             _logger.info("AI Queue Enrich: No SearXNG config found, skipping.")
             return
 
-        # Debug logging: trace exactly which config and model is used
+        # -------------------------------------------------------
+        # Safety check: detect and fix wrong model for Ollama
+        # -------------------------------------------------------
+        resolved_model = config._get_model_name()
+        model_override = None
+
         _logger.info(
             "AI Queue Enrich CONFIG: id=%s name='%s' provider=%s "
-            "ai_model_name='%s' model_id=%s model_id.code='%s' "
-            "base_url='%s' _get_model_name()='%s'",
+            "ai_model_name='%s' model_id=%s base_url='%s' "
+            "resolved_model='%s'",
             config.id, config.name, config.provider,
-            config.ai_model_name, config.model_id.id if config.model_id else False,
-            config.model_id.code if config.model_id else '',
-            config.base_url, config._get_model_name(),
+            config.ai_model_name,
+            config.model_id.id if config.model_id else False,
+            config.base_url, resolved_model,
         )
+
+        # If provider is Ollama but model looks like OpenAI, auto-detect
+        OPENAI_MODELS = {'gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'}
+        if config.provider == 'ollama' and resolved_model in OPENAI_MODELS:
+            _logger.warning(
+                "AI Queue Enrich: model '%s' is invalid for Ollama! "
+                "Auto-detecting available models...", resolved_model
+            )
+            model_override = self._auto_detect_ollama_model(config)
+            if model_override:
+                _logger.info("AI Queue Enrich: auto-detected model '%s'", model_override)
+                # Fix the config in DB for future runs
+                config.sudo().write({
+                    'ai_model_name': model_override,
+                    'model_id': False,
+                })
+                self.env.cr.commit()
+                _logger.info("AI Queue Enrich: fixed config DB → ai_model_name='%s'", model_override)
+            else:
+                _logger.error("AI Queue Enrich: no Ollama models found! Aborting.")
+                return
 
         batch_size = config.enrichment_batch_size_enrich or 10
         items = self.search([
@@ -200,7 +226,8 @@ class ProductEnrichmentQueue(models.Model):
             _logger.info("AI Queue Enrich: nothing to process.")
             return
 
-        _logger.info("AI Queue Enrich: processing %d items...", len(items))
+        _logger.info("AI Queue Enrich: processing %d items (model=%s)...",
+                      len(items), model_override or resolved_model)
         prompt_template = config.enrichment_prompt_template or ''
 
         for item in items:
@@ -243,8 +270,11 @@ class ProductEnrichmentQueue(models.Model):
                     web_context=web_context,
                 )
 
-                # Call AI via config dispatcher (uses whichever provider is active)
-                response = config.call_ai_api(prompt, max_tokens=config.max_tokens)
+                # Call AI via config dispatcher
+                response = config.call_ai_api(
+                    prompt, max_tokens=config.max_tokens,
+                    model_override=model_override,
+                )
                 elapsed = time.time() - t0
 
                 # Parse JSON from response
@@ -282,6 +312,41 @@ class ProductEnrichmentQueue(models.Model):
                     self.env.cr.commit()
                 _logger.error("AI Enrich FAIL: %s: %s",
                               item.product_id.name if item.exists() else '?', str(e))
+
+    # -------------------------------------------------------
+    # Ollama Model Auto-Detection
+    # -------------------------------------------------------
+    def _auto_detect_ollama_model(self, config):
+        """Query Ollama /api/tags to find available models. Returns model name or None."""
+        import requests as req
+        base_url = config._get_base_url()
+        url = f"{base_url}/api/tags"
+        _logger.info("Auto-detecting Ollama models at %s", url)
+        try:
+            resp = req.get(url, timeout=10)
+            if resp.status_code != 200:
+                _logger.error("Ollama /api/tags failed: %s %s", resp.status_code, resp.text[:200])
+                return None
+            data = resp.json()
+            models = data.get('models', [])
+            available = [m.get('name', '') for m in models if m.get('name')]
+            _logger.info("Ollama models available: %s", available)
+
+            if not available:
+                return None
+
+            # Priority: mistral > any model with 'mistral' > first available
+            for name in available:
+                if name == 'mistral' or name.startswith('mistral:'):
+                    return name
+            for name in available:
+                if 'mistral' in name.lower():
+                    return name
+            # Fallback: first available model
+            return available[0]
+        except Exception as e:
+            _logger.error("Ollama /api/tags error: %s", str(e))
+            return None
 
     # -------------------------------------------------------
     # JSON Parsing

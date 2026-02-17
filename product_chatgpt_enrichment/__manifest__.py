@@ -33,6 +33,7 @@ Features:
         'views/menus.xml',
     ],
     'images': ['static/description/icon.png'],
+    'post_init_hook': '_post_init_fix_searxng_config',
     'installable': True,
     'application': True,
     'auto_install': False,
