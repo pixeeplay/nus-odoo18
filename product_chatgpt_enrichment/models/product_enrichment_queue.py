@@ -605,3 +605,20 @@ class ProductEnrichmentQueue(models.Model):
     def action_force_done(self):
         """Skip enrichment and mark as done."""
         self.filtered(lambda r: r.state != 'done').write({'state': 'done'})
+
+    @api.model
+    def action_process_queue_now(self):
+        """Manual trigger: run both crons immediately (collect + enrich)."""
+        _logger.info("Manual queue processing triggered...")
+        self._cron_collect_web_data()
+        self._cron_enrich_ollama()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Traitement lancé',
+                'message': 'Les files de collecte et d\'enrichissement ont été traitées.',
+                'type': 'success',
+                'sticky': False,
+            },
+        }

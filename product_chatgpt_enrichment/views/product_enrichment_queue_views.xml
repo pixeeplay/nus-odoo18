@@ -11,6 +11,13 @@
                   decoration-success="state == 'done'"
                   decoration-warning="state in ('collecting', 'enriching')"
                   decoration-info="state == 'collected'">
+                <header>
+                    <button name="%(action_process_queue_now)d"
+                            string="Traiter maintenant"
+                            type="action"
+                            class="btn-primary"
+                            icon="fa-play"/>
+                </header>
                 <field name="product_id"/>
                 <field name="state" widget="badge"
                        decoration-info="state in ('pending', 'collected')"
@@ -201,6 +208,14 @@
                 <field name="date_queued" interval="day" type="row"/>
             </pivot>
         </field>
+    </record>
+
+    <!-- Server Action: Process Queue Now -->
+    <record id="action_process_queue_now" model="ir.actions.server">
+        <field name="name">Traiter la file maintenant</field>
+        <field name="model_id" ref="model_product_enrichment_queue"/>
+        <field name="state">code</field>
+        <field name="code">model.action_process_queue_now()</field>
     </record>
 
     <!-- Action: Queue List -->
