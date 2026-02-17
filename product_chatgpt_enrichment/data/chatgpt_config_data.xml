@@ -16,13 +16,13 @@
     <!-- Force update on every upgrade to keep SearXNG config in sync -->
     <data noupdate="0">
         <record id="searxng_ollama_config" model="chatgpt.config">
-            <field name="name">SearXNG + Ollama (Mistral)</field>
+            <field name="name">SearXNG + Ollama (Llama 3.1 8B)</field>
             <field name="provider">ollama</field>
             <field name="base_url">http://100.80.237.65:11434</field>
             <field name="api_endpoint">/api/chat</field>
             <field name="ollama_api_mode">native</field>
             <field name="model_id" eval="False"/>
-            <field name="ai_model_name">mistral</field>
+            <field name="ai_model_name">llama3.1:8b</field>
             <field name="auto_enrich" eval="False"/>
             <field name="max_tokens">4000</field>
             <field name="temperature">0.3</field>

@@ -130,19 +130,19 @@ class ProductEnrichmentQueue(models.Model):
     @api.depends('enriched_data')
     def _compute_enriched_data_html(self):
         LABELS = {
-            'titre_seo': ('Titre SEO', 'fa-search'),
-            'meta_description': ('Meta Description', 'fa-file-text-o'),
-            'description_courte': ('Description courte', 'fa-align-left'),
-            'description_longue_html': ('Description longue', 'fa-file-code-o'),
-            'bullet_points': ('Points clés', 'fa-list-ul'),
-            'tags': ('Tags', 'fa-tags'),
-            'arguments_vente': ('Arguments de vente', 'fa-bullhorn'),
-            'categorie_suggeree': ('Catégorie suggérée', 'fa-folder'),
-            'marque_detectee': ('Marque détectée', 'fa-trademark'),
-            'public_cible': ('Public cible', 'fa-users'),
-            'specs_techniques': ('Specs techniques', 'fa-cogs'),
-            'poids_estime_kg': ('Poids estimé', 'fa-balance-scale'),
-            'confiance': ('Confiance', 'fa-shield'),
+            'titre_seo': 'Titre SEO',
+            'meta_description': 'Meta Description',
+            'description_courte': 'Description courte',
+            'description_longue_html': 'Description longue',
+            'bullet_points': 'Points cles',
+            'tags': 'Tags',
+            'arguments_vente': 'Arguments de vente',
+            'categorie_suggeree': 'Categorie suggeree',
+            'marque_detectee': 'Marque detectee',
+            'public_cible': 'Public cible',
+            'specs_techniques': 'Specs techniques',
+            'poids_estime_kg': 'Poids estime (kg)',
+            'confiance': 'Confiance',
         }
         CONFIDENCE_BADGE = {
             'high': 'text-bg-success',
@@ -161,12 +161,13 @@ class ProductEnrichmentQueue(models.Model):
                 if conf:
                     badge_cls = CONFIDENCE_BADGE.get(conf, 'text-bg-secondary')
                     parts.append(
-                        f'<div class="mb-3"><span class="badge {badge_cls} fs-6">'
-                        f'<i class="fa fa-shield me-1"/> Confiance: {conf.upper()}</span></div>'
+                        f'<div class="mb-3"><span class="badge {badge_cls}" '
+                        f'style="font-size:14px;padding:6px 12px;">'
+                        f'Confiance: {conf.upper()}</span></div>'
                     )
                 # Fields in a nice grid
                 parts.append('<div class="row">')
-                for key, (label, icon) in LABELS.items():
+                for key, label in LABELS.items():
                     if key == 'confiance':
                         continue
                     value = data.get(key)
@@ -192,16 +193,16 @@ class ProductEnrichmentQueue(models.Model):
                     ) else 'col-md-6'
                     parts.append(
                         f'<div class="{col_class} mb-2">'
-                        f'<div class="border rounded p-2 h-100">'
-                        f'<div class="text-muted small mb-1">'
-                        f'<i class="fa {icon} me-1"/>{label}</div>'
+                        f'<div style="border:1px solid #dee2e6;border-radius:4px;padding:8px;">'
+                        f'<div style="color:#6c757d;font-size:12px;margin-bottom:4px;">'
+                        f'<b>{label}</b></div>'
                         f'{formatted}'
                         f'</div></div>'
                     )
                 parts.append('</div></div>')
                 rec.enriched_data_html = ''.join(parts)
             except (json.JSONDecodeError, TypeError):
-                rec.enriched_data_html = '<div class="text-muted">Erreur de parsing JSON</div>'
+                rec.enriched_data_html = '<div style="color:#6c757d;">Erreur de parsing JSON</div>'
 
     @api.depends('enriched_data')
     def _compute_parsed_fields(self):
@@ -484,12 +485,15 @@ class ProductEnrichmentQueue(models.Model):
             if not available:
                 return None
 
-            # Priority: mistral > any model with 'mistral' > first available
+            # Priority: llama3.1:8b > llama3.1 > mistral > first available
             for name in available:
-                if name == 'mistral' or name.startswith('mistral:'):
+                if name == 'llama3.1:8b' or name == 'llama3.1':
                     return name
             for name in available:
-                if 'mistral' in name.lower():
+                if 'llama3.1' in name.lower():
+                    return name
+            for name in available:
+                if name == 'mistral' or name.startswith('mistral:'):
                     return name
             # Fallback: first available model
             return available[0]
