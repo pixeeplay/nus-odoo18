@@ -179,6 +179,18 @@ class ProductEnrichmentQueue(models.Model):
         except Exception:
             _logger.info("AI Queue Enrich: No SearXNG config found, skipping.")
             return
+
+        # Debug logging: trace exactly which config and model is used
+        _logger.info(
+            "AI Queue Enrich CONFIG: id=%s name='%s' provider=%s "
+            "ai_model_name='%s' model_id=%s model_id.code='%s' "
+            "base_url='%s' _get_model_name()='%s'",
+            config.id, config.name, config.provider,
+            config.ai_model_name, config.model_id.id if config.model_id else False,
+            config.model_id.code if config.model_id else '',
+            config.base_url, config._get_model_name(),
+        )
+
         batch_size = config.enrichment_batch_size_enrich or 10
         items = self.search([
             ('state', '=', 'collected'),

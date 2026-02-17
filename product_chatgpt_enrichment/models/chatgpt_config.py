@@ -318,15 +318,30 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
     @api.model
     def get_searxng_config(self):
         """Return the active config with SearXNG enabled (for queue pipeline)."""
-        config = self.search([
+        all_searxng = self.search([
             ('searxng_enabled', '=', True),
             ('active', '=', True),
-        ], limit=1)
+        ])
+        for c in all_searxng:
+            _logger.info(
+                "get_searxng_config: FOUND config id=%s name='%s' provider=%s "
+                "ai_model_name='%s' model_id=%s",
+                c.id, c.name, c.provider, c.ai_model_name,
+                c.model_id.id if c.model_id else False,
+            )
+        config = all_searxng[:1]
         if not config:
             raise UserError(_(
                 'No active AI configuration with SearXNG enabled. '
                 'Go to AI Enrichment > Settings and enable SearXNG on a configuration.'
             ))
+        _logger.info(
+            "get_searxng_config() → id=%s name='%s' provider=%s "
+            "ai_model_name='%s' model_id=%s base_url='%s'",
+            config.id, config.name, config.provider,
+            config.ai_model_name, config.model_id.id if config.model_id else False,
+            config.base_url,
+        )
         return config
 
     def action_set_default(self):
@@ -379,10 +394,14 @@ Ne fabrique JAMAIS de fausses informations techniques (poids, dimensions, specs)
     def _get_model_name(self):
         """Get model name: manual field takes priority, then Many2one, then provider default."""
         if self.ai_model_name:
+            _logger.debug("_get_model_name: using ai_model_name='%s'", self.ai_model_name)
             return self.ai_model_name
         if self.model_id:
+            _logger.debug("_get_model_name: using model_id.code='%s'", self.model_id.code)
             return self.model_id.code
-        return PROVIDER_DEFAULTS.get(self.provider, {}).get('model', 'gpt-4o-mini')
+        fallback = PROVIDER_DEFAULTS.get(self.provider, {}).get('model', 'gpt-4o-mini')
+        _logger.warning("_get_model_name: FALLBACK to '%s' (no ai_model_name or model_id set!)", fallback)
+        return fallback
 
     def _get_headers(self):
         """Build auth headers based on provider."""
