@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Server Action: Process Queue Now (must be before list view that references it) -->
+    <record id="action_process_queue_now" model="ir.actions.server">
+        <field name="name">Traiter la file maintenant</field>
+        <field name="model_id" ref="model_product_enrichment_queue"/>
+        <field name="state">code</field>
+        <field name="code">model.action_process_queue_now()</field>
+    </record>
+
     <!-- List View -->
     <record id="view_product_enrichment_queue_list" model="ir.ui.view">
         <field name="name">product.enrichment.queue.list</field>
@@ -208,14 +216,6 @@
                 <field name="date_queued" interval="day" type="row"/>
             </pivot>
         </field>
-    </record>
-
-    <!-- Server Action: Process Queue Now -->
-    <record id="action_process_queue_now" model="ir.actions.server">
-        <field name="name">Traiter la file maintenant</field>
-        <field name="model_id" ref="model_product_enrichment_queue"/>
-        <field name="state">code</field>
-        <field name="code">model.action_process_queue_now()</field>
     </record>
 
     <!-- Action: Queue List -->
