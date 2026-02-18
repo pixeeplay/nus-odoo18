@@ -1,0 +1,1002 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_chatgpt_enrichment
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 18:59+0000\n"
+"PO-Revision-Date: 2026-02-18 18:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+
+#. module: product_chatgpt_enrichment
+msgid "\"%s\" (%s) is now the default AI provider."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d champ(s) standard mis à jour depuis les données IA."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d ignoré(s) (déjà en file)."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d ignoré(s) (déjà enrichi)."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d models found (%d new)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d produit(s) ajouté(s) à la file d\\'attente."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d produits ≈ %dh %dmin"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%d produits ≈ %dmin"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%s API error.\\nURL: %s\\nStatus: %s\\nResponse: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "%s Error: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "'%s' ajouté à la file d'attente IA (priorité haute)."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "'%s' est déjà en file d'attente (état: %s)."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "5 Catchy Taglines"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "<b>Manual Price Override:</b> Price updated from %s to <b>%s</b> based on competitor: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "<b>Manual Video Selection:</b> '%s' was selected as the preferred official video."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "<b>Media Discovery:</b> Added new extra media image from: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "<b>Media Discovery:</b> Main image updated from discovered URL: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "<b>Price Alignment:</b> Sale price updated from %s to <b>%s</b> based on AI market analysis."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI (s)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Configuration"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Configurations"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Discovered Image"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Enrichment"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Enrichment - Ollama Processing [legacy]"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Enrichment - Pipeline (Parallel)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Enrichment - Web Data Collection (SearXNG) [legacy]"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Enrichment Dashboard"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Models"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Prompts"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Providers"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI Status"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI enrichment pipeline is now running."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI enrichment pipeline is paused. No automatic processing."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "AI: Automated Market Price Alignment"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Actions"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Active Configuration"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Advanced Search &amp; Scraping Controls"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ajouter à la file d'attente"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ajouté à la file d\\'attente"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Align Price with AI Competitors"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "All Products"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Amazon Style Bullet Points"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Annuler"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Anthropic Error: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Anthropic error.\\nStatus: %s\\nResponse: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Appliquer aux champs standards"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Arguments de vente"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Arrêter le pipeline"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Aucune donnée IA disponible à appliquer."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Aujourd'hui"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Auto-Align Price"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Batch Enrichment"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Behavior"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Champs mis à jour"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "ChatGPT Configuration"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "ChatGPT enrichment data cleared."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Clear AI Content"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Clear Data"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Collecte"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Collecté"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Competitive Analysis"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Competitor Prices (France)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Config"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Configuration saved"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Connection OK!"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Connection failed: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Content Marketing: Blog Titles"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Could not download this image. Please try another one."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Custom Step Prompts"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Dashboard enrichissement"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Date"
+msgstr "Fecha"
+
+#. module: product_chatgpt_enrichment
+msgid "Deep Enrichment is disabled in global settings. Please enable it first."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Deep Scraping Logs"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Default"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Default AI Configuration"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Default Configuration"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Dernier enrichissement IA"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Description courte IA"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Description longue IA (HTML)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Detailed Guide"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Discover Models"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Discovery Stats"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Discovery failed: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Données IA effacées"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Données brutes (debug)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Données enrichies"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Données web (SearXNG)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Déjà en file d\\'attente"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Détection"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Effacer données IA"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "En attente"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enregistrer la configuration"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrich with ChatGPT"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enriched Products"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichir (Queue IA)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichir avec IA (file d'attente)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichissement"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichissement IA (Queue)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichissement IA par lot"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichissement IA — Statistiques"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichissement IA — Tableau croisé"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichissement batch"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichment Pipeline (Queue)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichment Queue"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichment Queue Item"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Enrichment process completed for selected products."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Erreur"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Erreurs"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "File d'attente enrichissement"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "File d'attente enrichissement IA"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "File d\\'attente — %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Find Official Photos"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Forcer terminé"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Found %s potential official images."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Gemini Error: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Gemini error.\\nStatus: %s\\nResponse: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Group By"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Image Discovery"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Invalid response from %s.\\nURL: %s\\nError: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Invalid response from Anthropic. Check API Key and Model."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Invalid response from Gemini. Check API Key and Model."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "JSON enrichi (parsé)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "JSON web brut"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Les champs d\\'enrichissement IA ont été vidés."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Link"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Main AI Output"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Maintenance &amp; Care Guide"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Market Analysis &amp; Price Alignment"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Market Intel"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Market Positioning"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Market Research Content"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Market: Comparison Chart Data"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Market: Summary of User Reviews"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Marketing: Gift Guide Pitch"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Marketing: Ideal User Persona"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Marketing: Newsletter Section"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Marketing: The One-Word Pitch"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Marketing: Unboxing Script"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Media Discovery"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Models Discovered"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No AI configuration found."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No SearXNG configuration found."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No SearXNG/AI configuration found."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No SearXNG/AI configuration found. Configure a provider first."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No active AI configuration found. Go to AI Enrichment > Settings > AI Providers."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No models found. Check your connection settings."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No products selected."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No prompts configured in ChatGPT Configuration."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "No suggested price available. Ensure competitor prices are extracted first."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Official Discovery"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Official Media"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Official Media &amp; Videos"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ollama"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ollama Error: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ollama Tuning"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ollama call failed: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Ollama discovery failed.\\nURL: %s\\nStatus: %s\\nResponse: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Open Queue"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Parallel Processing"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Performance Tuning"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Pipeline Status"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Pipeline started"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Pipeline stopped"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Please set the SearXNG URL first."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Points clés"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Priorité"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Priorité haute"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Product '%s' already has an active enrichment in queue (state: %s)."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Product FAQ (3 Q&amp;A)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Product enriched successfully with ChatGPT!"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Product must have a name before enrichment."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Produit"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Produits sélectionnés"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Prompts"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Pros &amp; Cons List"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Provider Settings"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Provider: %s\\nModel: %s\\nResponse: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Queue"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Queue Errors"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Queue Status"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Rafraîchir l'enrichissement"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Raw Search Data"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Refresh Market Data"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Registered Prompts"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Relancer"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Reprendre"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Reprendre le pipeline"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Rien à appliquer"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Run Enrichment"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Réinitialiser"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Réponse brute Ollama"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Résumé IA"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SEO"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SEO Meta Description (High Conversion)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SEO Meta Title (CTR)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SEO eCommerce Description (Long)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SEO: Primary &amp; LSI Keywords"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "STOP"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Sales Description (Short)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Sales: Cross-selling Table"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SearXNG"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SearXNG (Self-Hosted Web Search)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SearXNG + Ollama (Llama 3.1 8B)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SearXNG + Ollama Pipeline Prompt"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SearXNG Connection OK!"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SearXNG connection failed:\\n%s\\n\\nURL: %s"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Search (s)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "SerpApi Key is required for image discovery. Please configure it in AI Settings."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Set as Default"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Social Media: Instagram Post"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Specs techniques (JSON)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Start Pipeline"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Statut"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Stop Pipeline"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Success"
+msgstr "Éxito"
+
+#. module: product_chatgpt_enrichment
+msgid "Technical Specs &amp; JSON Mapping"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Technical: Installation Steps"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Technical: Safety Information"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Terminé"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Test Connection"
+msgstr "Probar conexión"
+
+#. module: product_chatgpt_enrichment
+msgid "Test SearXNG"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Timing"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Timing détaillé"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Traiter la file maintenant"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Traiter maintenant"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Translation: English Marketing"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Translation: German Technical"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Translation: Italian Description"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Translation: Spanish Sales Pitch"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Tuning parameters updated."
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Video Title"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Watch"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "Web"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "YouTube Short Script (30s)"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "batch.enrichment.wizard.form"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "chatgpt.config.form"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "chatgpt.config.tree"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.enrichment.dashboard.form"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.enrichment.queue.form"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.enrichment.queue.graph"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.enrichment.queue.list"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.enrichment.queue.pivot"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.enrichment.queue.search"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "product.template.form.chatgpt"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "res.config.settings.view.form.ai.enrichment"
+msgstr ""
+
+#. module: product_chatgpt_enrichment
+msgid "État"
+msgstr ""

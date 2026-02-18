@@ -1,12 +1,31 @@
 # -*- coding: utf-8 -*-
 {
     "name": "FTP/SFTP/IMAP Tariff Import",
-    "summary": "Import product sale prices (list_price) from CSV files stored on FTP/SFTP or email attachments via IMAP, with manual preview, local download and scheduled runs",
+    "summary": "Import product prices from CSV via FTP/SFTP/IMAP with preview, mapping and scheduling",
+    "description": """
+FTP/SFTP/IMAP Tariff Import
+============================
+Automate product price list imports from remote servers and email attachments.
+
+Features:
+---------
+* FTP, SFTP and IMAP connection support
+* Google Drive integration for file browsing
+* CSV column mapping with templates
+* Manual preview before import
+* Scheduled automatic imports via cron
+* Detailed import logs and error tracking
+* Multi-company support with security rules
+* Pre-configured provider templates
+    """,
     "version": "18.0.3.0.0",
     "category": "Sales/Products",
-    "author": "Doscaal",
-    "website": "https://github.com/Doscaal/ivspro",
-    "license": "LGPL-3",
+    "author": "Antigravity",
+    "website": "https://antigravity.fr",
+    "support": "support@antigravity.fr",
+    "license": "OPL-1",
+    "price": 99,
+    "currency": "EUR",
     "depends": ["base", "product", "account"],
     "data": [
         "security/security.xml",
@@ -26,7 +45,9 @@
         "data/ir_cron.xml",
         "data/ftp_providers_preconfigured.xml"
     ],
+    "images": ["static/description/banner.png"],
     "post_init_hook": "post_init_hook",
     "installable": True,
-    "application": False
+    "application": True,
+    "auto_install": False,
 }

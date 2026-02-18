@@ -1,0 +1,370 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* prestashop_odoo_sync
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 18:59+0000\n"
+"PO-Revision-Date: 2026-02-18 18:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+
+#. module: prestashop_odoo_sync
+msgid "%d draft orders deleted. You can now re-sync."
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Amounts"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Apply Sync Interval"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Auto-Sync (min)"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Auto-sync disabled"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Auto-sync set to every %d minutes"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Available API Resources"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#. module: prestashop_odoo_sync
+msgid "Carrier"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Check API Permissions"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Check failed: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Client"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Connection error: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Connection failed. Status Code: %s\\nResponse: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Connection successful to PrestaShop API!"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Cron Updated"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Customer"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Date"
+msgstr "Datum"
+
+#. module: prestashop_odoo_sync
+msgid "Delete Draft Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Delivery"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Eco-Tax"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Errors"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Failed to sync customer %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Group By"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "ID"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import Complete"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import Selected Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import Status"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import This Order"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import complete: %d success, %d errors"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Import failed: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Imported"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Imported Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Imported: %d orders, Skipped: %d already imported"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Instance"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Invalid API response (not JSON). URL: %s\\nResponse: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Message"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "New"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "No Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "No draft PrestaShop orders to delete. Only draft orders can be deleted."
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "No imported order found!"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "No orders found in PrestaShop"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "No orders selected for import!"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Nothing to Delete"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Odoo Configuration"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Odoo Status"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Order Date"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Order Information"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Order Lines"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Order Preview"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Order imported successfully as %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Orders Deleted"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Orders to Fetch"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PS Status"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Payment"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Pending"
+msgstr "Ausstehend"
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop API"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop API error (status %s). URL: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop Details"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop Instances"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "PrestaShop: Sync Orders (every 5 min)"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Raw Data"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Raw XML Data"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Reference"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Skip"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Status"
+msgstr "Status"
+
+#. module: prestashop_odoo_sync
+msgid "Success"
+msgstr "Erfolg"
+
+#. module: prestashop_odoo_sync
+msgid "Sync Logs"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Sync Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Synchronization Complete"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Synchronization failed: %s"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Synchronized Orders"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Test Connection"
+msgstr "Verbindung testen"
+
+#. module: prestashop_odoo_sync
+msgid "This order has already been imported!"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "Total"
+msgstr "Gesamt"
+
+#. module: prestashop_odoo_sync
+msgid "View Imported Order"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.import.wizard.form"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.instance.form"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.instance.tree"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.order.preview.form"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.order.preview.search"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.order.preview.tree"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "prestashop.orders.tree"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "sale.order.form.prestashop"
+msgstr ""
+
+#. module: prestashop_odoo_sync
+msgid "sale.order.line.form.prestashop"
+msgstr ""

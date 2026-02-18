@@ -1,0 +1,1197 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ftp_tariff_import
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 18:59+0000\n"
+"PO-Revision-Date: 2026-02-18 18:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+
+#. module: ftp_tariff_import
+msgid "%d templates importés"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "%s (copie)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<h5>Règles appliquées</h5><p>ref_clean: %s</p><p>date_du_jour: %s</p><p>Doublons ignorés (réf+code-barres): %d</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>(Mapping) Total lines: %d</p><p>Updated products: %d</p><p>Errors: %d</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Aucun fichier sélectionné.</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Error: message moved to mailbox: %s</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Imported and moved to mailbox: %s</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Message marked as Seen.</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>No remote move performed; file left in place (error path).</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>No remote move performed; file left in place.</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>No remote move performed; message left in place (error path).</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>No remote move performed; message left in place.</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Not found products: %d</p><p>No write on found product: %d</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Notice: delimiter auto-detected: %s</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Notice: encodage détecté: <b>%s</b> (configuré: %s)</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "<p>Total lines: %d</p><p>Updated products: %d</p><p>Errors: %d</p>"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "A job is already running for this provider. Try again later."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Actifs"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Activation"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Affichage des %s premières lignes."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aide et exemples"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Annuler"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aperçu avec mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aperçu des fichiers"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aperçu du contenu"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Appliquer le script"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Appliquer maintenant"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Attachment not found in message: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucun fichier fourni."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucun fichier sélectionné."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucun template n'a pu être importé depuis le fichier."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucun template sélectionné pour l'export."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucune colonne détectée dans le fichier."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucune colonne sélectionnée."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Aucune planification PIM active à synchroniser."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Auto-détecter"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Available Files"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "COMLINE"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "CSV / Mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "CSV delimiter can contain at most 5 characters."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Cannot read Material file content"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Cette action est disponible uniquement pour les providers Google Drive."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Champs supplémentaires"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Charger un template"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Chemin actuel"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Colonne source"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Colonnes"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Colonnes détectées"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Concat avec"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Configuration du mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Configuration du mapping CSV"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Configurer le mapping depuis CSV"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Configurer le mapping et importer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Connection error: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Continuer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Dossier d'export défini: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Dossier d'import défini: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Dossier d'import: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Dossier d\\'import défini"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Dossier sélectionné"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Dupliquer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Déconnecté"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "EET"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Erreur de lecture du CSV: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Erreur lors de la copie du fichier %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Erreur lors de la lecture du dossier %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Erreur lors du chargement: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Erreur lors du déplacement du fichier %s vers %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Erreur: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Exemples de concaténation"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Exporter les données"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP Mapping Template multi-company"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP Provider multi-company"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP Tariff Import Log"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP Tariff Import Log multi-company"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP Tariff Manager"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP Tariff User"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP move completed copy but could not delete source %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP move failed %s -> %s: copy size mismatch"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP/SFTP/IMAP Files Preview"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP/SFTP/IMAP Provider"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP/SFTP/IMAP Providers"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "FTP/SFTP/IMAP Tariff Import (07:00)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fermer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fichier CSV exemple"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fichier JSON invalide: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fichier Material non trouvé! Pattern attendu: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fichier principal (Material)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fichier stock (optionnel)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fichier taxes (optionnel)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Files"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Files larger than 5MB require resumable upload (not implemented yet)."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Format JSON invalide: attendu une liste de templates."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Fournisseur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive Client ID and Secret are required."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive a été déconnecté."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive backend requires the 'requests' library."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive download failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive list failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive list folders failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive move failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive not authorized. Please authorize first."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive token refresh failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Google Drive upload failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Grouper par"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP authentication failed. Tried: %s; capabilities: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP connect failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP copy failed to %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP fetch failed for %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP fetch returned empty payload for %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP requires username/password."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP search failed for %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP search failed for %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP select failed for mailbox: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "IMAP: click 'Refresh' to list attachments (criteria: %s, pattern: %s)."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Import terminé"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Import terminé avec erreurs"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Import échoué"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Imported"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Imported with mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Importer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Importer maintenant"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Importer un template de mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Impossible de décoder le fichier: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Impossible de télécharger le fichier: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Inactifs"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Invalid IMAP path: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Journal"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Journaux d'import"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Journaux de mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "L'URL doit commencer par http:// ou https://"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "L'URL n'est pas configurée. Veuillez spécifier une URL dans le champ 'URL du fichier'."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "La fusion a échoué."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "La fusion a échoué. Vérifiez que les fichiers ont le bon format."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "La planification PIM a été synchronisée."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "La planification a été synchronisée."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Lancer l'import"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le champ 'Code EAN' doit être mappé pour identifier les produits."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le chemin local n'est pas configuré. Veuillez spécifier un chemin dans 'Chemin local'."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le chemin local n'est pas un dossier: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le chemin local n'existe pas: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le fichier source n'existe pas: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le mode multi-fichiers n'est pas activé pour ce fournisseur."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Le template \"%s\" a été créé avec %d colonnes mappées."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Les champs ODR, Supplierinfo et autres sont maintenant disponibles."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Ligne de mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Lignes de mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Lignes: %d, Succès: %d, Erreurs: %d"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Log Details"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Manual FTP/SFTP/IMAP Import"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Mappings"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Merge failed - no data produced"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Multi-File Import"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Multi-File Import (Merge)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Multi-fichiers"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Multi-file merge import completed"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Navigateur Google Drive"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No IMAP attachments found. Mailbox: %s, Criteria: %s, Pattern: %s, Limit: %s. SEARCH matched: %s; scanned newest: %s. Try Criteria=ALL and set Max files=1."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No Material file found"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No Material file found matching pattern: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No file selected."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No files"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No files found in directory: %s with pattern: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "No files found on remote"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Nom"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Nom de colonne"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Nom du champ (target)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Nom technique"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Notes"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Options"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Parcourir Google Drive"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Planification"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Planification PIM"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Planification PIM appliquée"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Planification PIM non modifiée"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Planification appliquée"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Provide at least one remote path or enable 'Use Provider Pattern Only'."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Rafraîchir"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Recherche Templates"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Registre rafraîchi"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Retour"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Retour fichiers"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Retour fournisseur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Résumé du mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP backend requires the 'paramiko' library. Install it in the Odoo environment or disable SFTP."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP connect failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP disabled by system parameter 'ftp_tariff_import.enable_sftp'. Enable it or switch this provider to FTP."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP host key fingerprint mismatch. Expected %s, got %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP move completed copy but could not delete source %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP move failed %s -> %s: %s; fallback copy failed: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SFTP move failed %s -> %s: copy size mismatch"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "SIDEV"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Sauvegarder en template"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Script"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Select a file to preview."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Select at least one file to download."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Select at least one file to import."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Seuls les dossiers peuvent être sélectionnés."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Showing up to %s rows."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Source File"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Sélectionnez au moins un fichier à fusionner."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Sélectionnez un template à charger."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Séparateur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Taille"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tariff Import"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tariff Import (Mapping)"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tariff Import Log"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tariff Import Logs"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Template"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Template %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Template de mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Template importé"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Templates de mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Templates liés à ce fournisseur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tester la connexion"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tout désélectionner"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Tout sélectionner"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Transformation"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Transformations disponibles"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Télécharger + Traiter"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Télécharger en local"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "URL backend requires the 'requests' library."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "URL download failed for %s: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Unable to load provided private key."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Unsupported protocol: %s"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez charger un fichier CSV."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez d'abord autoriser Google Drive."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez renseigner 'Nom du produit' et 'Code EAN' (requis pour PIM)."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez renseigner 'Nom du produit' et 'Prix d'achat' (requis)."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez sélectionner au moins une colonne à mapper (cochez 'Inclure' et sélectionnez un champ Odoo)."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez sélectionner un fichier JSON."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Veuillez sélectionner un template existant ou donner un nom pour en créer un nouveau."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "You cannot access files for this company."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "You do not have permission to download FTP files."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.export.wizard"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.gdrive.browser.wizard.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.import.wizard.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.config.wizard.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.import.wizard.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.template.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.template.line.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.template.line.tree"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.template.search"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.template.tree"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.mapping.wizard.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.preview.wizard.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.preview.wizard.line.tree"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.provider.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.provider.tree"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.tariff.import.log.form"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftp.tariff.import.log.tree"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "ftplib not available in this environment."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "imaplib not available in this environment."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "paramiko not available in this environment."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "requests library not available."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Étape 1 : Sélectionner les colonnes à importer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Étape 2 : Configuration du mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Étape 3 : Aperçu avec mapping"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Étape Script obligatoire: ENABLE_CLEAR_DUP_BARCODES=True doit être activé avant l'import PIM."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "Étape Script obligatoire: activez ENABLE_CLEAR_DUP_BARCODES=True et cliquez sur 'Appliquer le script' avant de continuer."
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "↔️ Séparateur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "⏭️ Ignorer vide"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "⚠️ Requis"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "✅"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "✅ Créer le template"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "✅ Inclure"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "✅ Sélectionner"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "✅ Sélectionner ce dossier"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "➕ Concat avec"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "⬅️ Retour"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "⬆️ Dossier parent"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🎯 Champ Odoo"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🎯 Champ principal"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🎯 Champs multiples"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "💡 Exemple de valeur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📁 Parcourir Google Drive"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📂 Ouvrir"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📄 Colonne CSV fournisseur"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📄 Configurer depuis un fichier CSV"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📊 Analyser le fichier"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📋 Aperçu fusion"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📝 Libellé"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📤 Exporter JSON"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📤 Exporter en JSON"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📥 Exporter les données"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📥 Importer"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📥 Importer JSON"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📥 Télécharger CSV"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "📥 Télécharger fusion"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🔄 Rafraîchir"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🔄 Rafraîchir champs ODR/Supplierinfo"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🔄 Transformation"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🔌 Déconnecter Google Drive"
+msgstr ""
+
+#. module: ftp_tariff_import
+msgid "🔗 Autoriser Google Drive"
+msgstr ""

@@ -1,0 +1,1602 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* planete_pim
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 18:59+0000\n"
+"PO-Revision-Date: 2026-02-18 18:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+
+#. module: planete_pim
+msgid "%d marque(s) résolue(s) sur %d en attente"
+msgstr ""
+
+#. module: planete_pim
+msgid "%d min %d sec"
+msgstr ""
+
+#. module: planete_pim
+msgid "%d produits supprimés de la quarantaine."
+msgstr ""
+
+#. module: planete_pim
+msgid "%d provider(s) avaient des guards bloqués et ont été reset."
+msgstr ""
+
+#. module: planete_pim
+msgid "%d sec"
+msgstr ""
+
+#. module: planete_pim
+msgid "'%s' est maintenant un alias de '%s'"
+msgstr ""
+
+#. module: planete_pim
+msgid "(+%d autres fournisseurs résolus)"
+msgstr ""
+
+#. module: planete_pim
+msgid "... et %d autres"
+msgstr ""
+
+#. module: planete_pim
+msgid "<h5>Résultats backend</h5><p>OK: %d | Erreurs: %d</p>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<li style='color:#b94a48'>ATTENTION: ENABLE_CLEAR_DUP_BARCODES=False — l'étape Script est obligatoire avec cette option activée avant le mapping.</li>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<li>Codes-barres en conflit effacés (échantillon): %d</li>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<li>Codes-barres invalides détectés (échantillon): %d</li>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<li>Lignes identiques supprimées (échantillon): %d</li>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<li>Lignes sans EAN utilisable (échantillon): %d</li>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<p>Notice: pièce jointe brute non créée (exception). Import OK.</p>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<p>Notice: pièce jointe brute non créée (verrou concurrent sur ir_attachment). Import OK.</p>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<p>Prévisualisation impossible: %s</p>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<p>Total lignes: %d</p><p>OK (validations): %d</p><p>Erreurs: %d</p><p>Créés (staging): %d</p><p>Mis à jour (staging): %d</p>"
+msgstr ""
+
+#. module: planete_pim
+msgid "<p>Téléchargés: %d — Traités (prêts): %d</p>"
+msgstr ""
+
+#. module: planete_pim
+msgid "ATTENTION: Colonne EAN non trouvée dans le fichier! Headers détectés: %s. Mapping EAN cherché: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Activer import DELTA quotidien"
+msgstr ""
+
+#. module: planete_pim
+msgid "Activer import FULL quotidien"
+msgstr ""
+
+#. module: planete_pim
+msgid "Alias"
+msgstr ""
+
+#. module: planete_pim
+msgid "Annuler"
+msgstr ""
+
+#. module: planete_pim
+msgid "Annuler les jobs sélectionnés"
+msgstr ""
+
+#. module: planete_pim
+msgid "Appliquer au catalogue"
+msgstr ""
+
+#. module: planete_pim
+msgid "Appliquer tous les validés (quarantaine)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Appliqués"
+msgstr ""
+
+#. module: planete_pim
+msgid "Association"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun entrepôt trouvé pour ajuster le stock."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun exemple enregistré"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun fichier trouvé sur le serveur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun fichier trouvé sur le serveur FTP"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun fournisseur lié."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun identifiant produit (EAN ou Référence)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun journal trouvé pour ce fournisseur."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun log"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun produit en quarantaine à supprimer."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun produit trouvé en staging"
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucun template de mapping n'est configuré pour ce fournisseur. Veuillez configurer un mapping template avant d'utiliser cette fonction."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucune anomalie à exporter pour cet import."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucune donnée binaire disponible pour cet élément."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucune exécution n'a été planifiée."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aucune marque en attente à vérifier."
+msgstr ""
+
+#. module: planete_pim
+msgid "Aujourd'hui"
+msgstr ""
+
+#. module: planete_pim
+msgid "Auto"
+msgstr ""
+
+#. module: planete_pim
+msgid "Avec retries"
+msgstr ""
+
+#. module: planete_pim
+msgid "Calcul en cours..."
+msgstr ""
+
+#. module: planete_pim
+msgid "Checkpoint"
+msgstr ""
+
+#. module: planete_pim
+msgid "Checkpoint (reprise)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Colbee"
+msgstr ""
+
+#. module: planete_pim
+msgid "Colbee - Recherche produit"
+msgstr ""
+
+#. module: planete_pim
+msgid "Commentaire"
+msgstr ""
+
+#. module: planete_pim
+msgid "Configuration DELTA"
+msgstr ""
+
+#. module: planete_pim
+msgid "Configuration FULL"
+msgstr ""
+
+#. module: planete_pim
+msgid "Confirmer la suppression massive"
+msgstr ""
+
+#. module: planete_pim
+msgid "Cron FTP"
+msgstr ""
+
+#. module: planete_pim
+msgid "Cron PIM"
+msgstr ""
+
+#. module: planete_pim
+msgid "Créer le produit"
+msgstr ""
+
+#. module: planete_pim
+msgid "Créer une nouvelle marque"
+msgstr ""
+
+#. module: planete_pim
+msgid "Créé manuellement - en attente du cron job runner..."
+msgstr ""
+
+#. module: planete_pim
+msgid "Créé par"
+msgstr ""
+
+#. module: planete_pim
+msgid "Créé par fournisseur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Créés automatiquement"
+msgstr ""
+
+#. module: planete_pim
+msgid "Créés manuellement"
+msgstr ""
+
+#. module: planete_pim
+msgid "DELTA"
+msgstr ""
+
+#. module: planete_pim
+msgid "Date"
+msgstr "Datum"
+
+#. module: planete_pim
+msgid "Date d'import"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernier fichier"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernier import DELTA"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernier import FULL"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernier import de"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernier log"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernière MAJ"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernière MAJ import"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernière erreur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernière exécution"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernière présence Digital"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dernière vue"
+msgstr ""
+
+#. module: planete_pim
+msgid "Diagnostic"
+msgstr ""
+
+#. module: planete_pim
+msgid "Diagnostic des Skips"
+msgstr ""
+
+#. module: planete_pim
+msgid "Données source"
+msgstr ""
+
+#. module: planete_pim
+msgid "Durée"
+msgstr ""
+
+#. module: planete_pim
+msgid "Dédupliqués"
+msgstr ""
+
+#. module: planete_pim
+msgid "Délai (j)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Délimiteur auto-détecté: '%s' (config donnait %d colonnes)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Démarrage du traitement de %d lignes..."
+msgstr ""
+
+#. module: planete_pim
+msgid "Démarrage..."
+msgstr ""
+
+#. module: planete_pim
+msgid "Détails Checkpoint"
+msgstr ""
+
+#. module: planete_pim
+msgid "Détails de l'alias"
+msgstr ""
+
+#. module: planete_pim
+msgid "Détails des anomalies"
+msgstr ""
+
+#. module: planete_pim
+msgid "EAN '%s' présent %d fois aux lignes: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "EAN brut: '%s' - Aucun code-barres valide détecté"
+msgstr ""
+
+#. module: planete_pim
+msgid "EAN doublon"
+msgstr ""
+
+#. module: planete_pim
+msgid "EAN source"
+msgstr ""
+
+#. module: planete_pim
+msgid "EAN-13 invalide: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "ERREUR CRITIQUE: produit sans EAN a passé la validation (ligne %d)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Effacer"
+msgstr ""
+
+#. module: planete_pim
+msgid "En attente"
+msgstr ""
+
+#. module: planete_pim
+msgid "En attente (retry après %s)..."
+msgstr ""
+
+#. module: planete_pim
+msgid "En attente de retry"
+msgstr ""
+
+#. module: planete_pim
+msgid "En attente de traitement..."
+msgstr ""
+
+#. module: planete_pim
+msgid "En attente..."
+msgstr ""
+
+#. module: planete_pim
+msgid "En cours"
+msgstr ""
+
+#. module: planete_pim
+msgid "Erreur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Erreur lors de la suppression massive: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Erreur lors du calcul des exemples"
+msgstr ""
+
+#. module: planete_pim
+msgid "Erreurs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exemples (EAN | Ref)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exporter Planification"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécuter les jobs sélectionnés"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécuter maintenant"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécuter tous les jobs en attente"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécution"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécution %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécution (Planification)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécution PIM - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécutions (Planification)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Exécutions PIM"
+msgstr ""
+
+#. module: planete_pim
+msgid "FULL"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fermer"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichier"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichier (Planification)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichier dispo."
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichier principal non trouvé (pattern: %s)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichier traité"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichiers"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fichiers (Planification)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Forcer le Retry"
+msgstr ""
+
+#. module: planete_pim
+msgid "Forcer le retry (jobs sélectionnés)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Fournisseur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Grouper par"
+msgstr ""
+
+#. module: planete_pim
+msgid "Guards PIM Reset"
+msgstr ""
+
+#. module: planete_pim
+msgid "Guards reset manuellement le %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Heure d'exécution (0-23)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Heures d'exécution (séparées par virgule)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Historique d'import"
+msgstr ""
+
+#. module: planete_pim
+msgid "Historique de prix"
+msgstr ""
+
+#. module: planete_pim
+msgid "Historique des alias"
+msgstr ""
+
+#. module: planete_pim
+msgid "Historique des alias de marque"
+msgstr ""
+
+#. module: planete_pim
+msgid "Historique des prix"
+msgstr ""
+
+#. module: planete_pim
+msgid "Identification"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ignorées"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ignorés"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import"
+msgstr "Import"
+
+#. module: planete_pim
+msgid "Import %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import FTP lancé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import Info"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import PIM - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import arrêté manuellement"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import direct terminé."
+msgstr ""
+
+#. module: planete_pim
+msgid "Import en arrière-plan lancé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import en cours"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import produits (PIM)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Import produits (Planète PIM)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Importer"
+msgstr ""
+
+#. module: planete_pim
+msgid "Importer dans le catalogue"
+msgstr ""
+
+#. module: planete_pim
+msgid "Imports (historique)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Importé le"
+msgstr ""
+
+#. module: planete_pim
+msgid "Informations"
+msgstr ""
+
+#. module: planete_pim
+msgid "Informations commerciales"
+msgstr ""
+
+#. module: planete_pim
+msgid "Informations fichier"
+msgstr ""
+
+#. module: planete_pim
+msgid "Informations produit"
+msgstr ""
+
+#. module: planete_pim
+msgid "Job DELTA créé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Job FULL Forcé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Job FULL créé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Job FULL créé (ID: %s). Il sera exécuté par le cron '[PIM] Import Job Runner' dans la minute."
+msgstr ""
+
+#. module: planete_pim
+msgid "Job REFRESH créé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Job d'import"
+msgstr ""
+
+#. module: planete_pim
+msgid "Jobs d'import"
+msgstr ""
+
+#. module: planete_pim
+msgid "Journal d'import"
+msgstr ""
+
+#. module: planete_pim
+msgid "La fusion des fichiers a échoué"
+msgstr ""
+
+#. module: planete_pim
+msgid "La marque '%s' a été créée avec '%s' comme alias."
+msgstr ""
+
+#. module: planete_pim
+msgid "La marque '%s' a été créée."
+msgstr ""
+
+#. module: planete_pim
+msgid "La marque '%s' a été ignorée."
+msgstr ""
+
+#. module: planete_pim
+msgid "Lancer FTP"
+msgstr ""
+
+#. module: planete_pim
+msgid "Lancer PIM"
+msgstr ""
+
+#. module: planete_pim
+msgid "Le Provider est obligatoire pour l'import PIM (provider_id manquant)."
+msgstr ""
+
+#. module: planete_pim
+msgid "Le champ Nom est obligatoire."
+msgstr ""
+
+#. module: planete_pim
+msgid "Le délimiteur CSV peut contenir au maximum 5 caractères."
+msgstr ""
+
+#. module: planete_pim
+msgid "Le fichier importé semble être un Excel (.xlsx). Veuillez l'exporter en CSV (séparateur ';' ou ',', encodage UTF-8/latin-1), puis réessayer."
+msgstr ""
+
+#. module: planete_pim
+msgid "Le job #%s a été créé. Vous pouvez fermer cette fenêtre et consulter les Journaux d'import une fois terminé."
+msgstr ""
+
+#. module: planete_pim
+msgid "Le module de fusion multi-fichiers n'est pas disponible"
+msgstr ""
+
+#. module: planete_pim
+msgid "Lecture du fichier échouée: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ligne %d/%d - %d créés, %d trouvés, %d erreurs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ligne %d: aucun code-barres utilisable — ligne envoyée en quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ligne %d: code-barres non standard (%s) — normalisation partielle, utilisation du code brut"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ligne %d: erreur import direct [%s] (BARCODE=%s, REF=%s) - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ligne %d: valeurs négatives pour prix/stock"
+msgstr ""
+
+#. module: planete_pim
+msgid "Lignes totales"
+msgstr ""
+
+#. module: planete_pim
+msgid "Lignes traitées"
+msgstr ""
+
+#. module: planete_pim
+msgid "Logs"
+msgstr "Protokolle"
+
+#. module: planete_pim
+msgid "Logs de diagnostic"
+msgstr ""
+
+#. module: planete_pim
+msgid "Mapping"
+msgstr "Zuordnung"
+
+#. module: planete_pim
+msgid "Marque"
+msgstr ""
+
+#. module: planete_pim
+msgid "Marque créée"
+msgstr ""
+
+#. module: planete_pim
+msgid "Marque fichier"
+msgstr ""
+
+#. module: planete_pim
+msgid "Marque ignorée"
+msgstr ""
+
+#. module: planete_pim
+msgid "Marque validée"
+msgstr ""
+
+#. module: planete_pim
+msgid "Marques à vérifier"
+msgstr ""
+
+#. module: planete_pim
+msgid "Mode"
+msgstr ""
+
+#. module: planete_pim
+msgid "Mode d'import"
+msgstr ""
+
+#. module: planete_pim
+msgid "Modifié (remote)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Mécanisme de Retry"
+msgstr ""
+
+#. module: planete_pim
+msgid "Niveau FTP"
+msgstr ""
+
+#. module: planete_pim
+msgid "Niveau PIM"
+msgstr ""
+
+#. module: planete_pim
+msgid "Nom du fichier"
+msgstr ""
+
+#. module: planete_pim
+msgid "Nom marque"
+msgstr ""
+
+#. module: planete_pim
+msgid "Notes"
+msgstr ""
+
+#. module: planete_pim
+msgid "Nouvelles marques créées"
+msgstr ""
+
+#. module: planete_pim
+msgid "Nouvelles marques créées: %d"
+msgstr ""
+
+#. module: planete_pim
+msgid "ODR Import %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Options"
+msgstr ""
+
+#. module: planete_pim
+msgid "Options (JSON)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Oui, supprimer tout"
+msgstr ""
+
+#. module: planete_pim
+msgid "Ouvrir le produit"
+msgstr ""
+
+#. module: planete_pim
+msgid "PIM - Délimiteur regex (TXT multispace/tabulation)"
+msgstr ""
+
+#. module: planete_pim
+msgid "PIM Manager"
+msgstr ""
+
+#. module: planete_pim
+msgid "PIM Product Import"
+msgstr ""
+
+#. module: planete_pim
+msgid "PIM User"
+msgstr ""
+
+#. module: planete_pim
+msgid "Planif. FTP"
+msgstr ""
+
+#. module: planete_pim
+msgid "Planification"
+msgstr ""
+
+#. module: planete_pim
+msgid "Planification PIM"
+msgstr ""
+
+#. module: planete_pim
+msgid "Planification — Fournisseurs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Planifié par cron..."
+msgstr ""
+
+#. module: planete_pim
+msgid "Planète PIM - Overview"
+msgstr ""
+
+#. module: planete_pim
+msgid "Prix d'achat"
+msgstr ""
+
+#. module: planete_pim
+msgid "Prix et stock"
+msgstr ""
+
+#. module: planete_pim
+msgid "Prochaine exécution FTP"
+msgstr ""
+
+#. module: planete_pim
+msgid "Prochaine exécution PIM"
+msgstr ""
+
+#. module: planete_pim
+msgid "Produit en Quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Produit ligne %d"
+msgstr ""
+
+#. module: planete_pim
+msgid "Produits"
+msgstr ""
+
+#. module: planete_pim
+msgid "Produits en Quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Progression"
+msgstr ""
+
+#. module: planete_pim
+msgid "Provider"
+msgstr "Anbieter"
+
+#. module: planete_pim
+msgid "Prévisualiser"
+msgstr ""
+
+#. module: planete_pim
+msgid "Qté min."
+msgstr ""
+
+#. module: planete_pim
+msgid "Quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Quarantaine vide"
+msgstr ""
+
+#. module: planete_pim
+msgid "Raison quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Re-vérification"
+msgstr ""
+
+#. module: planete_pim
+msgid "Re-vérification terminée"
+msgstr ""
+
+#. module: planete_pim
+msgid "Recherche Quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Rechercher"
+msgstr ""
+
+#. module: planete_pim
+msgid "Rechercher Jobs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Rechercher alias"
+msgstr ""
+
+#. module: planete_pim
+msgid "Retry"
+msgstr ""
+
+#. module: planete_pim
+msgid "Réf. doublon"
+msgstr ""
+
+#. module: planete_pim
+msgid "Réf. fournisseur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Référence '%s' présente %d fois aux lignes: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Résultats"
+msgstr ""
+
+#. module: planete_pim
+msgid "Résumé Script (sur échantillon)"
+msgstr ""
+
+#. module: planete_pim
+msgid "Sans EAN"
+msgstr ""
+
+#. module: planete_pim
+msgid "Scripts"
+msgstr ""
+
+#. module: planete_pim
+msgid "Source"
+msgstr ""
+
+#. module: planete_pim
+msgid "Standard"
+msgstr ""
+
+#. module: planete_pim
+msgid "Statut"
+msgstr ""
+
+#. module: planete_pim
+msgid "Statut Connexion"
+msgstr ""
+
+#. module: planete_pim
+msgid "Statut DELTA"
+msgstr ""
+
+#. module: planete_pim
+msgid "Statut FULL"
+msgstr ""
+
+#. module: planete_pim
+msgid "Statut Planif."
+msgstr ""
+
+#. module: planete_pim
+msgid "Stock fourn."
+msgstr ""
+
+#. module: planete_pim
+msgid "Succès: %d | Échecs: %d"
+msgstr ""
+
+#. module: planete_pim
+msgid "Suggestion"
+msgstr ""
+
+#. module: planete_pim
+msgid "Suppression réussie"
+msgstr ""
+
+#. module: planete_pim
+msgid "Supprimer tous les produits en quarantaine"
+msgstr ""
+
+#. module: planete_pim
+msgid "Tableau de bord - Jobs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Temps restant estimé"
+msgstr ""
+
+#. module: planete_pim
+msgid "Terminé: %d lignes traitées - %d créés, %d trouvés, %d erreurs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Terminés"
+msgstr ""
+
+#. module: planete_pim
+msgid "Un job d'import DELTA a été créé (ID: %s). Il sera traité automatiquement par le cron. Consultez les 'Jobs d'import' pour suivre la progression."
+msgstr ""
+
+#. module: planete_pim
+msgid "Un job d'import FULL a été créé (ID: %s). Il sera traité automatiquement par le cron. Consultez les 'Jobs d'import' pour suivre la progression."
+msgstr ""
+
+#. module: planete_pim
+msgid "Un job d'import est déjà en cours ou en attente pour ce fournisseur. Veuillez attendre qu'il se termine."
+msgstr ""
+
+#. module: planete_pim
+msgid "Un job de rafraîchissement du contenu a été créé (ID: %s). Il appliquera le mapping template '%s' à tous les produits existants trouvés dans le fichier FTP."
+msgstr ""
+
+#. module: planete_pim
+msgid "Une marque avec ce nom existe déjà: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "Utilisateur"
+msgstr ""
+
+#. module: planete_pim
+msgid "Validation terminée (écriture staging effectuée)."
+msgstr ""
+
+#. module: planete_pim
+msgid "Validées"
+msgstr ""
+
+#. module: planete_pim
+msgid "Validés"
+msgstr ""
+
+#. module: planete_pim
+msgid "Vendeurs"
+msgstr ""
+
+#. module: planete_pim
+msgid "Vendors"
+msgstr ""
+
+#. module: planete_pim
+msgid "Veuillez saisir un terme de recherche"
+msgstr ""
+
+#. module: planete_pim
+msgid "Veuillez sélectionner un fichier à importer."
+msgstr ""
+
+#. module: planete_pim
+msgid "Veuillez sélectionner une marque existante."
+msgstr ""
+
+#. module: planete_pim
+msgid "Voir"
+msgstr ""
+
+#. module: planete_pim
+msgid "Voir produit"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA CRON] %s - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] %s - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Connexion au serveur..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Délai dépassé (%d sec). Arrêt à la ligne %d/%d."
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] ERREUR: Colonne EAN non trouvée - vérifier le mapping"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Erreur cron: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Erreur: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Guard reset automatique après blocage"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Import prix/stock %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Initialisation..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Lecture du fichier..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Ligne %d/%d - %d MAJ..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Ligne %d/%d - %d prix MAJ, %d stocks MAJ"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Terminé: %d prix MAJ, %d stocks MAJ, %d ignorés"
+msgstr ""
+
+#. module: planete_pim
+msgid "[DELTA] Traitement de %d lignes..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL CRON] %s - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL FORCÉ] %s - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL-SPLIT %d/%d] %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL-SPLIT] Terminé: %d créés, %d quarantaine, %d existants"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] %s - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Délai dépassé (%d sec). Arrêt à la ligne %d/%d."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Délai dépassé pendant Passe 1 (%d sec). Arrêt à la ligne %d/%d."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] ERREUR: Le provider '%s' n'a pas de template de mapping configuré."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Erreur cron: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Erreur: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Fichier volumineux (%d lignes) : Pass 1 doublons désactivée (mode FAST)"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Guard reset automatique après blocage"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Import création %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Initialisation..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Lecture du fichier attaché..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Ligne %d/%d - %d créés, %d MAJ, %d quarant., %d err (%.0f l/s, ETA %d min)"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Passe 1/2: Analyse ligne %d/%d (%.0f lignes/sec, ETA: %d sec)..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Passe 1/2: Détection des doublons (%d lignes à scanner)..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Passe 1/2: Détection des doublons..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Passe 2/2: Création produits (~%d nouveaux estimés)..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Passe 2/2: ~%d nouveaux produits à créer..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Pause planifiée (budget temps atteint) pendant Pass 1 à la ligne %d/%d"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Terminé: %d créés, %d quarantaine, %d existants"
+msgstr ""
+
+#. module: planete_pim
+msgid "[FULL] Traitement du fichier..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[PIM DELTA] Import prix/stock"
+msgstr ""
+
+#. module: planete_pim
+msgid "[PIM FULL] Import création quotidien"
+msgstr ""
+
+#. module: planete_pim
+msgid "[PIM] Expiration stock fournisseur (26h)"
+msgstr ""
+
+#. module: planete_pim
+msgid "[PIM] Import Job Runner"
+msgstr ""
+
+#. module: planete_pim
+msgid "[PIM] Traitement des exécutions de planification"
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] %s - %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Connexion au serveur..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Délai dépassé (%d sec). Arrêt à la ligne %d/%d."
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] ERREUR: Pas de template de mapping configuré pour '%s'"
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Erreur: %s"
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Ligne %d/%d - %d mis à jour..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Terminé: %d mis à jour, %d non trouvés, %d sans EAN"
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Terminé: %d produits mis à jour, %d ignorés"
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Traitement de %d lignes..."
+msgstr ""
+
+#. module: planete_pim
+msgid "[REFRESH] Traitement du fichier..."
+msgstr ""
+
+#. module: planete_pim
+msgid "colbee.search.wizard.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "ftp.provider.form.inherit.planete.pim"
+msgstr ""
+
+#. module: planete_pim
+msgid "ftp.provider.kanban.overview"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.alias.history.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.alias.history.list"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.alias.history.search"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.pending.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.pending.kanban"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.pending.list"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.brand.pending.search"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.file.import.wizard.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.import.history.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.import.history.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.import.job.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.import.job.kanban"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.import.job.search"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.import.job.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.plan.attachment.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.plan.attachment.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.plan.run.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.plan.run.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.planning.export.wizard.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.planning.provider.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.price.history.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.price.history.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.product.staging.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.product.staging.search"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.product.staging.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.staging.delete.wizard.form"
+msgstr ""
+
+#. module: planete_pim
+msgid "planete.pim.staging.vendor.tree"
+msgstr ""
+
+#. module: planete_pim
+msgid "product.template.form.created.by"
+msgstr ""
+
+#. module: planete_pim
+msgid "product.template.tree.created.by"
+msgstr ""
+
+#. module: planete_pim
+msgid "À traiter"
+msgstr ""
+
+#. module: planete_pim
+msgid "Échoués"
+msgstr ""
+
+#. module: planete_pim
+msgid "État"
+msgstr ""
+
+#. module: planete_pim
+msgid "↩️ Remettre en attente"
+msgstr ""
+
+#. module: planete_pim
+msgid "⏹️ Arrêter import"
+msgstr ""
+
+#. module: planete_pim
+msgid "⚙️ Options communes"
+msgstr ""
+
+#. module: planete_pim
+msgid "✅ Valider avec cette marque"
+msgstr ""
+
+#. module: planete_pim
+msgid "➕ Créer nouvelle marque"
+msgstr ""
+
+#. module: planete_pim
+msgid "🆕 Importer création (FULL)"
+msgstr ""
+
+#. module: planete_pim
+msgid "🆕 [FULL] Import création produits (1x/jour)"
+msgstr ""
+
+#. module: planete_pim
+msgid "🏭 Fournisseurs"
+msgstr ""
+
+#. module: planete_pim
+msgid "📊 Progression import en cours"
+msgstr ""
+
+#. module: planete_pim
+msgid "📋 Exemples de produits"
+msgstr ""
+
+#. module: planete_pim
+msgid "📥 Exporter erreurs CSV"
+msgstr ""
+
+#. module: planete_pim
+msgid "📥 Télécharger"
+msgstr ""
+
+#. module: planete_pim
+msgid "📦 Produit trouvé"
+msgstr ""
+
+#. module: planete_pim
+msgid "🔃 Rafraîchir contenu"
+msgstr ""
+
+#. module: planete_pim
+msgid "🔄 Importer delta (Prix/Stock)"
+msgstr ""
+
+#. module: planete_pim
+msgid "🔄 Re-vérifier les marques"
+msgstr ""
+
+#. module: planete_pim
+msgid "🔄 [DELTA] Import prix/stock (3x/jour)"
+msgstr ""
+
+#. module: planete_pim
+msgid "🔍 Recherche"
+msgstr ""
+
+#. module: planete_pim
+msgid "🗑️ Supprimer tout"
+msgstr ""
+
+#. module: planete_pim
+msgid "🚫 Ignorer"
+msgstr ""

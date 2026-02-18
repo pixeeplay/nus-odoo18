@@ -1,12 +1,31 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Planète PIM - Overview",
-    "summary": "Vue d’ensemble des fournisseurs, planification et import produits (kanban + wizard).",
+    "name": "Product Information Management (PIM)",
+    "summary": "Centralized product management with supplier planning, staging import and brand management",
+    "description": """
+Product Information Management (PIM)
+=====================================
+Complete PIM solution for Odoo with supplier overview, product planning and import workflows.
+
+Features:
+---------
+* Kanban overview of suppliers and product planning
+* Staging area for product imports with validation
+* File import wizard (CSV/Excel) with column mapping
+* Brand management with alias history
+* Planification board for product lifecycle
+* Job queue for background processing
+* Colbee integration for product data
+* Multi-company and multi-brand support
+    """,
     "version": "18.0.2.11.0",
-    "author": "Doscaal",
-    "license": "LGPL-3",
-    "website": "",
-    "category": "Tools",
+    "author": "Antigravity",
+    "website": "https://antigravity.fr",
+    "support": "support@antigravity.fr",
+    "license": "OPL-1",
+    "price": 199,
+    "currency": "EUR",
+    "category": "Sales/Products",
     "depends": [
         "base",
         "product",
@@ -33,6 +52,8 @@
         "wizards/staging_delete_wizard_view.xml",
         "data/planete_pim_cron.xml",
     ],
+    "images": ["static/description/banner.png"],
     "installable": True,
     "application": True,
+    "auto_install": False,
 }

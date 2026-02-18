@@ -1,0 +1,101 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_label_print
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 18:59+0000\n"
+"PO-Revision-Date: 2026-02-18 18:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+
+#. module: product_label_print
+msgid "AI Enrichment"
+msgstr ""
+
+#. module: product_label_print
+msgid "Cancel"
+msgstr ""
+
+#. module: product_label_print
+msgid "Display Options"
+msgstr ""
+
+#. module: product_label_print
+msgid "Energy &amp; Environment"
+msgstr ""
+
+#. module: product_label_print
+msgid "Enrich with AI"
+msgstr ""
+
+#. module: product_label_print
+msgid "Errors:"
+msgstr ""
+
+#. module: product_label_print
+msgid "Label / Price Tag"
+msgstr ""
+
+#. module: product_label_print
+msgid "Please select at least one product."
+msgstr ""
+
+#. module: product_label_print
+msgid "Print Label"
+msgstr ""
+
+#. module: product_label_print
+msgid "Print Labels"
+msgstr ""
+
+#. module: product_label_print
+msgid "Print Product Labels"
+msgstr ""
+
+#. module: product_label_print
+msgid "Print Settings"
+msgstr ""
+
+#. module: product_label_print
+msgid "Product Label (A4 - 2 per page)"
+msgstr ""
+
+#. module: product_label_print
+msgid "Product Labels"
+msgstr ""
+
+#. module: product_label_print
+msgid "Products"
+msgstr ""
+
+#. module: product_label_print
+msgid "Products - Labels"
+msgstr ""
+
+#. module: product_label_print
+msgid "Promotional Pricing"
+msgstr ""
+
+#. module: product_label_print
+msgid "Quantity must be at least 1."
+msgstr ""
+
+#. module: product_label_print
+msgid "product.label.print.wizard.form"
+msgstr ""
+
+#. module: product_label_print
+msgid "product.template.form.label.fields"
+msgstr ""
+
+#. module: product_label_print
+msgid "product.template.tree.label.fields"
+msgstr ""

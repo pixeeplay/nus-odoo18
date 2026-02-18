@@ -1,0 +1,186 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* code2asin
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 18:59+0000\n"
+"PO-Revision-Date: 2026-02-18 18:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+
+#. module: code2asin
+msgid "Arrêter l'importation"
+msgstr ""
+
+#. module: code2asin
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#. module: code2asin
+msgid "Code2ASIN"
+msgstr ""
+
+#. module: code2asin
+msgid "Code2ASIN Configuration"
+msgstr ""
+
+#. module: code2asin
+msgid "Code2ASIN Dashboard"
+msgstr ""
+
+#. module: code2asin
+msgid "Date"
+msgstr "Datum"
+
+#. module: code2asin
+msgid "Erreurs"
+msgstr ""
+
+#. module: code2asin
+msgid "Error"
+msgstr "Fehler"
+
+#. module: code2asin
+msgid "Fournisseur du CSV"
+msgstr ""
+
+#. module: code2asin
+msgid "Group By"
+msgstr ""
+
+#. module: code2asin
+msgid "Import Log"
+msgstr ""
+
+#. module: code2asin
+msgid "Import Logs"
+msgstr ""
+
+#. module: code2asin
+msgid "Import Monitor"
+msgstr ""
+
+#. module: code2asin
+msgid "Import Session"
+msgstr ""
+
+#. module: code2asin
+msgid "Information"
+msgstr ""
+
+#. module: code2asin
+msgid "Monitor Import"
+msgstr ""
+
+#. module: code2asin
+msgid "Produits Total"
+msgstr ""
+
+#. module: code2asin
+msgid "Rafraîchir"
+msgstr ""
+
+#. module: code2asin
+msgid "Save Configuration"
+msgstr ""
+
+#. module: code2asin
+msgid "Search Import Logs"
+msgstr ""
+
+#. module: code2asin
+msgid "Success"
+msgstr "Erfolg"
+
+#. module: code2asin
+msgid "Succès"
+msgstr ""
+
+#. module: code2asin
+msgid "Traités"
+msgstr ""
+
+#. module: code2asin
+msgid "Type"
+msgstr ""
+
+#. module: code2asin
+msgid "User"
+msgstr ""
+
+#. module: code2asin
+msgid "Warning"
+msgstr ""
+
+#. module: code2asin
+msgid "code2asin.config.form"
+msgstr ""
+
+#. module: code2asin
+msgid "code2asin.dashboard"
+msgstr ""
+
+#. module: code2asin
+msgid "code2asin.import.log.form"
+msgstr ""
+
+#. module: code2asin
+msgid "code2asin.import.log.list"
+msgstr ""
+
+#. module: code2asin
+msgid "code2asin.import.log.search"
+msgstr ""
+
+#. module: code2asin
+msgid "code2asin.monitor.form"
+msgstr ""
+
+#. module: code2asin
+msgid "⏹️ Arrêter Import"
+msgstr ""
+
+#. module: code2asin
+msgid "⏹️ Stop Import"
+msgstr ""
+
+#. module: code2asin
+msgid "⚡ Performance"
+msgstr ""
+
+#. module: code2asin
+msgid "📊 Monitor Import"
+msgstr ""
+
+#. module: code2asin
+msgid "📊 Progression"
+msgstr ""
+
+#. module: code2asin
+msgid "📋 Logs Détaillés"
+msgstr ""
+
+#. module: code2asin
+msgid "📋 Résumé des Actions"
+msgstr ""
+
+#. module: code2asin
+msgid "🔄 Rafraîchir"
+msgstr ""
+
+#. module: code2asin
+msgid "🗂️ Informations Fichier"
+msgstr ""
+
+#. module: code2asin
+msgid "🚀 Start Import"
+msgstr ""

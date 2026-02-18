@@ -1,14 +1,30 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Code2ASIN Import",
-    'summary': "Automate import product data via Code2ASIN",
-    'description': "Automate import product data via Code2ASIN",
+    'summary': "Import product data from Amazon via barcode/EAN lookup with Code2ASIN API",
+    'description': """
+Code2ASIN Import
+================
+Automate product data import from Amazon using barcode and EAN code lookup.
+
+Features:
+---------
+* Barcode/EAN to ASIN conversion via Code2ASIN API
+* Automatic product data import (name, description, images, price)
+* Dashboard with import statistics and monitoring
+* Import history and detailed logs
+* Bulk import support
+* Configurable field mapping
+    """,
     'license': 'OPL-1',
-    'images': ['images/main_1.png', 'images/main_screenshot.png'],
-    'author': "Pixeeplay",
-    'website': "https://pixeeplay.com",
-    'category': 'Tools',
-    'version': '6.1.37',
+    'price': 149,
+    'currency': 'EUR',
+    'images': ['static/description/banner.png'],
+    'author': "Antigravity",
+    'website': "https://antigravity.fr",
+    'support': 'support@antigravity.fr',
+    'category': 'Sales/Products',
+    'version': '18.0.6.1.37',
     'application': True,
     'depends': ['base', 'web', 'product'],
     'data': [

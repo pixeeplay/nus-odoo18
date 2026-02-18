@@ -1,25 +1,31 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Odoo AI Enrichment',
+    'name': 'AI Product Enrichment',
     'version': '18.0.1.0.0',
     'category': 'Sales/Products',
-    'summary': 'Unified AI Enrichment (OpenAI, Gemini, Claude, Ollama, Perplexity)',
+    'summary': 'AI-powered product enrichment with OpenAI, Gemini, Claude, Ollama and Perplexity',
     'description': """
-Odoo AI Enrichment
-==================
-Complete AI integration for Odoo Products.
+AI Product Enrichment
+=====================
+Complete AI integration for automatic product data enrichment in Odoo.
 
 Features:
 ---------
-* Multi-Provider Support (OpenAI, Gemini, Anthropic, Ollama, etc.)
-* Deep Enrichment via SerpApi & ScrapingBee
-* Automated Media & Image Import
-* Dynamic Field Mapping
-* Bulk Enrichment from List View
+* Multi-Provider AI Support (OpenAI, Gemini, Anthropic Claude, Ollama, Perplexity)
+* Deep Enrichment via SerpApi and ScrapingBee web search
+* Automated Media and Image Import from web sources
+* Dynamic Field Mapping for flexible data routing
+* Bulk Enrichment from product list view
+* Enrichment Queue with parallel processing
+* Dashboard with real-time statistics
+* Configurable AI prompts and templates
     """,
-    'author': 'Pixeeplay',
-    'website': 'https://github.com/pixeeplay/nus-odoo18',
-    'license': 'LGPL-3',
+    'author': 'Antigravity',
+    'website': 'https://antigravity.fr',
+    'support': 'support@antigravity.fr',
+    'license': 'OPL-1',
+    'price': 199,
+    'currency': 'EUR',
     'depends': ['product', 'base', 'web', 'website_sale', 'stock'],
     'data': [
         'security/ir.model.access.csv',
@@ -34,7 +40,7 @@ Features:
         'views/res_config_settings_views.xml',
         'views/menus.xml',
     ],
-    'images': ['static/description/icon.png'],
+    'images': ['static/description/banner.png'],
     'post_init_hook': '_post_init_fix_searxng_config',
     'installable': True,
     'application': True,
