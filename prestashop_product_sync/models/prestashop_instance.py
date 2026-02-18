@@ -1116,8 +1116,7 @@ class PrestaShopInstance(models.Model):
             products = [products]
         return [str(p.get('id', '')) for p in products if p.get('id')]
 
-    # Product fields for explicit display parameter
-    # NOTE: 'associations' is NOT a valid field for display=[] — it only works with display=full
+    # Explicit field list (fallback — no associations)
     _PS_PRODUCT_FIELDS = (
         'id,name,description,description_short,price,wholesale_price,'
         'reference,ean13,weight,active,id_category_default,'
@@ -1136,12 +1135,21 @@ class PrestaShopInstance(models.Model):
                 product = products
         return product or {}
 
-    def _enrich_with_associations(self, product, ps_id):
-        """Fetch associations (images, features, stock) separately.
+    def _fetch_single_product_full(self, ps_product_id):
+        """Fetch full details for a single product by ID.
 
-        Associations can only be fetched via display=full.
-        We use the list endpoint + filter to avoid View permission issues.
+        Uses LIST endpoint + filter[id] instead of single resource endpoint
+        because the API key has List permission but not View permission.
+
+        Diagnostic confirmed:
+        - List + filter + display=full  → 70 keys (with associations)
+        - List + filter + explicit fields → 17 keys (no associations)
+        - Single resource (any) → 1 key only (FAILS)
         """
+        self.ensure_one()
+        ps_id = str(ps_product_id)
+
+        # Strategy 1: LIST + filter + display=full (70 keys, includes associations)
         try:
             data = self._api_get_long(
                 'products', params={
@@ -1150,89 +1158,35 @@ class PrestaShopInstance(models.Model):
                 },
                 timeout=120,
             )
-            full = self._extract_product_from_response(data)
-            if full and full.get('associations'):
-                product['associations'] = full['associations']
-                _logger.info("PS-%s: associations enriched (%s)",
-                             ps_id, list(full['associations'].keys()))
+            product = self._extract_product_from_response(data)
+            if product and len(product) > 2:
+                _logger.info("PS-%s: fetched OK (%d keys)", ps_id, len(product))
+                return product
+            _logger.warning("PS-%s: display=full returned only %d keys, trying explicit fields...",
+                            ps_id, len(product))
         except Exception as exc:
-            _logger.warning("PS-%s: associations fetch failed (non-blocking): %s", ps_id, exc)
-        return product
+            _logger.warning("PS-%s: display=full failed (%s), trying explicit fields...", ps_id, exc)
 
-    def _fetch_single_product_full(self, ps_product_id):
-        """Fetch full details for a single product by ID.
-
-        Strategy order:
-        1. List endpoint + filter[id] + explicit fields (most reliable —
-           works even when API key has List but not View permission)
-        2. List endpoint + filter[id] + display=full (for associations)
-        3. Single resource + display=full (classic, needs View permission)
-        """
-        self.ensure_one()
-        ps_id = str(ps_product_id)
-
-        # Strategy 1: LIST endpoint + filter (no resource_id, no associations)
-        # This is the same pattern as the lightweight fetch that WORKS
+        # Strategy 2: LIST + filter + explicit fields (17 keys, no associations)
         product = {}
         try:
             data = self._api_get_long(
                 'products', params={
                     'display': f'[{self._PS_PRODUCT_FIELDS}]',
-                    'filter[id]': str(ps_id),  # exact match, NO brackets
-                },
-                timeout=120,
-            )
-            product = self._extract_product_from_response(data)
-            if product and len(product) > 2:
-                _logger.info("PS-%s: fetched OK via list+filter (%d keys)", ps_id, len(product))
-                # Enrich with associations (images, features, stock)
-                product = self._enrich_with_associations(product, ps_id)
-                return product
-            _logger.warning(
-                "PS-%s: list+filter returned only %d keys, trying display=full...",
-                ps_id, len(product),
-            )
-        except Exception as exc:
-            _logger.warning("PS-%s: list+filter failed (%s), trying display=full...", ps_id, exc)
-
-        # Strategy 2: LIST endpoint + filter + display=full
-        try:
-            data = self._api_get_long(
-                'products', params={
-                    'display': 'full',
                     'filter[id]': str(ps_id),
                 },
                 timeout=120,
             )
             product = self._extract_product_from_response(data)
             if product and len(product) > 2:
-                _logger.info("PS-%s: fetched OK via list+filter+full (%d keys)", ps_id, len(product))
-                return product
-            _logger.warning(
-                "PS-%s: list+filter+full returned only %d keys, trying single resource...",
-                ps_id, len(product),
-            )
-        except Exception as exc:
-            _logger.warning("PS-%s: list+filter+full failed (%s), trying single resource...", ps_id, exc)
-
-        # Strategy 3: single resource endpoint (needs View permission)
-        try:
-            data = self._api_get_long(
-                'products', resource_id=ps_id,
-                params={'display': 'full'},
-                timeout=120,
-            )
-            product = self._extract_product_from_response(data)
-            if product and len(product) > 2:
-                _logger.info("PS-%s: fetched OK via single resource (%d keys)", ps_id, len(product))
+                _logger.info("PS-%s: fetched OK via explicit fields (%d keys, no associations)",
+                             ps_id, len(product))
                 return product
         except Exception as exc:
-            _logger.warning("PS-%s: single resource failed: %s", ps_id, exc)
+            _logger.warning("PS-%s: explicit fields also failed: %s", ps_id, exc)
 
-        _logger.error(
-            "PS-%s: ALL fetch strategies returned empty/minimal data. Keys: %s",
-            ps_id, list(product.keys()) if product else '(none)',
-        )
+        _logger.error("PS-%s: ALL fetch strategies failed. Keys: %s",
+                       ps_id, list(product.keys()) if product else '(none)')
         return product if product else {}
 
     def action_sync_products(self):
