@@ -194,30 +194,11 @@
         <field name="target">current</field>
     </record>
 
-    <!-- Override the dashboard menu from prestashop_odoo_sync to point to our dashboard -->
-    <record id="prestashop_odoo_sync.menu_prestashop_dashboard" model="ir.ui.menu">
-        <field name="action" ref="action_prestashop_product_dashboard"/>
-    </record>
-
-    <!-- Add Products menu -->
-    <menuitem id="menu_prestashop_products"
-              name="Products"
-              parent="prestashop_odoo_sync.menu_prestashop_sync_root"
-              action="action_prestashop_products"
-              sequence="15"/>
-
-    <!-- Add Product Preview menu -->
-    <menuitem id="menu_prestashop_product_preview"
-              name="Product Preview"
-              parent="prestashop_odoo_sync.menu_prestashop_sync_root"
-              action="action_prestashop_product_preview"
-              sequence="12"/>
-
-    <!-- Add Field Mapping menu -->
-    <menuitem id="menu_prestashop_field_mapping"
-              name="Field Mapping"
-              parent="prestashop_odoo_sync.menu_prestashop_config_root"
-              action="action_prestashop_field_mapping"
-              sequence="20"/>
+    <!-- Dashboard menu under PrestaShop root -->
+    <menuitem id="menu_prestashop_dashboard"
+              name="Dashboard"
+              parent="prestashop_odoo_sync.menu_prestashop_root"
+              action="action_prestashop_product_dashboard"
+              sequence="1"/>
 
 </odoo>
