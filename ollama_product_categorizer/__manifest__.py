@@ -37,9 +37,9 @@ Requirements:
     'data': [
         'security/ir.model.access.csv',
         'data/categorizer_data.xml',
-        'views/categorizer_dashboard_views.xml',
-        'views/product_views.xml',
         'views/category_mapping_views.xml',
+        'views/product_views.xml',
+        'views/categorizer_dashboard_views.xml',
     ],
     'images': ['static/description/banner.png'],
     'application': True,

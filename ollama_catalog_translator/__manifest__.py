@@ -35,9 +35,9 @@ Requirements
     ],
     'data': [
         'security/ir.model.access.csv',
-        'views/translator_dashboard_views.xml',
         'views/product_views.xml',
         'wizard/translation_wizard_views.xml',
+        'views/translator_dashboard_views.xml',
     ],
     'images': ['static/description/banner.png'],
     'application': True,
