@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Dashboard as landing page (first child of root menu) -->
+    <menuitem id="menu_ai_dashboard"
+              name="Dashboard"
+              parent="menu_ai_enrichment_root"
+              action="action_ai_enrichment_dashboard"
+              sequence="1"/>
+
     <!-- Queue menu under the existing AI Enrichment root menu -->
     <menuitem id="menu_ai_queue"
               name="Queue"
@@ -14,7 +21,7 @@
               sequence="10"/>
 
     <menuitem id="menu_ai_queue_dashboard"
-              name="Dashboard"
+              name="Graphiques"
               parent="menu_ai_queue"
               action="action_product_enrichment_dashboard"
               sequence="20"/>

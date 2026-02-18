@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dashboard Form View -->
+    <record id="view_product_enrichment_dashboard_form" model="ir.ui.view">
+        <field name="name">product.enrichment.dashboard.form</field>
+        <field name="model">product.enrichment.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Enrichment Dashboard" create="false" edit="true" delete="false">
+                <header>
+                    <button name="action_start_pipeline"
+                            string="Start Pipeline"
+                            type="object"
+                            class="btn-success"
+                            icon="fa-play"
+                            invisible="pipeline_running"/>
+                    <button name="action_stop_pipeline"
+                            string="Stop Pipeline"
+                            type="object"
+                            class="btn-danger"
+                            icon="fa-stop"
+                            invisible="not pipeline_running"/>
+                    <button name="action_process_now"
+                            string="Traiter maintenant"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bolt"/>
+                    <button name="action_open_queue"
+                            string="Queue"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-list"/>
+                    <button name="action_open_errors"
+                            string="Erreurs"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-exclamation-triangle"/>
+                    <button name="action_open_config"
+                            string="Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                </header>
+                <sheet>
+                    <!-- Pipeline Status Banner -->
+                    <div class="alert alert-success" role="alert" invisible="not pipeline_running">
+                        <i class="fa fa-circle text-success me-2"/>
+                        <strong>Pipeline actif</strong> —
+                        <field name="current_provider" readonly="1" class="fw-bold d-inline"/> /
+                        <field name="current_model" readonly="1" class="fw-bold d-inline"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="pipeline_running">
+                        <i class="fa fa-circle text-danger me-2"/>
+                        <strong>Pipeline en pause</strong>
+                    </div>
+
+                    <!-- Stats Cards Row -->
+                    <div class="row mb-4">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-primary">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-primary"><field name="total_pending" readonly="1"/></h3>
+                                    <small class="text-muted">En attente</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-info">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-info"><field name="total_collecting" readonly="1"/></h3>
+                                    <small class="text-muted">Collecte</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-warning">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-warning"><field name="total_collected" readonly="1"/></h3>
+                                    <small class="text-muted">Collect&#233;</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center" style="border-color: #6f42c1;">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0" style="color: #6f42c1;"><field name="total_enriching" readonly="1"/></h3>
+                                    <small class="text-muted">Enrichissement</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-success">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-success"><field name="total_done" readonly="1"/></h3>
+                                    <small class="text-muted">Termin&#233;</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-danger">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-danger"><field name="total_error" readonly="1"/></h3>
+                                    <small class="text-muted">Erreur</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance KPIs -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="success_rate" readonly="1"/>%</h4>
+                                    <small class="text-muted">Taux de succ&#232;s</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="avg_time_search" readonly="1"/>s</h4>
+                                    <small class="text-muted">Moy. SearXNG</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="avg_time_ollama" readonly="1"/>s</h4>
+                                    <small class="text-muted">Moy. Ollama</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="total_all" readonly="1"/></h4>
+                                    <small class="text-muted">Total queue</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confidence breakdown -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-2">
+                            <div class="card text-center">
+                                <div class="card-body py-2">
+                                    <span class="badge text-bg-success fs-5"><field name="confidence_high" readonly="1"/></span>
+                                    <br/><small class="text-muted">Confiance haute</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="card text-center">
+                                <div class="card-body py-2">
+                                    <span class="badge text-bg-warning fs-5"><field name="confidence_medium" readonly="1"/></span>
+                                    <br/><small class="text-muted">Confiance moyenne</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="card text-center">
+                                <div class="card-body py-2">
+                                    <span class="badge text-bg-danger fs-5"><field name="confidence_low" readonly="1"/></span>
+                                    <br/><small class="text-muted">Confiance basse</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <separator string="Performance Tuning"/>
+
+                    <!-- Tuning Section -->
+                    <group>
+                        <group string="Ollama">
+                            <field name="cfg_ollama_parallel_workers"/>
+                            <field name="cfg_batch_size_enrich"/>
+                            <field name="ollama_request_timeout"/>
+                            <field name="cfg_max_tokens"/>
+                            <field name="cfg_temperature"/>
+                            <field name="ollama_num_ctx"/>
+                            <field name="ollama_num_gpu"/>
+                            <field name="ollama_keep_alive"/>
+                        </group>
+                        <group string="SearXNG">
+                            <field name="cfg_searxng_parallel_workers"/>
+                            <field name="cfg_batch_size_collect"/>
+                        </group>
+                    </group>
+
+                    <div class="mt-3">
+                        <button name="action_save_tuning"
+                                string="Enregistrer la configuration"
+                                type="object"
+                                class="btn-primary"
+                                icon="fa-save"/>
+                    </div>
+
+                    <field name="pipeline_running" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_ai_enrichment_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Enrichment Dashboard</field>
+        <field name="res_model">product.enrichment.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

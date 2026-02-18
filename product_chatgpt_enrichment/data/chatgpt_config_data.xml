@@ -45,6 +45,11 @@
             <!-- Parallel processing -->
             <field name="searxng_parallel_workers">4</field>
             <field name="ollama_parallel_workers">2</field>
+            <!-- Ollama tuning -->
+            <field name="ollama_request_timeout">180</field>
+            <field name="ollama_num_ctx">4096</field>
+            <field name="ollama_num_gpu">99</field>
+            <field name="ollama_keep_alive">10m</field>
         </record>
     </data>
 </odoo>

@@ -11,3 +11,5 @@ access_product_discovered_media_user,product.discovered.media.user,model_product
 access_ai_queue_user,product.enrichment.queue user,model_product_enrichment_queue,base.group_user,1,0,0,0
 access_ai_queue_manager,product.enrichment.queue manager,model_product_enrichment_queue,stock.group_stock_manager,1,1,1,1
 access_ai_wizard_manager,batch.enrichment.wizard manager,model_batch_enrichment_wizard,stock.group_stock_manager,1,1,1,0
+access_ai_dashboard_user,product.enrichment.dashboard user,model_product_enrichment_dashboard,base.group_user,1,1,1,0
+access_ai_dashboard_manager,product.enrichment.dashboard manager,model_product_enrichment_dashboard,base.group_system,1,1,1,1

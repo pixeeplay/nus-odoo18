@@ -472,13 +472,17 @@ class ProductEnrichmentQueue(models.Model):
                     {'role': 'user', 'content': ollama_params['prompt']},
                 ],
                 'stream': False,
+                'keep_alive': ollama_params.get('keep_alive', '10m'),
                 'options': {
                     'num_predict': ollama_params['max_tokens'],
                     'temperature': ollama_params['temperature'],
+                    'num_ctx': ollama_params.get('num_ctx', 4096),
+                    'num_gpu': ollama_params.get('num_gpu', 99),
                 },
             }
+            timeout = ollama_params.get('timeout', 180)
             t0 = time.time()
-            resp = http_requests.post(url, json=data, timeout=180)
+            resp = http_requests.post(url, json=data, timeout=timeout)
             elapsed = time.time() - t0
 
             if resp.status_code != 200:
@@ -595,6 +599,10 @@ class ProductEnrichmentQueue(models.Model):
                 'model': effective_model,
                 'max_tokens': config.max_tokens or 4000,
                 'temperature': config.temperature if config.temperature is not None else 0.3,
+                'timeout': config.ollama_request_timeout or 180,
+                'num_ctx': config.ollama_num_ctx or 4096,
+                'num_gpu': config.ollama_num_gpu if config.ollama_num_gpu is not None else 99,
+                'keep_alive': config.ollama_keep_alive or '10m',
             })
 
         max_workers = max(1, config.ollama_parallel_workers or 2)

@@ -245,6 +245,27 @@ Answer in {language}.""",
         default=2,
         help="Number of parallel threads for Ollama AI enrichment. "
              "Higher = faster but requires more RAM/GPU on Ollama server.")
+    ollama_request_timeout = fields.Integer(
+        string='Ollama Request Timeout (s)',
+        default=180,
+        help="Timeout for each Ollama API call in seconds. "
+             "Increase for large models, decrease if Ollama hangs.")
+    ollama_num_ctx = fields.Integer(
+        string='Ollama Context Window',
+        default=4096,
+        help="Context window size (num_ctx). Higher = more context but slower/more RAM. "
+             "Common values: 2048, 4096, 8192.")
+    ollama_num_gpu = fields.Integer(
+        string='Ollama GPU Layers',
+        default=99,
+        help="Number of model layers to offload to GPU. "
+             "99 = all layers on GPU (fastest). 0 = CPU only.")
+    ollama_keep_alive = fields.Char(
+        string='Ollama Keep Alive',
+        default='10m',
+        help="How long Ollama keeps the model in memory after a request. "
+             "Examples: '5m', '10m', '1h', '0' (unload immediately). "
+             "Longer = faster next request but uses more RAM.")
     enrichment_prompt_template = fields.Text(
         string='Enrichment Prompt Template',
         default="""Tu es un expert e-commerce SEO francophone. Tu dois enrichir une fiche produit à partir de données web fraîches.
