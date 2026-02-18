@@ -1,0 +1,315 @@
+# Translation file for Odoo.
+# This file contains the translation template for ollama_email_composer.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. module: ollama_email_composer
+msgid "(AI-generated email)"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "<br/>"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Config"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Configuration"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Email"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Email Composer"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Email Composer powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Email Result"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Email Templates"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI Logs"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "AI did not return a response. Check your AI configuration."
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Additional Context"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "An example email to guide the AI style."
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Apology"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Cancel"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Close"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Compose with AI"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Copy the email above and paste it into your composer."
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Custom"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Dashboard"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Describe what you want the email to say. E.g.:"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Draft"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Draft professional emails with AI — tone selection, contextual generation"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Email AI Logs"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Email Composer Dashboard"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Email Generated"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Email Settings"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Email Templates"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Example"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Example Output"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Formal"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Friendly"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Generate"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Generate Email"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Generated"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Generated Email"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Generated Subject"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Generation History"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Instructions"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Instructions for the AI when generating emails with this tone."
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Manage Templates"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Paste previous emails or conversation context to help the AI."
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Persuasive"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Please provide instructions for the email."
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Productivity/Discuss"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Professional"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Quick Actions"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Recipient Name"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Regenerate"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Settings"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "System Prompt"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Template"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Template Name"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "Tone"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "View Logs"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "by_apology"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "by_formal"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "by_friendly"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "by_persuasive"
+msgstr ""
+
+
+#. module: ollama_email_composer
+msgid "by_professional"
+msgstr ""

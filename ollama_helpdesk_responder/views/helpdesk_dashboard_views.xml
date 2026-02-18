@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dashboard Form View -->
+    <record id="helpdesk_ai_dashboard_form" model="ir.ui.view">
+        <field name="name">helpdesk.ai.dashboard.form</field>
+        <field name="model">helpdesk.ai.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Helpdesk Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_classify_all" type="object"
+                            string="Classify All Open Tickets"
+                            class="btn-primary"
+                            icon="fa-magic"
+                            confirm="This will send all unclassified open tickets to AI for analysis. Continue?"/>
+                    <button name="action_refresh" type="object"
+                            string="Refresh"
+                            class="btn-secondary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>
+                            <span class="fa fa-headphones me-2" style="color: #F44336;"/>
+                            AI Helpdesk Dashboard
+                        </h1>
+                    </div>
+
+                    <!-- Stat Buttons Row -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_open_tickets" type="object"
+                                class="oe_stat_button" icon="fa-ticket">
+                            <field name="total_open" widget="statinfo" string="Open"/>
+                        </button>
+                        <button name="action_open_all_tickets" type="object"
+                                class="oe_stat_button" icon="fa-check-circle">
+                            <field name="total_closed" widget="statinfo" string="Closed"/>
+                        </button>
+                        <button name="action_open_unassigned" type="object"
+                                class="oe_stat_button" icon="fa-user-times">
+                            <field name="unassigned" widget="statinfo" string="Unassigned"/>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group string="AI Analysis Stats">
+                            <button name="action_open_unclassified" type="object"
+                                    class="oe_link ps-0"
+                                    icon="fa-search">
+                                <span>View Unclassified Tickets</span>
+                            </button>
+                            <field name="ai_classified"/>
+                            <field name="ai_responded"/>
+                        </group>
+                        <group string="Sentiment Breakdown">
+                            <field name="positive_sentiment" class="text-success"/>
+                            <field name="neutral_sentiment"/>
+                            <button name="action_open_negative" type="object"
+                                    class="oe_link ps-0 text-danger"
+                                    icon="fa-exclamation-triangle">
+                                <span>View Negative Tickets</span>
+                            </button>
+                            <field name="negative_sentiment" class="text-danger"/>
+                        </group>
+                    </group>
+
+                    <group string="Quick Actions">
+                        <group>
+                            <button name="action_open_config" type="object"
+                                    string="AI Configuration"
+                                    class="btn-link ps-0"
+                                    icon="fa-cog"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_helpdesk_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Helpdesk Dashboard</field>
+        <field name="res_model">helpdesk.ai.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="flags" eval="{'initial_mode': 'edit'}"/>
+    </record>
+
+    <!-- Root Menu -->
+    <menuitem id="menu_helpdesk_root"
+              name="AI Helpdesk"
+              web_icon="ollama_helpdesk_responder,static/description/icon.png"
+              sequence="305"/>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="menu_helpdesk_dashboard"
+              name="Dashboard"
+              parent="menu_helpdesk_root"
+              action="action_helpdesk_dashboard"
+              sequence="1"/>
+
+</odoo>

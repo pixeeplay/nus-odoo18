@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ollama_helpdesk_stage_user,ollama.helpdesk.stage.user,model_ollama_helpdesk_stage,base.group_user,1,0,0,0
+access_ollama_helpdesk_stage_manager,ollama.helpdesk.stage.manager,model_ollama_helpdesk_stage,base.group_system,1,1,1,1
+access_ollama_helpdesk_ticket_user,ollama.helpdesk.ticket.user,model_ollama_helpdesk_ticket,base.group_user,1,1,1,1
+access_ollama_helpdesk_ticket_manager,ollama.helpdesk.ticket.manager,model_ollama_helpdesk_ticket,base.group_system,1,1,1,1
+access_helpdesk_ai_dashboard_user,helpdesk.ai.dashboard.user,model_helpdesk_ai_dashboard,base.group_user,1,1,1,0
+access_helpdesk_ai_dashboard_manager,helpdesk.ai.dashboard.manager,model_helpdesk_ai_dashboard,base.group_system,1,1,1,1

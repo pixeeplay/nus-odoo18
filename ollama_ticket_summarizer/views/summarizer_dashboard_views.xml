@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Summarizer Dashboard Form View                               -->
+    <!-- ============================================================ -->
+    <record id="view_summarizer_dashboard_form" model="ir.ui.view">
+        <field name="name">summarizer.dashboard.form</field>
+        <field name="model">summarizer.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Summarizer Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_summarize_long_threads"
+                            string="Summarize Long Threads"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-magic"
+                            confirm="This will generate AI summaries for all threads with more than 10 messages. Continue?"/>
+                    <button name="action_open_escalations"
+                            string="View Escalations"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-exclamation-triangle"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-link"
+                            icon="fa-cog"/>
+                </header>
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <h1>
+                            <span style="color: #FF5722;">
+                                <i class="fa fa-comments me-2"/>AI Summarizer Dashboard
+                            </span>
+                        </h1>
+                        <p class="text-muted">
+                            AI-powered executive summaries of long ticket and message threads.
+                        </p>
+                    </div>
+
+                    <!-- Stats Cards Row -->
+                    <div class="row mt-4 mb-4">
+                        <!-- Total Summaries -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #FF5722;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-file-text me-1"/>Total Summaries
+                                    </div>
+                                    <h2 class="mb-0" style="color: #FF5722;">
+                                        <field name="total_summaries" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- This Week -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #4CAF50;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-calendar me-1"/>This Week
+                                    </div>
+                                    <h2 class="mb-0 text-success">
+                                        <field name="generated_week" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Long Threads -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #FF9800;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-comments me-1"/>Long Threads (&gt;10)
+                                    </div>
+                                    <h2 class="mb-0 text-warning">
+                                        <field name="long_threads" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Escalations -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #F44336;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-exclamation-triangle me-1"/>Escalations
+                                    </div>
+                                    <h2 class="mb-0 text-danger">
+                                        <field name="escalations" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Average Messages -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #2196F3;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-bar-chart me-1"/>Avg Messages
+                                    </div>
+                                    <h2 class="mb-0 text-info">
+                                        <field name="avg_messages" widget="float" digits="[12,1]"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button name="action_open_all"
+                                    string="View All Summaries"
+                                    type="object"
+                                    class="btn-primary me-2 mb-2"
+                                    icon="fa-list"/>
+                            <button name="action_open_escalations"
+                                    string="View Escalations"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-exclamation-triangle"/>
+                            <button name="action_open_config"
+                                    string="AI Configuration"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-cog"/>
+                            <button name="_refresh"
+                                    string="Refresh"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-refresh"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_summarizer_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Summarizer Dashboard</field>
+        <field name="res_model">summarizer.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">main</field>
+        <field name="view_id" ref="view_summarizer_dashboard_form"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Root Menu                                                    -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_summarizer_root"
+              name="AI Summarizer"
+              web_icon="ollama_ticket_summarizer,static/description/icon.png"
+              sequence="306"/>
+
+    <menuitem id="menu_summarizer_dashboard"
+              name="Dashboard"
+              parent="menu_summarizer_root"
+              action="action_summarizer_dashboard"
+              sequence="1"/>
+
+</odoo>

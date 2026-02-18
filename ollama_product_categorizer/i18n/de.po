@@ -1,0 +1,296 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ollama_product_categorizer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: ollama_product_categorizer
+msgid "AI Categorization"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Categorizer"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Category"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Category Mappings"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Category Suggestion"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Confidence (%)"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Config"
+msgstr "KI-Konfiguration"
+
+
+#. module: ollama_product_categorizer
+msgid "AI Configuration"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Product Categorizer"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI Product Categorizer powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "AI-powered product categorization with Google/Amazon taxonomy support"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Actions"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "All products already have an AI category."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Amazon Browse Node"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Apply Category Mapping"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Auto Apply"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Automatically apply this mapping when the AI suggests this category."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Batch Categorization Complete"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Categorization Failed"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Categorize All"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Categorize with AI"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Category Applied"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Category Mappings"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Category path suggested by the AI engine."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Category taxonomy used for AI categorization."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Category: %s (%.0f%% confidence)\\n%s"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Complete hierarchical path returned by the AI."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Confidence score from 0 to 100 percent."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Could not parse AI response. Try again."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Custom Taxonomy"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Dashboard"
+msgstr "Dashboard"
+
+
+#. module: ollama_product_categorizer
+msgid "Date and time of the last AI categorization."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Full Category Path"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Google Product Taxonomy"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Group By"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Last Categorized"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Manage Mappings"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "No AI Category"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "No Mapping Found"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Nothing to Categorize"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Number of times this mapping has been applied to a product."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Odoo Category"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Product Categorized"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Product category set to \"%s\"."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Quick Actions"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Refresh"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Run AI categorization first."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Sales/Product"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Settings"
+msgstr "Einstellungen"
+
+
+#. module: ollama_product_categorizer
+msgid "Taxonomy"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "The AI category path or name to match (e.g."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "The AI did not return a response. Check your AI configuration."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "The Odoo product category to apply when this AI category is matched."
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Times Matched"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "Uncategorized Products"
+msgstr ""
+
+
+#. module: ollama_product_categorizer
+msgid "View Uncategorized Products"
+msgstr ""

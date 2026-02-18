@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Inherit account.bank.statement.line form: AI fields + button -->
+    <!-- ============================================================ -->
+    <record id="view_bank_statement_line_form_ai" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.form.ai</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account.view_bank_statement_line_form"/>
+        <field name="arch" type="xml">
+
+            <!-- AI Analyze button in the button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_analyze_line"
+                        string="Analyze with AI"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-bolt"
+                        help="Analyze this statement line with AI to suggest matching invoices and identify the partner">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="ai_match_confidence" widget="float"/>%
+                        </span>
+                        <span class="o_stat_text">AI Match</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- AI Analysis tab in the notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Analysis" name="ai_analysis">
+                    <group>
+                        <group string="AI Match">
+                            <field name="ai_match_suggestion"/>
+                            <field name="ai_match_confidence" widget="progressbar"
+                                   options="{'max_value': 100}"/>
+                            <field name="ai_analysis_date"/>
+                        </group>
+                        <group string="AI Detection">
+                            <field name="ai_partner_suggestion"/>
+                        </group>
+                    </group>
+                    <group string="Label Analysis">
+                        <field name="ai_label_analysis" nolabel="1"
+                               colspan="2" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Inherit account.bank.statement.line list: AI columns         -->
+    <!-- ============================================================ -->
+    <record id="view_bank_statement_line_list_ai" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.list.ai</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account.view_bank_statement_line_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount']" position="after">
+                <field name="ai_match_suggestion" string="AI Match"
+                       optional="show"/>
+                <field name="ai_match_confidence" string="AI %"
+                       widget="progressbar"
+                       options="{'max_value': 100}"
+                       optional="show"/>
+                <field name="ai_partner_suggestion" string="AI Partner"
+                       optional="hide"/>
+                <field name="ai_analysis_date" string="AI Date"
+                       optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherit account.move form view to add AI Analysis page -->
+    <record id="view_move_form_inherit_ai_analysis" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.ai.analysis</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+
+            <!-- Add AI analysis buttons in the header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_analyze_invoice"
+                        string="AI Analyze"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-magic"
+                        invisible="move_type != 'in_invoice'"/>
+                <button name="action_apply_suggestion"
+                        string="Apply AI Suggestion"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-check-circle"
+                        invisible="move_type != 'in_invoice' or not ai_account_suggestion"/>
+            </xpath>
+
+            <!-- Add AI Analysis notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Analysis" name="ai_analysis"
+                      invisible="move_type != 'in_invoice'">
+                    <group>
+                        <group string="Account Suggestion">
+                            <field name="ai_account_suggestion" readonly="1"/>
+                            <field name="ai_account_confidence" readonly="1"
+                                   widget="progressbar"
+                                   options="{'max_value': 100}"/>
+                            <field name="ai_expense_category" readonly="1"/>
+                            <field name="ai_analysis_date" readonly="1"/>
+                        </group>
+                        <group string="Anomaly Detection">
+                            <field name="ai_anomaly_detected" readonly="1"
+                                   widget="boolean_toggle"/>
+                            <field name="ai_anomaly_description" readonly="1"
+                                   invisible="not ai_anomaly_detected"/>
+                        </group>
+                    </group>
+
+                    <!-- Action buttons inside the page -->
+                    <div class="mt-3">
+                        <button name="action_analyze_invoice"
+                                string="Run AI Analysis"
+                                type="object"
+                                class="btn-primary me-2"
+                                icon="fa-magic"/>
+                        <button name="action_apply_suggestion"
+                                string="Apply Suggestion"
+                                type="object"
+                                class="btn-secondary me-2"
+                                icon="fa-check-circle"
+                                invisible="not ai_account_suggestion"/>
+                    </div>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Add AI columns to vendor bill list view -->
+    <record id="view_move_list_inherit_ai_analysis" model="ir.ui.view">
+        <field name="name">account.move.list.inherit.ai.analysis</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_bill_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="ai_expense_category" string="AI Category" optional="hide"/>
+                <field name="ai_account_confidence" string="AI Conf. %" optional="hide"
+                       widget="progressbar" options="{'max_value': 100}"/>
+                <field name="ai_anomaly_detected" string="Anomaly" optional="hide"
+                       widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

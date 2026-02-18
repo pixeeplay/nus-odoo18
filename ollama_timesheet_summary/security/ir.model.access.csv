@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_timesheet_ai_summary_user,timesheet.ai.summary.user,model_timesheet_ai_summary,hr_timesheet.group_hr_timesheet_user,1,0,0,0
+access_timesheet_ai_summary_manager,timesheet.ai.summary.manager,model_timesheet_ai_summary,hr_timesheet.group_hr_timesheet_approver,1,1,1,1
+access_timesheet_summary_dashboard_user,timesheet.summary.dashboard.user,model_timesheet_summary_dashboard,hr_timesheet.group_hr_timesheet_user,1,1,1,0
+access_timesheet_summary_dashboard_manager,timesheet.summary.dashboard.manager,model_timesheet_summary_dashboard,hr_timesheet.group_hr_timesheet_approver,1,1,1,1

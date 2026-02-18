@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_catalog_translator_dashboard_user,catalog.translator.dashboard user,model_catalog_translator_dashboard,base.group_user,1,1,1,1
+access_catalog_translation_wizard_user,catalog.translation.wizard user,model_catalog_translation_wizard,base.group_user,1,1,1,1

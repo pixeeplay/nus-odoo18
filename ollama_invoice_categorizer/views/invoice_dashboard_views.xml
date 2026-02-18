@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dashboard Form View -->
+    <record id="view_invoice_categorizer_dashboard_form" model="ir.ui.view">
+        <field name="name">invoice.categorizer.dashboard.form</field>
+        <field name="model">invoice.categorizer.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Invoice Categorizer" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_analyze_pending"
+                            string="Analyze Pending"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-magic"
+                            confirm="This will analyze all pending vendor bills with AI. Continue?"/>
+                    <button name="action_apply_all"
+                            string="Apply All Suggestions"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-check-circle"
+                            confirm="Apply AI account suggestions (confidence >= 70%) to all matching invoices?"/>
+                    <button name="action_open_anomalies"
+                            string="View Anomalies"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-exclamation-triangle"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                </header>
+                <sheet>
+                    <!-- AI Provider Banner -->
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-microchip me-2"/>
+                        <strong>AI Provider:</strong>
+                        <field name="ai_provider" readonly="1" class="fw-bold d-inline"/>
+                        <span class="ms-2">|</span>
+                        <strong class="ms-2">Model:</strong>
+                        <field name="ai_model" readonly="1" class="d-inline"/>
+                    </div>
+
+                    <!-- Invoice Statistics -->
+                    <h3 class="mt-2 mb-3">
+                        <i class="fa fa-file-text-o me-2" style="color:#795548;"/>
+                        Vendor Invoice Overview
+                    </h3>
+                    <div class="row mb-4">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center" style="border-color:#795548;">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0" style="color:#795548;">
+                                        <field name="total_vendor_bills" readonly="1"/>
+                                    </h3>
+                                    <small class="text-muted">Total Bills</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-success">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-success">
+                                        <field name="analyzed" readonly="1"/>
+                                    </h3>
+                                    <small class="text-muted">Analyzed</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-danger">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-danger">
+                                        <field name="anomalies_found" readonly="1"/>
+                                    </h3>
+                                    <small class="text-muted">Anomalies</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-info">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-info">
+                                        <field name="auto_categorized" readonly="1"/>
+                                    </h3>
+                                    <small class="text-muted">Categorized</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center" style="border-color:#795548;">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0" style="color:#795548;">
+                                        <field name="avg_confidence" readonly="1"/>%
+                                    </h3>
+                                    <small class="text-muted">Avg Confidence</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-warning">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-warning">
+                                        <field name="pending_review" readonly="1"/>
+                                    </h3>
+                                    <small class="text-muted">Pending Review</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button name="action_analyze_pending"
+                                    string="Analyze All Pending Bills"
+                                    type="object"
+                                    class="btn-primary me-2 mb-2"
+                                    icon="fa-magic"/>
+                            <button name="action_open_anomalies"
+                                    string="View Anomalies"
+                                    type="object"
+                                    class="btn-danger me-2 mb-2"
+                                    icon="fa-exclamation-triangle"/>
+                            <button name="action_apply_all"
+                                    string="Apply High-Confidence Suggestions"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-check-circle"/>
+                            <button name="action_open_config"
+                                    string="AI Configuration"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-cog"/>
+                            <button name="_refresh"
+                                    string="Refresh"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-refresh"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_invoice_categorizer_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Invoice Categorizer</field>
+        <field name="res_model">invoice.categorizer.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menus                                                        -->
+    <!-- ============================================================ -->
+
+    <!-- Root Menu (App on Home Screen) -->
+    <menuitem id="menu_invoice_categorizer_root"
+              name="AI Invoices"
+              web_icon="ollama_invoice_categorizer,static/description/icon.png"
+              sequence="310"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_invoice_categorizer_dashboard"
+              name="Dashboard"
+              parent="menu_invoice_categorizer_root"
+              action="action_invoice_categorizer_dashboard"
+              sequence="1"/>
+
+    <!-- Vendor Bills (shortcut) -->
+    <menuitem id="menu_invoice_categorizer_bills"
+              name="Vendor Bills"
+              parent="menu_invoice_categorizer_root"
+              action="account.action_move_in_invoice_type"
+              sequence="10"/>
+
+    <!-- Settings sub-menu -->
+    <menuitem id="menu_invoice_categorizer_settings"
+              name="Settings"
+              parent="menu_invoice_categorizer_root"
+              sequence="100"/>
+
+</odoo>

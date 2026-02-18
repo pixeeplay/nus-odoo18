@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Ticket AI Summary — List View                                -->
+    <!-- ============================================================ -->
+    <record id="view_ticket_ai_summary_list" model="ir.ui.view">
+        <field name="name">ticket.ai.summary.list</field>
+        <field name="model">ticket.ai.summary</field>
+        <field name="arch" type="xml">
+            <list string="AI Thread Summaries"
+                  decoration-danger="ai_escalation_needed == True"
+                  decoration-muted="state == 'error'">
+                <field name="res_model"/>
+                <field name="res_name"/>
+                <field name="message_count"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state == 'draft'"
+                       decoration-danger="state == 'error'"/>
+                <field name="ai_escalation_needed"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket AI Summary — Form View                                -->
+    <!-- ============================================================ -->
+    <record id="view_ticket_ai_summary_form" model="ir.ui.view">
+        <field name="name">ticket.ai.summary.form</field>
+        <field name="model">ticket.ai.summary</field>
+        <field name="arch" type="xml">
+            <form string="AI Thread Summary">
+                <header>
+                    <button name="action_generate_summary"
+                            string="Generate Summary"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-magic"
+                            invisible="state == 'done'"/>
+                    <button name="action_generate_summary"
+                            string="Regenerate"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-refresh"
+                            invisible="state != 'done'"
+                            confirm="This will overwrite the current summary. Continue?"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>
+                            <span style="color: #FF5722;">
+                                <i class="fa fa-comments me-2"/>AI Thread Summary
+                            </span>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Source">
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="res_name"/>
+                            <field name="message_count"/>
+                        </group>
+                        <group string="AI Analysis">
+                            <field name="ai_escalation_needed"/>
+                            <field name="create_date"/>
+                            <field name="write_date"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Executive Summary" name="summary">
+                            <field name="ai_summary" widget="html" readonly="1"/>
+                        </page>
+                        <page string="Key Discussion Points" name="key_points">
+                            <field name="ai_key_points" readonly="1"
+                                   placeholder="Key points will appear here after generation..."/>
+                        </page>
+                        <page string="Action Items" name="action_items">
+                            <field name="ai_action_items" readonly="1"
+                                   placeholder="Action items will appear here after generation..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket AI Summary — Search View                              -->
+    <!-- ============================================================ -->
+    <record id="view_ticket_ai_summary_search" model="ir.ui.view">
+        <field name="name">ticket.ai.summary.search</field>
+        <field name="model">ticket.ai.summary</field>
+        <field name="arch" type="xml">
+            <search string="Search Summaries">
+                <field name="res_model"/>
+                <field name="res_name"/>
+                <filter string="Escalations"
+                        name="filter_escalations"
+                        domain="[('ai_escalation_needed', '=', True)]"/>
+                <filter string="Done"
+                        name="filter_done"
+                        domain="[('state', '=', 'done')]"/>
+                <filter string="Draft"
+                        name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Error"
+                        name="filter_error"
+                        domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Source Model"
+                            name="group_model"
+                            context="{'group_by': 'res_model'}"/>
+                    <filter string="Status"
+                            name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Escalation"
+                            name="group_escalation"
+                            context="{'group_by': 'ai_escalation_needed'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket AI Summary — Action                                   -->
+    <!-- ============================================================ -->
+    <record id="action_ticket_ai_summary" model="ir.actions.act_window">
+        <field name="name">AI Thread Summaries</field>
+        <field name="res_model">ticket.ai.summary</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_ticket_ai_summary_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No AI summaries yet
+            </p>
+            <p>
+                Use the dashboard to generate summaries for long message threads,
+                or create one manually.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu: Summaries under root                                   -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_summarizer_summaries"
+              name="Summaries"
+              parent="menu_summarizer_root"
+              action="action_ticket_ai_summary"
+              sequence="10"/>
+
+</odoo>

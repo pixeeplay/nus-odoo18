@@ -1,0 +1,286 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ollama_bank_reconciliation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: ollama_bank_reconciliation
+msgid "AI Analysis"
+msgstr "Analyse IA"
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Analysis Complete"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Analysis Date"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Analysis Failed"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Analyzed"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Bank"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Bank Reconciliation Dashboard"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Bank Reconciliation powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Confidence"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Config"
+msgstr "Config IA"
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Configuration"
+msgstr "Configuration IA"
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Detection"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Label Analysis"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Match"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Match Suggestion"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Matched"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Model"
+msgstr "Modèle IA"
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Partner Suggestion"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Provider"
+msgstr "Fournisseur IA"
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Settings"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI Suggested Matches"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI confidence score for the suggested match (0-100)."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI interpretation of what this payment is for."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI-powered bank statement analysis, matching suggestions, and partner detection"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI-suggested matching invoice or bill reference."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "AI-suggested partner name based on the payment label."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Accounting/Accounting"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "All Unreconciled"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "All unreconciled lines have already been analyzed."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Analyze All Lines"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Analyze with AI"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Analyzed %d lines. Errors: %d."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Avg Confidence"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Batch Analysis Complete"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Batch Analyze Lines"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Could not parse AI response. Please try again."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+
+#. module: ollama_bank_reconciliation
+msgid "Date and time when the AI last analyzed this statement line."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Label Analysis"
+msgstr "Analyse du libellé"
+
+
+#. module: ollama_bank_reconciliation
+msgid "Lines analyzed by AI but not yet reconciled."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Lines where AI found a match suggestion."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Match: %s (%.0f%% confidence)\\n%s"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "N/A"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "No match"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "No response from AI. Check your AI configuration."
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Not Configured"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Nothing to Analyze"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Pending Review"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Quick Actions"
+msgstr "Actions rapides"
+
+
+#. module: ollama_bank_reconciliation
+msgid "Refresh"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Review AI Matches"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Review AI Suggestions"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Total Unreconciled"
+msgstr ""
+
+
+#. module: ollama_bank_reconciliation
+msgid "Unreconciled Statement Lines"
+msgstr ""

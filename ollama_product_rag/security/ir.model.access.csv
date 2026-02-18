@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_product_rag_index_user,product.rag.index.user,model_product_rag_index,base.group_user,1,0,0,0
+access_product_rag_index_manager,product.rag.index.manager,model_product_rag_index,base.group_system,1,1,1,1
+access_product_rag_conversation_user,product.rag.conversation.user,model_product_rag_conversation,base.group_user,1,0,0,0
+access_product_rag_conversation_manager,product.rag.conversation.manager,model_product_rag_conversation,base.group_system,1,1,1,1
+access_product_rag_message_user,product.rag.message.user,model_product_rag_message,base.group_user,1,0,0,0
+access_product_rag_message_manager,product.rag.message.manager,model_product_rag_message,base.group_system,1,1,1,1
+access_rag_dashboard_user,rag.dashboard.user,model_rag_dashboard,base.group_user,1,1,1,0
+access_rag_dashboard_manager,rag.dashboard.manager,model_rag_dashboard,base.group_system,1,1,1,1

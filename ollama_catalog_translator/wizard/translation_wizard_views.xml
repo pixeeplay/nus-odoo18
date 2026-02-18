@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Batch Translation Wizard Form                                 -->
+    <!-- ============================================================ -->
+    <record id="view_catalog_translation_wizard_form" model="ir.ui.view">
+        <field name="name">catalog.translation.wizard.form</field>
+        <field name="model">catalog.translation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Batch Product Translation">
+                <header>
+                    <button name="action_translate"
+                            string="Translate Products"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            icon="fa-language"/>
+                    <button string="Close"
+                            class="btn-secondary"
+                            special="cancel"
+                            invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,running,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title" invisible="state != 'draft'">
+                        <h2>
+                            <span style="color:#4CAF50;">AI Catalog Translator</span>
+                        </h2>
+                        <p class="text-muted">
+                            Translate product names and descriptions to multiple languages using AI.
+                        </p>
+                    </div>
+
+                    <group invisible="state != 'draft'">
+                        <group string="Source">
+                            <field name="source_lang"/>
+                        </group>
+                        <group string="Target Languages">
+                            <field name="target_lang_en"/>
+                            <field name="target_lang_de"/>
+                            <field name="target_lang_es"/>
+                            <field name="target_lang_it"/>
+                        </group>
+                    </group>
+
+                    <group invisible="state != 'draft'">
+                        <group string="Fields to Translate">
+                            <field name="include_name"/>
+                            <field name="include_description"/>
+                        </group>
+                        <group string="Products">
+                            <field name="product_count"/>
+                        </group>
+                    </group>
+
+                    <group invisible="state != 'draft'">
+                        <field name="product_ids" widget="many2many_tags"
+                               placeholder="Leave empty to translate all untranslated products..."
+                               options="{'color_field': 'color'}"/>
+                    </group>
+
+                    <!-- Log section (visible during running and done) -->
+                    <group invisible="state == 'draft'" string="Translation Log">
+                        <field name="log" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Wizard Action                                                 -->
+    <!-- ============================================================ -->
+    <record id="action_catalog_translation_wizard" model="ir.actions.act_window">
+        <field name="name">Batch Translate Products</field>
+        <field name="res_model">catalog.translation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_catalog_translation_wizard_form"/>
+    </record>
+
+</odoo>

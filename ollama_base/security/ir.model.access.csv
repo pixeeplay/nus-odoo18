@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ollama_config_user,ollama.config.user,model_ollama_config,base.group_user,1,0,0,0
+access_ollama_config_manager,ollama.config.manager,model_ollama_config,base.group_system,1,1,1,1
+access_ollama_model_user,ollama.model.user,model_ollama_model,base.group_user,1,0,0,0
+access_ollama_model_manager,ollama.model.manager,model_ollama_model,base.group_system,1,1,1,1
+access_ollama_log_user,ollama.log.user,model_ollama_log,base.group_user,1,0,0,0
+access_ollama_log_manager,ollama.log.manager,model_ollama_log,base.group_system,1,1,1,1

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Form View                                          -->
+    <!-- ============================================================ -->
+    <record id="crm_ai_dashboard_form" model="ir.ui.view">
+        <field name="name">crm.ai.dashboard.form</field>
+        <field name="model">crm.ai.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI CRM Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_score_all"
+                            string="Score All Leads"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bolt"
+                            confirm="This will score up to 50 unscored leads. Continue?"/>
+                    <button name="action_open_hot_leads"
+                            string="View Hot Leads"
+                            type="object"
+                            class="btn-danger"
+                            icon="fa-fire"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                    <button name="action_refresh"
+                            string="Refresh"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <!-- AI Provider Banner -->
+                    <div class="oe_title">
+                        <h1>AI CRM Dashboard</h1>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <strong>AI Provider:</strong>
+                        <field name="ai_provider" class="fw-bold"/>
+                        <span class="mx-2">|</span>
+                        <strong>Model:</strong>
+                        <field name="ai_model" class="fw-bold"/>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row mt-3">
+                        <!-- Total Leads -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-light text-center shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Total Leads</h5>
+                                    <h2 class="text-primary">
+                                        <field name="total_leads"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Scored Leads -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-light text-center shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Scored</h5>
+                                    <h2 class="text-success">
+                                        <field name="scored_leads"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unscored Leads -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-light text-center shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Unscored</h5>
+                                    <h2 class="text-warning">
+                                        <field name="unscored_leads"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Average Score -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-light text-center shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Avg Score</h5>
+                                    <h2 class="text-info">
+                                        <field name="avg_score"/><small>/100</small>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lead Temperature Breakdown -->
+                    <div class="row mt-2">
+                        <!-- Hot Leads -->
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-left: 4px solid #dc3545;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-fire text-danger"/> Hot Leads (&gt;70)
+                                    </h5>
+                                    <h2 class="text-danger">
+                                        <field name="hot_leads"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Warm Leads -->
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-left: 4px solid #fd7e14;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-thermometer-half text-warning"/> Warm Leads (40-70)
+                                    </h5>
+                                    <h2 class="text-warning">
+                                        <field name="warm_leads"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Cold Leads -->
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-left: 4px solid #0d6efd;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-snowflake-o text-primary"/> Cold Leads (&lt;40)
+                                    </h5>
+                                    <h2 class="text-primary">
+                                        <field name="cold_leads"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button name="action_open_unscored"
+                                    string="View Unscored Leads"
+                                    type="object"
+                                    class="btn btn-outline-warning w-100 mb-2"
+                                    icon="fa-list"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_hot_leads"
+                                    string="View Hot Leads"
+                                    type="object"
+                                    class="btn btn-outline-danger w-100 mb-2"
+                                    icon="fa-fire"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_config"
+                                    string="AI Settings"
+                                    type="object"
+                                    class="btn btn-outline-secondary w-100 mb-2"
+                                    icon="fa-cog"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_crm_ai_dashboard" model="ir.actions.act_window">
+        <field name="name">AI CRM Dashboard</field>
+        <field name="res_model">crm.ai.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu Items                                                   -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_crm_ai_root"
+              name="AI CRM"
+              web_icon="ollama_crm_assistant,static/description/icon.png"
+              sequence="304"/>
+
+    <menuitem id="menu_crm_ai_dashboard"
+              name="Dashboard"
+              parent="menu_crm_ai_root"
+              action="action_crm_ai_dashboard"
+              sequence="1"/>
+
+</odoo>

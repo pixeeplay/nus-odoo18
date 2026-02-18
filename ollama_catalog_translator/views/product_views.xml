@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Inherit product.template form: add AI Translations tab        -->
+    <!-- ============================================================ -->
+    <record id="view_product_template_form_translation" model="ir.ui.view">
+        <field name="name">product.template.form.ai.translations</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Translations" name="ai_translations">
+                    <div style="padding: 12px; background: #E8F5E9; border-radius: 6px;
+                                margin-bottom: 16px; border-left: 4px solid #4CAF50;">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4 style="color: #2E7D32; margin: 0 0 4px 0;">
+                                    <i class="fa fa-language"/> AI-Powered Translations
+                                </h4>
+                                <span class="text-muted">
+                                    Automatically translate product name and description using AI.
+                                </span>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button name="action_translate_product_button"
+                                        string="Translate Now"
+                                        type="object"
+                                        class="btn btn-success"
+                                        icon="fa-language"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Status">
+                            <field name="ai_translation_status" widget="badge"
+                                   decoration-success="ai_translation_status == 'complete'"
+                                   decoration-warning="ai_translation_status == 'partial'"
+                                   decoration-danger="ai_translation_status == 'none'"/>
+                            <field name="ai_translation_date"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="English (EN)" name="translation_en">
+                            <field name="ai_translation_en"
+                                   placeholder="English translation will appear here after running the translator..."
+                                   nolabel="1"/>
+                        </page>
+                        <page string="German (DE)" name="translation_de">
+                            <field name="ai_translation_de"
+                                   placeholder="German translation will appear here after running the translator..."
+                                   nolabel="1"/>
+                        </page>
+                        <page string="Spanish (ES)" name="translation_es">
+                            <field name="ai_translation_es"
+                                   placeholder="Spanish translation will appear here after running the translator..."
+                                   nolabel="1"/>
+                        </page>
+                        <page string="Italian (IT)" name="translation_it">
+                            <field name="ai_translation_it"
+                                   placeholder="Italian translation will appear here after running the translator..."
+                                   nolabel="1"/>
+                        </page>
+                    </notebook>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Product list view: add translation status column              -->
+    <!-- ============================================================ -->
+    <record id="view_product_template_list_translation" model="ir.ui.view">
+        <field name="name">product.template.list.ai.translations</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="ai_translation_status" string="Translation"
+                       widget="badge" optional="show"
+                       decoration-success="ai_translation_status == 'complete'"
+                       decoration-warning="ai_translation_status == 'partial'"
+                       decoration-danger="ai_translation_status == 'none'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Product search view: add translation filters                  -->
+    <!-- ============================================================ -->
+    <record id="view_product_template_search_translation" model="ir.ui.view">
+        <field name="name">product.template.search.ai.translations</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter name="filter_untranslated" string="Untranslated"
+                        domain="['|', ('ai_translation_status', '=', 'none'), ('ai_translation_status', '=', False)]"/>
+                <filter name="filter_partial" string="Partially Translated"
+                        domain="[('ai_translation_status', '=', 'partial')]"/>
+                <filter name="filter_complete" string="Fully Translated"
+                        domain="[('ai_translation_status', '=', 'complete')]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

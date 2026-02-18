@@ -1,0 +1,276 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ollama_cv_analyzer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: ollama_cv_analyzer
+msgid "5 new interview questions have been generated."
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI Analysis"
+msgstr "Análisis IA"
+
+
+#. module: ollama_cv_analyzer
+msgid "AI CV Analysis"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI CV Analyzer"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI CV Analyzer Dashboard"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI CV Analyzer powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI CV Score"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI Config"
+msgstr "Configuración IA"
+
+
+#. module: ollama_cv_analyzer
+msgid "AI Configuration"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI Model"
+msgstr "Modelo de IA"
+
+
+#. module: ollama_cv_analyzer
+msgid "AI Provider"
+msgstr "Proveedor de IA"
+
+
+#. module: ollama_cv_analyzer
+msgid "AI Settings"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI-generated CV score from 0 to 100"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI-generated interview questions"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "AI-powered CV analysis, scoring, and interview question generation"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "All Analyzed"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Analysis Date"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Analyze All Pending"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Analyze CV"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Analyzed"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Analyzed %d applicants. Errors: %d."
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Average Score"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Batch Analysis Complete"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "CV Analysis Complete"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Dashboard"
+msgstr "Panel de control"
+
+
+#. module: ollama_cv_analyzer
+msgid "Date and time of the last AI analysis"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Detailed AI analysis of the CV/resume"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Generate Questions"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Human Resources/Recruitment"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Interview Questions"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Interview Questions Generated"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Key strengths identified by AI"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Medium Candidates (40-80)"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "N/A"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "No pending applicants to analyze."
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Not Configured"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Partial Analysis"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Pending Analysis"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Quick Actions"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Refresh"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Score"
+msgstr "Puntuación"
+
+
+#. module: ollama_cv_analyzer
+msgid "Score: %d/100. Check the AI Analysis tab for details."
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Strengths"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Top Candidates (>80)"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Top Candidates (AI Score > 80)"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Total Applicants"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Unanalyzed Applicants"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "View Pending Applicants"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "View Top Candidates"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Weak Candidates (<40)"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Weaknesses"
+msgstr ""
+
+
+#. module: ollama_cv_analyzer
+msgid "Weaknesses or gaps identified by AI"
+msgstr ""

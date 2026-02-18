@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- SEO Dashboard Form View                                      -->
+    <!-- ============================================================ -->
+    <record id="view_seo_dashboard_form" model="ir.ui.view">
+        <field name="name">seo.generator.dashboard.form</field>
+        <field name="model">seo.generator.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI SEO Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_generate_all"
+                            string="Generate All SEO"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-magic"
+                            confirm="This will generate SEO for all products without AI SEO data. Continue?"/>
+                    <button name="action_audit_all"
+                            string="Audit Catalog"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-stethoscope"
+                            confirm="This will audit SEO for all products. This may take a while. Continue?"/>
+                    <button name="action_apply_all"
+                            string="Apply All to Website"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-check-circle"
+                            confirm="This will overwrite website meta fields for all products with AI SEO data. Continue?"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-link"
+                            icon="fa-cog"/>
+                </header>
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <h1>
+                            <span style="color: #9C27B0;">
+                                <i class="fa fa-line-chart me-2"/>AI SEO Dashboard
+                            </span>
+                        </h1>
+                        <p class="text-muted">
+                            Overview of your catalog's SEO health, powered by AI.
+                        </p>
+                    </div>
+
+                    <!-- Stats Cards Row -->
+                    <div class="row mt-4 mb-4">
+                        <!-- Total Products -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #9C27B0;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-cubes me-1"/>Total Products
+                                    </div>
+                                    <h2 class="mb-0" style="color: #9C27B0;">
+                                        <field name="total_products" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- With SEO -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #4CAF50;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-check-circle me-1"/>With SEO
+                                    </div>
+                                    <h2 class="mb-0 text-success">
+                                        <field name="with_seo" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Without SEO -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #FF9800;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-exclamation-triangle me-1"/>Without SEO
+                                    </div>
+                                    <h2 class="mb-0 text-warning">
+                                        <field name="without_seo" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Average Score -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #2196F3;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-bar-chart me-1"/>Avg Score
+                                    </div>
+                                    <h2 class="mb-0 text-info">
+                                        <field name="avg_score" widget="integer"/><small>/100</small>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Excellent Score -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #4CAF50;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-star me-1"/>Excellent (&gt;80)
+                                    </div>
+                                    <h2 class="mb-0 text-success">
+                                        <field name="excellent_score" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weak Score -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #F44336;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-warning me-1"/>Weak (&lt;40)
+                                    </div>
+                                    <h2 class="mb-0 text-danger">
+                                        <field name="weak_score" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Applied -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card shadow-sm text-center h-100" style="border-left: 4px solid #009688;">
+                                <div class="card-body py-3">
+                                    <div class="text-muted small text-uppercase mb-1">
+                                        <i class="fa fa-globe me-1"/>Applied
+                                    </div>
+                                    <h2 class="mb-0" style="color: #009688;">
+                                        <field name="applied_count" widget="integer"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button name="action_open_without_seo"
+                                    string="View Products Without SEO"
+                                    type="object"
+                                    class="btn-link"
+                                    icon="fa-list"/>
+                            <button name="_refresh"
+                                    string="Refresh Dashboard"
+                                    type="object"
+                                    class="btn-link"
+                                    icon="fa-refresh"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_seo_dashboard" model="ir.actions.act_window">
+        <field name="name">SEO Dashboard</field>
+        <field name="res_model">seo.generator.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">main</field>
+        <field name="view_id" ref="view_seo_dashboard_form"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Root Menu                                                    -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_seo_root"
+              name="AI SEO"
+              web_icon="ollama_seo_generator,static/description/icon.png"
+              sequence="303"/>
+
+    <menuitem id="menu_seo_dashboard"
+              name="Dashboard"
+              parent="menu_seo_root"
+              action="action_seo_dashboard"
+              sequence="10"/>
+
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ticket_ai_summary_user,ticket.ai.summary.user,model_ticket_ai_summary,base.group_user,1,1,1,0
+access_ticket_ai_summary_manager,ticket.ai.summary.manager,model_ticket_ai_summary,base.group_system,1,1,1,1
+access_summarizer_dashboard_user,summarizer.dashboard.user,model_summarizer_dashboard,base.group_user,1,1,1,0
+access_summarizer_dashboard_manager,summarizer.dashboard.manager,model_summarizer_dashboard,base.group_system,1,1,1,1

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="email_template_professional" model="ollama.email.template">
+            <field name="name">Professional</field>
+            <field name="tone">professional</field>
+            <field name="sequence">10</field>
+            <field name="system_prompt">You are a professional email writer. Write clear, structured, and polite business emails. Use a confident but respectful tone. Keep the email concise and actionable. Always start with 'Subject: &lt;subject&gt;' on the first line. Write in the same language as the user's instructions.</field>
+            <field name="example">Subject: Follow-up on Q4 Budget Review
+
+Dear Mr. Martin,
+
+Thank you for your time during our meeting yesterday. I wanted to follow up on the key action items we discussed regarding the Q4 budget allocation.
+
+Please find attached the updated forecast. I would appreciate your feedback by Friday.
+
+Best regards</field>
+        </record>
+
+        <record id="email_template_friendly" model="ollama.email.template">
+            <field name="name">Friendly</field>
+            <field name="tone">friendly</field>
+            <field name="sequence">20</field>
+            <field name="system_prompt">You are a warm and friendly email writer. Write emails that feel personal and approachable while remaining professional. Use a conversational tone with enthusiasm. Always start with 'Subject: &lt;subject&gt;' on the first line. Write in the same language as the user's instructions.</field>
+        </record>
+
+        <record id="email_template_formal" model="ollama.email.template">
+            <field name="name">Formal</field>
+            <field name="tone">formal</field>
+            <field name="sequence">30</field>
+            <field name="system_prompt">You are a formal correspondence writer. Write highly structured, courteous, and dignified emails suitable for official communications, legal matters, or executive correspondence. Use complete sentences and formal vocabulary. Always start with 'Subject: &lt;subject&gt;' on the first line. Write in the same language as the user's instructions.</field>
+        </record>
+
+        <record id="email_template_persuasive" model="ollama.email.template">
+            <field name="name">Persuasive</field>
+            <field name="tone">persuasive</field>
+            <field name="sequence">40</field>
+            <field name="system_prompt">You are a persuasive email writer. Write compelling emails that guide the reader toward a specific action or decision. Use rhetorical techniques: emphasize benefits, create urgency, and include a clear call-to-action. Always start with 'Subject: &lt;subject&gt;' on the first line. Write in the same language as the user's instructions.</field>
+        </record>
+
+        <record id="email_template_apology" model="ollama.email.template">
+            <field name="name">Apology</field>
+            <field name="tone">apology</field>
+            <field name="sequence">50</field>
+            <field name="system_prompt">You are an empathetic email writer specializing in apologies and service recovery. Write sincere, accountable emails that acknowledge the issue, express genuine regret, explain what happened (if appropriate), and propose a concrete solution or next step. Always start with 'Subject: &lt;subject&gt;' on the first line. Write in the same language as the user's instructions.</field>
+        </record>
+    </data>
+</odoo>

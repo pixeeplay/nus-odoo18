@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_email_template_user,ollama.email.template.user,model_ollama_email_template,base.group_user,1,0,0,0
+access_email_template_manager,ollama.email.template.manager,model_ollama_email_template,base.group_system,1,1,1,1
+access_email_dashboard_user,email.composer.dashboard.user,model_email_composer_dashboard,base.group_user,1,1,1,0
+access_email_dashboard_manager,email.composer.dashboard.manager,model_email_composer_dashboard,base.group_system,1,1,1,1
+access_email_wizard_user,email.compose.ai.wizard.user,model_email_compose_ai_wizard,base.group_user,1,1,1,0

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Inherit crm.lead form: Add AI buttons and AI Analysis tab    -->
+    <!-- ============================================================ -->
+    <record id="crm_lead_view_form_ai" model="ir.ui.view">
+        <field name="name">crm.lead.form.ai</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- AI action buttons in button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_score_lead"
+                        string="Score with AI"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-bolt"
+                        help="Score this lead using AI analysis">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="ai_score" widget="integer"/>
+                        </span>
+                        <span class="o_stat_text">AI Score</span>
+                    </div>
+                </button>
+                <button name="action_analyze_emails"
+                        string="Analyze Emails"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-envelope"
+                        help="Analyze the email thread of this lead with AI"/>
+            </xpath>
+
+            <!-- AI Analysis notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Analysis" name="ai_analysis">
+                    <group>
+                        <group string="AI Scoring">
+                            <field name="ai_score" widget="progressbar"
+                                   options="{'max_value': 100}"/>
+                            <field name="ai_score_date"/>
+                            <field name="ai_follow_up_date"/>
+                        </group>
+                        <group string="AI Actions">
+                            <field name="ai_suggested_action"/>
+                        </group>
+                    </group>
+                    <group string="Score Reason">
+                        <field name="ai_score_reason" nolabel="1"
+                               colspan="2" readonly="1"/>
+                    </group>
+                    <group string="Email Analysis">
+                        <field name="ai_email_analysis" nolabel="1"
+                               colspan="2" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Inherit crm.lead list: Add AI score column                   -->
+    <!-- ============================================================ -->
+    <record id="crm_lead_view_list_ai" model="ir.ui.view">
+        <field name="name">crm.lead.list.ai</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="ai_score" string="AI Score"
+                       widget="progressbar"
+                       options="{'max_value': 100}"
+                       optional="show"/>
+                <field name="ai_follow_up_date" string="AI Follow-up"
+                       optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

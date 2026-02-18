@@ -1,0 +1,356 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ollama_catalog_translator
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: ollama_catalog_translator
+msgid "AI Catalog Translator powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI Configuration"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI Translations"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI Translator"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI Translator Dashboard"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI did not return a response. Check your AI configuration."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI-generated English translation of product name and description."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI-generated German translation of product name and description."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI-generated Italian translation of product name and description."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI-generated Spanish translation of product name and description."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "AI-powered product catalog translation — FR, EN, DE, ES and more"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "All Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Batch Translate"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Batch Translate Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Close"
+msgstr "Schließen"
+
+
+#. module: ollama_catalog_translator
+msgid "Completed"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Configuration"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Could not parse AI response as JSON. Raw response:\\n%s"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Dashboard"
+msgstr "Dashboard"
+
+
+#. module: ollama_catalog_translator
+msgid "English"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "English (EN)"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "English Translation"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Fields to Translate"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "French"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Fully Translated"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "German"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "German (DE)"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "German Translation"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Italian"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Italian (IT)"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Italian Translation"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Last Translation Date"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "No products found to translate."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Not Translated"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Number of Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Partially Translated"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Please select at least one field to translate (name or description)."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Please select at least one target language."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Product \"%s\" translated to %d language(s)."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Product name is empty. Cannot translate."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Products"
+msgstr "Produkte"
+
+
+#. module: ollama_catalog_translator
+msgid "Products (Translation)"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Products to Translate"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Running"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Sales/Product"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Select products to translate. Leave empty to translate all products."
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Source"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Source Language"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Spanish"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Spanish (ES)"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Spanish Translation"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Status"
+msgstr "Status"
+
+
+#. module: ollama_catalog_translator
+msgid "Target Languages"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Total Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translate All Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translate Description"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translate Now"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translate Product Name"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translate Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translated Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translation Complete"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translation Log"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Translation Status"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "Untranslated Products"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "View Untranslated"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "With English"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "With German"
+msgstr ""
+
+
+#. module: ollama_catalog_translator
+msgid "With Spanish"
+msgstr ""

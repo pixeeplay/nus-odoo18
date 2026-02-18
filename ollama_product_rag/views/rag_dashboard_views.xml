@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Form View                                          -->
+    <!-- ============================================================ -->
+    <record id="rag_dashboard_form_view" model="ir.ui.view">
+        <field name="name">rag.dashboard.form</field>
+        <field name="model">rag.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Product RAG Dashboard" create="false" delete="false">
+                <sheet>
+                    <!-- Header banner -->
+                    <div class="oe_title" style="margin-bottom: 20px;">
+                        <h1 style="color: #3F51B5;">
+                            <span class="fa fa-robot" style="margin-right: 8px;"/>
+                            AI Product Assistant — Dashboard
+                        </h1>
+                        <p class="text-muted">
+                            RAG-powered conversational product search. Index your catalog, let AI answer customer questions.
+                        </p>
+                    </div>
+
+                    <!-- Stats cards -->
+                    <div class="row" style="margin-bottom: 24px;">
+                        <!-- Indexing stats -->
+                        <div class="col-lg-6">
+                            <div class="card" style="border-left: 4px solid #3F51B5;">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #3F51B5;">
+                                        <span class="fa fa-database" style="margin-right: 6px;"/>
+                                        Product Index
+                                    </h5>
+                                    <div class="row mt-3">
+                                        <div class="col-4 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #3F51B5;">
+                                                <field name="total_indexed" readonly="1" widget="integer"/>
+                                            </div>
+                                            <small class="text-muted">Indexed</small>
+                                        </div>
+                                        <div class="col-4 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #666;">
+                                                <field name="total_products" readonly="1" widget="integer"/>
+                                            </div>
+                                            <small class="text-muted">Total Products</small>
+                                        </div>
+                                        <div class="col-4 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #FF5722;">
+                                                <field name="unindexed" readonly="1" widget="integer"/>
+                                            </div>
+                                            <small class="text-muted">Unindexed</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Conversation stats -->
+                        <div class="col-lg-6">
+                            <div class="card" style="border-left: 4px solid #3F51B5;">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #3F51B5;">
+                                        <span class="fa fa-comments" style="margin-right: 6px;"/>
+                                        Conversations
+                                    </h5>
+                                    <div class="row mt-3">
+                                        <div class="col-3 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #3F51B5;">
+                                                <field name="total_conversations" readonly="1" widget="integer"/>
+                                            </div>
+                                            <small class="text-muted">Total</small>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #666;">
+                                                <field name="total_messages" readonly="1" widget="integer"/>
+                                            </div>
+                                            <small class="text-muted">Messages</small>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #4CAF50;">
+                                                <field name="messages_today" readonly="1" widget="integer"/>
+                                            </div>
+                                            <small class="text-muted">Today</small>
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            <div style="font-size: 28px; font-weight: bold; color: #666;">
+                                                <field name="avg_messages_per_conv" readonly="1"/>
+                                            </div>
+                                            <small class="text-muted">Avg/Conv</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="row" style="margin-bottom: 24px;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #3F51B5;">
+                                        <span class="fa fa-bolt" style="margin-right: 6px;"/>
+                                        Quick Actions
+                                    </h5>
+                                    <div class="mt-3">
+                                        <button name="action_reindex" type="object"
+                                                class="btn btn-primary me-2"
+                                                style="background-color: #3F51B5; border-color: #3F51B5;">
+                                            <span class="fa fa-refresh" style="margin-right: 4px;"/>
+                                            Reindex Catalog
+                                        </button>
+                                        <button name="action_open_conversations" type="object"
+                                                class="btn btn-outline-primary me-2"
+                                                style="color: #3F51B5; border-color: #3F51B5;">
+                                            <span class="fa fa-comments" style="margin-right: 4px;"/>
+                                            View Conversations
+                                        </button>
+                                        <button name="action_open_index" type="object"
+                                                class="btn btn-outline-secondary me-2">
+                                            <span class="fa fa-list" style="margin-right: 4px;"/>
+                                            View Index
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test chatbot -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card" style="border-left: 4px solid #3F51B5;">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #3F51B5;">
+                                        <span class="fa fa-flask" style="margin-right: 6px;"/>
+                                        Test Chatbot
+                                    </h5>
+                                    <group>
+                                        <field name="test_question"
+                                               placeholder="Ask a question about your products, e.g. 'What laptop do you recommend under 1000 EUR?'"
+                                               widget="text"/>
+                                    </group>
+                                    <button name="action_test_chatbot" type="object"
+                                            class="btn btn-primary mb-3"
+                                            style="background-color: #3F51B5; border-color: #3F51B5;">
+                                        <span class="fa fa-paper-plane" style="margin-right: 4px;"/>
+                                        Ask AI
+                                    </button>
+                                    <group invisible="not test_answer">
+                                        <field name="test_answer" widget="text" readonly="1"/>
+                                    </group>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_rag_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Product RAG Dashboard</field>
+        <field name="res_model">rag.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="view_id" ref="rag_dashboard_form_view"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Root Menu                                                    -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_rag_root"
+              name="AI Product RAG"
+              sequence="312"
+              web_icon="ollama_product_rag,static/description/icon.png"/>
+
+    <menuitem id="menu_rag_dashboard"
+              name="Dashboard"
+              parent="menu_rag_root"
+              action="action_rag_dashboard"
+              sequence="1"/>
+
+    <menuitem id="menu_rag_data"
+              name="Data"
+              parent="menu_rag_root"
+              sequence="10"/>
+
+</odoo>

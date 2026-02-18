@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Conversation List View                                       -->
+    <!-- ============================================================ -->
+    <record id="product_rag_conversation_list_view" model="ir.ui.view">
+        <field name="name">product.rag.conversation.list</field>
+        <field name="model">product.rag.conversation</field>
+        <field name="arch" type="xml">
+            <list string="RAG Conversations" default_order="create_date desc">
+                <field name="session_id"/>
+                <field name="partner_id"/>
+                <field name="message_count" string="Messages"/>
+                <field name="create_date" string="Started"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Conversation Form View                                       -->
+    <!-- ============================================================ -->
+    <record id="product_rag_conversation_form_view" model="ir.ui.view">
+        <field name="name">product.rag.conversation.form</field>
+        <field name="model">product.rag.conversation</field>
+        <field name="arch" type="xml">
+            <form string="RAG Conversation">
+                <sheet>
+                    <div class="oe_title">
+                        <h1 style="color: #3F51B5;">
+                            <span class="fa fa-comments" style="margin-right: 8px;"/>
+                            Conversation
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="session_id"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="message_count"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Messages" name="messages">
+                            <field name="message_ids" readonly="1">
+                                <list string="Messages" default_order="create_date">
+                                    <field name="create_date" string="Time"/>
+                                    <field name="role"
+                                           decoration-info="role == 'user'"
+                                           decoration-success="role == 'assistant'"/>
+                                    <field name="content"/>
+                                    <field name="referenced_product_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Conversation Search View                                     -->
+    <!-- ============================================================ -->
+    <record id="product_rag_conversation_search_view" model="ir.ui.view">
+        <field name="name">product.rag.conversation.search</field>
+        <field name="model">product.rag.conversation</field>
+        <field name="arch" type="xml">
+            <search string="Search Conversations">
+                <field name="session_id"/>
+                <field name="partner_id"/>
+                <filter name="today" string="Today"
+                        domain="[('create_date', '>=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="this_week" string="This Week"
+                        domain="[('create_date', '>=', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_partner" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Message List View                                            -->
+    <!-- ============================================================ -->
+    <record id="product_rag_message_list_view" model="ir.ui.view">
+        <field name="name">product.rag.message.list</field>
+        <field name="model">product.rag.message</field>
+        <field name="arch" type="xml">
+            <list string="RAG Messages" default_order="create_date">
+                <field name="conversation_id"/>
+                <field name="role"
+                       decoration-info="role == 'user'"
+                       decoration-success="role == 'assistant'"/>
+                <field name="content"/>
+                <field name="referenced_product_ids" widget="many2many_tags"/>
+                <field name="create_date" string="Sent"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Message Form View                                            -->
+    <!-- ============================================================ -->
+    <record id="product_rag_message_form_view" model="ir.ui.view">
+        <field name="name">product.rag.message.form</field>
+        <field name="model">product.rag.message</field>
+        <field name="arch" type="xml">
+            <form string="RAG Message">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="conversation_id"/>
+                            <field name="role"/>
+                        </group>
+                        <group>
+                            <field name="create_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="content"/>
+                    </group>
+                    <group>
+                        <field name="referenced_product_ids" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Actions                                                      -->
+    <!-- ============================================================ -->
+    <record id="action_rag_conversations" model="ir.actions.act_window">
+        <field name="name">Conversations</field>
+        <field name="res_model">product.rag.conversation</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="product_rag_conversation_search_view"/>
+    </record>
+
+    <record id="action_rag_messages" model="ir.actions.act_window">
+        <field name="name">Messages</field>
+        <field name="res_model">product.rag.message</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menus                                                        -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_rag_conversations"
+              name="Conversations"
+              parent="menu_rag_data"
+              action="action_rag_conversations"
+              sequence="1"/>
+
+    <menuitem id="menu_rag_messages"
+              name="Messages"
+              parent="menu_rag_data"
+              action="action_rag_messages"
+              sequence="2"/>
+
+</odoo>

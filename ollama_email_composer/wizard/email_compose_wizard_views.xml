@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="view_email_compose_wizard_form" model="ir.ui.view">
+        <field name="name">email.compose.ai.wizard.form</field>
+        <field name="model">email.compose.ai.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Compose with AI">
+                <header>
+                    <button name="action_generate"
+                            string="Generate Email"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-magic"
+                            invisible="state == 'done'"/>
+                    <button name="action_regenerate"
+                            string="Regenerate"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-refresh"
+                            invisible="state != 'done'"/>
+                </header>
+                <sheet>
+                    <!-- Input Section -->
+                    <group invisible="state == 'done'">
+                        <group string="Email Settings">
+                            <field name="tone" widget="radio"/>
+                            <field name="template_id"/>
+                            <field name="recipient_name"
+                                   placeholder="e.g. Mr. Dupont, Team Marketing"/>
+                        </group>
+                        <group string="Instructions">
+                            <field name="instruction" nolabel="1"
+                                   placeholder="Describe what the email should say...&#10;&#10;Example: Follow up on yesterday's meeting, propose a new date for next Tuesday, mention the budget needs review before end of month."/>
+                        </group>
+                    </group>
+                    <group invisible="state == 'done'">
+                        <field name="context_info"
+                               placeholder="Paste previous conversation or context to help the AI generate a better response..."
+                               string="Additional Context (optional)"/>
+                    </group>
+
+                    <!-- Result Section -->
+                    <div invisible="state != 'done'" class="mt-3">
+                        <div class="alert alert-success mb-3">
+                            <i class="fa fa-check-circle me-2"/>
+                            <strong>Email generated!</strong>
+                            Copy the content below and paste it into your email composer.
+                        </div>
+                        <group>
+                            <field name="generated_subject"/>
+                        </group>
+                        <field name="generated_body" nolabel="1" class="border p-3 bg-white"/>
+                    </div>
+
+                    <field name="state" invisible="1"/>
+                </sheet>
+                <footer invisible="state == 'done'">
+                    <button name="action_generate"
+                            string="Generate"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-magic"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+                <footer invisible="state != 'done'">
+                    <button name="action_regenerate"
+                            string="Regenerate"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-refresh"/>
+                    <button string="Close" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Inherit hr.applicant form: Add AI Analysis tab and buttons   -->
+    <!-- ============================================================ -->
+    <record id="hr_applicant_view_form_ai" model="ir.ui.view">
+        <field name="name">hr.applicant.form.ai.cv</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- AI action buttons in button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_analyze_cv"
+                        string="Analyze CV"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text"
+                        help="Analyze this applicant's CV using AI">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="ai_cv_score" widget="integer"/>
+                        </span>
+                        <span class="o_stat_text">AI Score</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- AI Analysis notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Analysis" name="ai_analysis">
+                    <!-- Action buttons -->
+                    <div class="mb-3">
+                        <button name="action_analyze_cv"
+                                string="Analyze CV"
+                                type="object"
+                                class="btn-primary me-2"
+                                icon="fa-bolt"/>
+                        <button name="action_generate_questions"
+                                string="Generate Questions"
+                                type="object"
+                                class="btn-secondary"
+                                icon="fa-question-circle"/>
+                    </div>
+
+                    <!-- Score and date -->
+                    <group>
+                        <group string="Score">
+                            <field name="ai_cv_score" widget="progressbar"
+                                   options="{'max_value': 100}"/>
+                            <field name="ai_analysis_date"/>
+                        </group>
+                    </group>
+
+                    <!-- Analysis -->
+                    <group string="AI Analysis">
+                        <field name="ai_cv_analysis" nolabel="1"
+                               colspan="2" readonly="1"/>
+                    </group>
+
+                    <!-- Strengths and Weaknesses -->
+                    <group>
+                        <group string="Strengths">
+                            <field name="ai_strengths" nolabel="1"
+                                   readonly="1"/>
+                        </group>
+                        <group string="Weaknesses">
+                            <field name="ai_weaknesses" nolabel="1"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Interview Questions -->
+                    <group string="Interview Questions">
+                        <field name="ai_interview_questions" nolabel="1"
+                               colspan="2" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Inherit hr.applicant list: Add AI score column               -->
+    <!-- ============================================================ -->
+    <record id="hr_applicant_view_list_ai" model="ir.ui.view">
+        <field name="name">hr.applicant.list.ai.cv</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.crm_case_tree_view_job"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="ai_cv_score" string="AI Score"
+                       widget="progressbar"
+                       options="{'max_value': 100}"
+                       optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

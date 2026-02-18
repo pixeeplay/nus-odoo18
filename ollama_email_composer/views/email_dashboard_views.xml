@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Dashboard Form View -->
+    <record id="view_email_composer_dashboard_form" model="ir.ui.view">
+        <field name="name">email.composer.dashboard.form</field>
+        <field name="model">email.composer.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Email Composer" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_open_templates"
+                            string="Manage Templates"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-list"/>
+                    <button name="action_open_logs"
+                            string="View Logs"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-history"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                </header>
+                <sheet>
+                    <!-- AI Provider Banner -->
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-robot me-2"/>
+                        <strong>AI Provider:</strong>
+                        <field name="ai_provider" readonly="1" class="fw-bold d-inline"/>
+                        <span class="ms-2">|</span>
+                        <strong class="ms-2">Model:</strong>
+                        <field name="ai_model" readonly="1" class="d-inline"/>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <h3 class="mt-2 mb-3">
+                        <i class="fa fa-envelope me-2" style="color:#2196F3;"/>
+                        Email Generation Statistics
+                    </h3>
+                    <div class="row mb-4">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center" style="border-color:#2196F3;">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0" style="color:#2196F3;"><field name="total_generated" readonly="1"/></h3>
+                                    <small class="text-muted">Total Generated</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-success">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-success"><field name="generated_today" readonly="1"/></h3>
+                                    <small class="text-muted">Today</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-primary">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-primary"><field name="generated_week" readonly="1"/></h3>
+                                    <small class="text-muted">This Week</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-info">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-info"><field name="total_templates" readonly="1"/></h3>
+                                    <small class="text-muted">Templates</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tone Breakdown -->
+                    <h3 class="mb-3">
+                        <i class="fa fa-pie-chart me-2"/>
+                        By Tone
+                    </h3>
+                    <div class="row mb-4">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="by_professional" readonly="1"/></h4>
+                                    <small class="text-muted">Professional</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="by_friendly" readonly="1"/></h4>
+                                    <small class="text-muted">Friendly</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="by_formal" readonly="1"/></h4>
+                                    <small class="text-muted">Formal</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="by_persuasive" readonly="1"/></h4>
+                                    <small class="text-muted">Persuasive</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="mb-0"><field name="by_apology" readonly="1"/></h4>
+                                    <small class="text-muted">Apology</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Compose -->
+                    <separator string="Quick Actions"/>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button name="%(ollama_email_composer.action_email_compose_wizard)d"
+                                    string="Compose with AI"
+                                    type="action"
+                                    class="btn-primary me-2 mb-2"
+                                    icon="fa-magic"/>
+                            <button name="action_open_templates"
+                                    string="Email Templates"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-file-text-o"/>
+                            <button name="action_open_logs"
+                                    string="Generation History"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-history"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_email_composer_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Email Composer</field>
+        <field name="res_model">email.composer.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Wizard Action -->
+    <record id="action_email_compose_wizard" model="ir.actions.act_window">
+        <field name="name">Compose with AI</field>
+        <field name="res_model">email.compose.ai.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Root Menu (App on Home Screen) -->
+    <menuitem id="menu_email_composer_root"
+              name="AI Email"
+              web_icon="ollama_email_composer,static/description/icon.png"
+              sequence="301"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_email_dashboard"
+              name="Dashboard"
+              parent="menu_email_composer_root"
+              action="action_email_composer_dashboard"
+              sequence="1"/>
+
+    <!-- Compose -->
+    <menuitem id="menu_email_compose"
+              name="Compose with AI"
+              parent="menu_email_composer_root"
+              action="action_email_compose_wizard"
+              sequence="10"/>
+
+    <!-- Settings -->
+    <menuitem id="menu_email_settings"
+              name="Settings"
+              parent="menu_email_composer_root"
+              sequence="100"/>
+
+    <menuitem id="menu_email_templates"
+              name="Email Templates"
+              parent="menu_email_settings"
+              action="action_email_templates"
+              sequence="10"/>
+
+    <menuitem id="menu_email_logs"
+              name="AI Logs"
+              parent="menu_email_settings"
+              action="action_email_logs"
+              sequence="20"/>
+
+</odoo>

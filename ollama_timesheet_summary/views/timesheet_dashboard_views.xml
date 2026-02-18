@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Form View                                          -->
+    <!-- ============================================================ -->
+    <record id="timesheet_summary_dashboard_form" model="ir.ui.view">
+        <field name="name">timesheet.summary.dashboard.form</field>
+        <field name="model">timesheet.summary.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Timesheet Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_generate_this_week"
+                            string="Generate This Week"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bolt"
+                            confirm="This will generate AI summaries for all employees with timesheets this week. Continue?"/>
+                    <button name="action_open_summaries"
+                            string="All Summaries"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-list"/>
+                    <button name="action_open_alerts"
+                            string="View Alerts"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-exclamation-triangle"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                    <button name="action_refresh"
+                            string="Refresh"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <h1 style="color: #607D8B;">AI Timesheet Dashboard</h1>
+                    </div>
+
+                    <!-- AI Provider Banner -->
+                    <div class="alert" role="alert"
+                         style="background-color: #ECEFF1; border-left: 4px solid #607D8B; color: #37474F;">
+                        <strong>AI Provider:</strong>
+                        <field name="ai_provider" class="fw-bold"/>
+                        <span class="mx-2">|</span>
+                        <strong>Model:</strong>
+                        <field name="ai_model" class="fw-bold"/>
+                    </div>
+
+                    <!-- Main Statistics Row -->
+                    <div class="row mt-3">
+                        <!-- Total Employees -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 4px solid #607D8B;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-users"/> Employees
+                                    </h5>
+                                    <h2 style="color: #607D8B;">
+                                        <field name="total_employees"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Summaries Generated -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 4px solid #43A047;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-check-circle"/> Generated
+                                    </h5>
+                                    <h2 class="text-success">
+                                        <field name="summaries_generated"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Summaries Sent -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 4px solid #1565C0;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-paper-plane"/> Sent
+                                    </h5>
+                                    <h2 style="color: #1565C0;">
+                                        <field name="summaries_sent"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Average Hours -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 4px solid #607D8B;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-clock-o"/> Avg Hours/Week
+                                    </h5>
+                                    <h2 style="color: #607D8B;">
+                                        <field name="avg_hours_week"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Row -->
+                    <div class="row mt-2">
+                        <!-- Overtime Alerts -->
+                        <div class="col-lg-6 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-left: 4px solid #E53935;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-exclamation-triangle text-danger"/>
+                                        Overtime Alerts (&gt;45h)
+                                    </h5>
+                                    <h2 class="text-danger">
+                                        <field name="overtime_alerts"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Underlog Alerts -->
+                        <div class="col-lg-6 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-left: 4px solid #FF8F00;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-exclamation-circle text-warning"/>
+                                        Underlog Alerts (&lt;30h)
+                                    </h5>
+                                    <h2 class="text-warning">
+                                        <field name="underlog_alerts"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button name="action_open_summaries"
+                                    string="Browse All Summaries"
+                                    type="object"
+                                    class="btn btn-outline-secondary w-100 mb-2"
+                                    icon="fa-list"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_alerts"
+                                    string="View Alerts"
+                                    type="object"
+                                    class="btn btn-outline-warning w-100 mb-2"
+                                    icon="fa-exclamation-triangle"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_config"
+                                    string="AI Settings"
+                                    type="object"
+                                    class="btn btn-outline-secondary w-100 mb-2"
+                                    icon="fa-cog"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_timesheet_summary_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Timesheet Dashboard</field>
+        <field name="res_model">timesheet.summary.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu Items                                                   -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_ai_timesheet_root"
+              name="AI Timesheets"
+              web_icon="ollama_timesheet_summary,static/description/icon.png"
+              sequence="309"/>
+
+    <menuitem id="menu_ai_timesheet_dashboard"
+              name="Dashboard"
+              parent="menu_ai_timesheet_root"
+              action="action_timesheet_summary_dashboard"
+              sequence="1"/>
+
+</odoo>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Ticket List View -->
+    <!-- ============================================================ -->
+    <record id="ollama_helpdesk_ticket_list" model="ir.ui.view">
+        <field name="name">ollama.helpdesk.ticket.list</field>
+        <field name="model">ollama.helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <list string="Helpdesk Tickets" default_order="priority desc, create_date desc"
+                  decoration-danger="priority == '3'"
+                  decoration-warning="priority == '2'"
+                  decoration-muted="is_closed == True"
+                  multi_edit="1">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="stage_id"/>
+                <field name="priority" widget="priority"/>
+                <field name="ai_classification" optional="show"/>
+                <field name="ai_sentiment"
+                       decoration-success="ai_sentiment == 'positive'"
+                       decoration-danger="ai_sentiment == 'negative'"
+                       decoration-info="ai_sentiment == 'neutral'"
+                       widget="badge"
+                       optional="show"/>
+                <field name="ai_priority_suggestion" optional="hide"/>
+                <field name="create_date" optional="hide"/>
+                <field name="is_closed" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket Form View -->
+    <!-- ============================================================ -->
+    <record id="ollama_helpdesk_ticket_form" model="ir.ui.view">
+        <field name="name">ollama.helpdesk.ticket.form</field>
+        <field name="model">ollama.helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <form string="Helpdesk Ticket">
+                <header>
+                    <button name="action_classify_ticket" type="object"
+                            string="AI Classify"
+                            class="btn-primary"
+                            icon="fa-magic"/>
+                    <button name="action_generate_response" type="object"
+                            string="AI Generate Response"
+                            class="btn-primary"
+                            icon="fa-commenting"/>
+                    <button name="action_send_ai_response" type="object"
+                            string="Send AI Response"
+                            class="btn-success"
+                            icon="fa-paper-plane"
+                            invisible="not ai_draft_response"/>
+                    <button name="action_apply_ai_priority" type="object"
+                            string="Apply AI Priority"
+                            class="btn-secondary"
+                            icon="fa-arrow-up"
+                            invisible="not ai_priority_suggestion"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Closed" bg_color="text-bg-success"
+                            invisible="not is_closed"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Ticket Subject..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group>
+                            <field name="kanban_state" widget="state_selection"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="is_closed" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Describe the issue in detail..."/>
+                        </page>
+
+                        <page string="AI Analysis" name="ai_analysis">
+                            <group>
+                                <group string="Classification">
+                                    <field name="ai_classification"/>
+                                    <field name="ai_priority_suggestion"/>
+                                    <field name="ai_sentiment"
+                                           decoration-success="ai_sentiment == 'positive'"
+                                           decoration-danger="ai_sentiment == 'negative'"
+                                           decoration-info="ai_sentiment == 'neutral'"
+                                           widget="badge"/>
+                                    <field name="ai_analysis_date"/>
+                                </group>
+                            </group>
+                            <group string="AI Draft Response">
+                                <field name="ai_draft_response" nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket Kanban View -->
+    <!-- ============================================================ -->
+    <record id="ollama_helpdesk_ticket_kanban" model="ir.ui.view">
+        <field name="name">ollama.helpdesk.ticket.kanban</field>
+        <field name="model">ollama.helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id"
+                    default_order="priority desc, create_date desc"
+                    class="o_kanban_small_column"
+                    quick_create="true"
+                    on_create="quick_create"
+                    sample="1">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="priority"/>
+                <field name="stage_id"/>
+                <field name="kanban_state"/>
+                <field name="ai_classification"/>
+                <field name="ai_sentiment"/>
+                <field name="is_closed"/>
+                <progressbar field="kanban_state"
+                             colors='{"done": "success", "blocked": "danger"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between mb-1">
+                            <field name="priority" widget="priority"/>
+                            <field name="kanban_state" widget="state_selection"/>
+                        </div>
+                        <field name="name" class="fw-bold d-block mb-1"/>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span t-if="record.partner_id.value"
+                                  class="text-muted small">
+                                <i class="fa fa-user me-1"/>
+                                <field name="partner_id"/>
+                            </span>
+                            <span t-if="record.ai_classification.raw_value"
+                                  class="badge text-bg-info small">
+                                <field name="ai_classification"/>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span t-if="record.ai_sentiment.raw_value"
+                                  t-attf-class="badge small #{record.ai_sentiment.raw_value == 'positive' ? 'text-bg-success' : record.ai_sentiment.raw_value == 'negative' ? 'text-bg-danger' : 'text-bg-secondary'}">
+                                <field name="ai_sentiment"/>
+                            </span>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket Search View -->
+    <!-- ============================================================ -->
+    <record id="ollama_helpdesk_ticket_search" model="ir.ui.view">
+        <field name="name">ollama.helpdesk.ticket.search</field>
+        <field name="model">ollama.helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <search string="Search Tickets">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="ai_classification"/>
+                <filter string="My Tickets" name="my_tickets"
+                        domain="[('user_id', '=', uid)]"/>
+                <filter string="Unassigned" name="unassigned"
+                        domain="[('user_id', '=', False)]"/>
+                <separator/>
+                <filter string="Open" name="open"
+                        domain="[('is_closed', '=', False)]"/>
+                <filter string="Closed" name="closed"
+                        domain="[('is_closed', '=', True)]"/>
+                <separator/>
+                <filter string="Negative Sentiment" name="negative"
+                        domain="[('ai_sentiment', '=', 'negative')]"/>
+                <filter string="Positive Sentiment" name="positive"
+                        domain="[('ai_sentiment', '=', 'positive')]"/>
+                <filter string="Not Classified" name="unclassified"
+                        domain="[('ai_classification', '=', False)]"/>
+                <separator/>
+                <filter string="Urgent" name="urgent"
+                        domain="[('priority', '=', '3')]"/>
+                <filter string="High" name="high"
+                        domain="[('priority', '=', '2')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Stage" name="group_stage" context="{'group_by': 'stage_id'}"/>
+                    <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                    <filter string="Assigned to" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="AI Classification" name="group_classification" context="{'group_by': 'ai_classification'}"/>
+                    <filter string="Sentiment" name="group_sentiment" context="{'group_by': 'ai_sentiment'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Ticket Action -->
+    <!-- ============================================================ -->
+    <record id="action_helpdesk_ticket" model="ir.actions.act_window">
+        <field name="name">Tickets</field>
+        <field name="res_model">ollama.helpdesk.ticket</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="ollama_helpdesk_ticket_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first helpdesk ticket
+            </p>
+            <p>
+                Track customer issues and let AI help classify, prioritize, and draft responses.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu Items -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_helpdesk_tickets"
+              name="Tickets"
+              parent="menu_helpdesk_root"
+              action="action_helpdesk_ticket"
+              sequence="10"/>
+
+</odoo>

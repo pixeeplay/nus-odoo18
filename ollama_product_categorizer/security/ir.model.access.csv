@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_product_ai_category_mapping_user,product.ai.category.mapping.user,model_product_ai_category_mapping,base.group_user,1,0,0,0
+access_product_ai_category_mapping_manager,product.ai.category.mapping.manager,model_product_ai_category_mapping,base.group_system,1,1,1,1
+access_product_categorizer_dashboard_user,product.categorizer.dashboard.user,model_product_categorizer_dashboard,base.group_user,1,1,1,0
+access_product_categorizer_dashboard_manager,product.categorizer.dashboard.manager,model_product_categorizer_dashboard,base.group_system,1,1,1,1

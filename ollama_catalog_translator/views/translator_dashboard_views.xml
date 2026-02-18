@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Form View                                           -->
+    <!-- ============================================================ -->
+    <record id="view_catalog_translator_dashboard_form" model="ir.ui.view">
+        <field name="name">catalog.translator.dashboard.form</field>
+        <field name="model">catalog.translator.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Catalog Translator Dashboard" create="false" edit="false" delete="false">
+                <sheet>
+                    <!-- Header Banner -->
+                    <div style="background: linear-gradient(135deg, #4CAF50, #2E7D32);
+                                color: white; padding: 24px 32px; border-radius: 8px;
+                                margin-bottom: 24px;">
+                        <h1 style="color: white; margin: 0 0 8px 0;">
+                            <i class="fa fa-language"/> AI Catalog Translator
+                        </h1>
+                        <p style="margin: 0; opacity: 0.9; font-size: 14px;">
+                            Translate your product catalog to multiple languages with AI
+                        </p>
+                    </div>
+
+                    <!-- Stats Cards Row -->
+                    <div class="row" style="margin-bottom: 24px;">
+                        <!-- Total Products -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div style="background: #F5F5F5; border-radius: 8px; padding: 20px;
+                                        text-align: center; border-left: 4px solid #4CAF50;">
+                                <div style="font-size: 32px; font-weight: bold; color: #4CAF50;">
+                                    <field name="total_products" readonly="1"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-top: 4px;">
+                                    Total Products
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Translated -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div style="background: #E8F5E9; border-radius: 8px; padding: 20px;
+                                        text-align: center; border-left: 4px solid #2E7D32;">
+                                <div style="font-size: 32px; font-weight: bold; color: #2E7D32;">
+                                    <field name="translated" readonly="1"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-top: 4px;">
+                                    Translated
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Untranslated -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div style="background: #FFF3E0; border-radius: 8px; padding: 20px;
+                                        text-align: center; border-left: 4px solid #FF9800;">
+                                <div style="font-size: 32px; font-weight: bold; color: #E65100;">
+                                    <field name="untranslated" readonly="1"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-top: 4px;">
+                                    Untranslated
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Complete -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div style="background: #E3F2FD; border-radius: 8px; padding: 20px;
+                                        text-align: center; border-left: 4px solid #1565C0;">
+                                <div style="font-size: 32px; font-weight: bold; color: #1565C0;">
+                                    <field name="complete" readonly="1"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-top: 4px;">
+                                    Fully Translated
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Language Breakdown -->
+                    <div style="background: #FAFAFA; border-radius: 8px; padding: 20px;
+                                margin-bottom: 24px; border: 1px solid #E0E0E0;">
+                        <h3 style="color: #4CAF50; margin-top: 0;">
+                            <i class="fa fa-bar-chart"/> Translation Coverage by Language
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div style="padding: 12px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #333;">
+                                        <field name="by_en" readonly="1"/>
+                                    </div>
+                                    <div style="color: #666;">
+                                        <i class="fa fa-flag"/> English (EN)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div style="padding: 12px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #333;">
+                                        <field name="by_de" readonly="1"/>
+                                    </div>
+                                    <div style="color: #666;">
+                                        <i class="fa fa-flag"/> German (DE)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div style="padding: 12px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: bold; color: #333;">
+                                        <field name="by_es" readonly="1"/>
+                                    </div>
+                                    <div style="color: #666;">
+                                        <i class="fa fa-flag"/> Spanish (ES)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div style="background: #FAFAFA; border-radius: 8px; padding: 20px;
+                                border: 1px solid #E0E0E0;">
+                        <h3 style="color: #4CAF50; margin-top: 0;">
+                            <i class="fa fa-bolt"/> Quick Actions
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <button name="action_translate_all"
+                                        string="Translate All Products"
+                                        type="object"
+                                        class="btn btn-primary w-100"
+                                        icon="fa-language"
+                                        style="background-color: #4CAF50; border-color: #4CAF50;"/>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button name="action_open_untranslated"
+                                        string="View Untranslated"
+                                        type="object"
+                                        class="btn btn-warning w-100"
+                                        icon="fa-list"/>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button name="action_open_config"
+                                        string="AI Configuration"
+                                        type="object"
+                                        class="btn btn-secondary w-100"
+                                        icon="fa-cog"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                              -->
+    <!-- ============================================================ -->
+    <record id="action_catalog_translator_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Translator Dashboard</field>
+        <field name="res_model">catalog.translator.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="view_id" ref="view_catalog_translator_dashboard_form"/>
+        <field name="flags" eval="{'mode': 'readonly'}"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Root Menu: AI Translator                                      -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_ai_translator_root"
+              name="AI Translator"
+              sequence="307"
+              web_icon="ollama_catalog_translator,static/description/icon.png"/>
+
+    <!-- Sub-menus -->
+    <menuitem id="menu_ai_translator_dashboard"
+              name="Dashboard"
+              parent="menu_ai_translator_root"
+              action="action_catalog_translator_dashboard"
+              sequence="10"/>
+
+    <menuitem id="menu_ai_translator_batch"
+              name="Batch Translate"
+              parent="menu_ai_translator_root"
+              action="action_catalog_translation_wizard"
+              sequence="20"/>
+
+    <menuitem id="menu_ai_translator_products"
+              name="Products"
+              parent="menu_ai_translator_root"
+              sequence="30"/>
+
+    <record id="action_products_translation_list" model="ir.actions.act_window">
+        <field name="name">Products (Translation)</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_untranslated': 1}</field>
+    </record>
+
+    <menuitem id="menu_ai_translator_all_products"
+              name="All Products"
+              parent="menu_ai_translator_products"
+              action="action_products_translation_list"
+              sequence="10"/>
+
+</odoo>

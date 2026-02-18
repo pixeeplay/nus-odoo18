@@ -1,0 +1,325 @@
+# Translation file for Odoo.
+# This file contains the translation template for ollama_crm_assistant.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. module: ollama_crm_assistant
+msgid "AI Actions"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Analysis"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI CRM"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI CRM Assistant powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI CRM Dashboard"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI CRM: Score New Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Config"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Configuration"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Email Analysis"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Follow-up Date"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Model"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Provider"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Score"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Score Date"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Score Reason"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Score: %s/100"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Scoring"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Scoring Failed"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Settings"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI Suggested Action"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI lead scoring, email analysis, and follow-up suggestions for CRM"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI-generated lead quality score from 0 (cold) to 100 (hot)."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI-generated summary of the email conversation thread."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI-recommended next action for this lead."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "AI-suggested date for the next follow-up."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "All Leads Scored"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Analyze Emails"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Analyzed %d messages. See the AI Analysis tab."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Average Score"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Batch Scoring Complete"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Cold Leads (<40)"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Could not parse AI response. Please try again."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Dashboard"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Date and time when the AI last scored this lead."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Email Analysis"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Email Analysis Complete"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Email Analysis Failed"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Explanation of why the AI assigned this score."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Hot Leads (>70)"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Hot Leads (AI Score > 70)"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Lead scored successfully."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "N/A"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "No Content"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "No Emails Found"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "No email messages found for this lead."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "No message content found to analyze."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "No response from AI. Check your AI configuration."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "No unscored leads found."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Not Configured"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Quick Actions"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Refresh"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Sales/CRM"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Score All Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Score Reason"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Score with AI"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Scored %d leads. Errors: %d."
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Scored Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Total Active Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Unscored Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "View Hot Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "View Unscored Leads"
+msgstr ""
+
+
+#. module: ollama_crm_assistant
+msgid "Warm Leads (40-70)"
+msgstr ""

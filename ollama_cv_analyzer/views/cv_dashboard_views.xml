@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Form View                                          -->
+    <!-- ============================================================ -->
+    <record id="cv_analyzer_dashboard_form" model="ir.ui.view">
+        <field name="name">cv.analyzer.dashboard.form</field>
+        <field name="model">cv.analyzer.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI CV Analyzer Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_analyze_pending"
+                            string="Analyze All Pending"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bolt"
+                            confirm="This will analyze up to 50 pending applicants. Continue?"/>
+                    <button name="action_open_top"
+                            string="View Top Candidates"
+                            type="object"
+                            class="btn-success"
+                            icon="fa-star"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                    <button name="action_refresh"
+                            string="Refresh"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <h1 style="color: #00BCD4;">AI CV Analyzer Dashboard</h1>
+                    </div>
+
+                    <!-- AI Provider Banner -->
+                    <div class="alert alert-info" role="alert"
+                         style="background: #E0F7FA; border-color: #00BCD4; color: #006064;">
+                        <strong>AI Provider:</strong>
+                        <field name="ai_provider" class="fw-bold"/>
+                        <span class="mx-2">|</span>
+                        <strong>Model:</strong>
+                        <field name="ai_model" class="fw-bold"/>
+                    </div>
+
+                    <!-- Main Statistics Cards -->
+                    <div class="row mt-3">
+                        <!-- Total Applicants -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 3px solid #00BCD4;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-users"/> Total Applicants
+                                    </h5>
+                                    <h2 style="color: #00BCD4;">
+                                        <field name="total_applicants"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Analyzed -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 3px solid #4CAF50;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-check-circle"/> Analyzed
+                                    </h5>
+                                    <h2 class="text-success">
+                                        <field name="analyzed_applicants"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Pending -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 3px solid #FF9800;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-clock-o"/> Pending
+                                    </h5>
+                                    <h2 class="text-warning">
+                                        <field name="unanalyzed_applicants"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Average Score -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-top: 3px solid #00BCD4;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-bar-chart"/> Avg Score
+                                    </h5>
+                                    <h2 style="color: #00BCD4;">
+                                        <field name="avg_score"/><small>/100</small>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidate Quality Breakdown -->
+                    <div class="row mt-2">
+                        <!-- Top Candidates -->
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-left: 4px solid #4CAF50;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-star text-success"/> Top Candidates (&gt;80)
+                                    </h5>
+                                    <h2 class="text-success">
+                                        <field name="top_candidates"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Medium Candidates -->
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-left: 4px solid #FF9800;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-minus-circle text-warning"/> Medium (40-80)
+                                    </h5>
+                                    <h2 class="text-warning">
+                                        <field name="medium_candidates"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Weak Candidates -->
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm"
+                                 style="border-left: 4px solid #F44336;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-arrow-down text-danger"/> Weak (&lt;40)
+                                    </h5>
+                                    <h2 class="text-danger">
+                                        <field name="weak_candidates"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button name="action_open_unanalyzed"
+                                    string="View Pending Applicants"
+                                    type="object"
+                                    class="btn btn-outline-warning w-100 mb-2"
+                                    icon="fa-list"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_top"
+                                    string="View Top Candidates"
+                                    type="object"
+                                    class="btn btn-outline-success w-100 mb-2"
+                                    icon="fa-star"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_config"
+                                    string="AI Settings"
+                                    type="object"
+                                    class="btn btn-outline-secondary w-100 mb-2"
+                                    icon="fa-cog"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_cv_analyzer_dashboard" model="ir.actions.act_window">
+        <field name="name">AI CV Analyzer Dashboard</field>
+        <field name="res_model">cv.analyzer.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu Items                                                   -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_cv_analyzer_root"
+              name="AI CV Analyzer"
+              web_icon="ollama_cv_analyzer,static/description/icon.png"
+              sequence="308"/>
+
+    <menuitem id="menu_cv_analyzer_dashboard"
+              name="Dashboard"
+              parent="menu_cv_analyzer_root"
+              action="action_cv_analyzer_dashboard"
+              sequence="1"/>
+
+</odoo>

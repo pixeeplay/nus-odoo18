@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Inherit Product Template Form — Add AI SEO Tab               -->
+    <!-- ============================================================ -->
+    <record id="view_product_template_form_seo" model="ir.ui.view">
+        <field name="name">product.template.form.seo</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="AI SEO" name="ai_seo">
+                    <div class="oe_title mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="color: #9C27B0; font-size: 1.4em;">
+                                <i class="fa fa-line-chart"/>
+                            </span>
+                            <h3 class="mb-0" style="color: #9C27B0;">AI SEO Generator</h3>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mb-4">
+                        <button name="action_generate_seo"
+                                string="Generate SEO"
+                                type="object"
+                                class="btn-primary me-2"
+                                icon="fa-magic"/>
+                        <button name="action_apply_seo"
+                                string="Apply to Website"
+                                type="object"
+                                class="btn-secondary me-2"
+                                icon="fa-check-circle"
+                                invisible="not ai_seo_title"/>
+                        <button name="action_audit_seo"
+                                string="Audit SEO"
+                                type="object"
+                                class="btn-link"
+                                icon="fa-stethoscope"/>
+                    </div>
+
+                    <group>
+                        <group string="Generated SEO Metadata">
+                            <field name="ai_seo_title"/>
+                            <field name="ai_seo_description"/>
+                            <field name="ai_seo_keywords"/>
+                        </group>
+                        <group string="Assessment">
+                            <field name="ai_seo_score" widget="progressbar"/>
+                            <field name="ai_seo_date"/>
+                        </group>
+                    </group>
+
+                    <group string="Improvement Suggestions"
+                           invisible="not ai_seo_suggestions">
+                        <field name="ai_seo_suggestions" nolabel="1"
+                               colspan="2"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Inherit Product Template List — Add SEO Score Column         -->
+    <!-- ============================================================ -->
+    <record id="view_product_template_list_seo" model="ir.ui.view">
+        <field name="name">product.template.list.seo</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="ai_seo_score" string="SEO" optional="hide"
+                       widget="progressbar"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

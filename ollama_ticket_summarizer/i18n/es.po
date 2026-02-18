@@ -1,0 +1,271 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ollama_ticket_summarizer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: ollama_ticket_summarizer
+msgid "<br/>"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Analysis"
+msgstr "Análisis IA"
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Config"
+msgstr "Configuración IA"
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Configuration"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Summarizer"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Summarizer Dashboard"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Thread Summaries"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI Ticket Summarizer powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI detected that this thread may require escalation."
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI returned an empty response. Check your AI configuration."
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "AI-powered executive summaries of long ticket and message threads"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Action Items"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "All AI Summaries"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Avg Messages / Summary"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Bulk Summarization Complete"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Dashboard"
+msgstr "Panel de control"
+
+
+#. module: ollama_ticket_summarizer
+msgid "Deleted Record #%s"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Done"
+msgstr "Hecho"
+
+
+#. module: ollama_ticket_summarizer
+msgid "Draft"
+msgstr "Borrador"
+
+
+#. module: ollama_ticket_summarizer
+msgid "Error"
+msgstr "Error"
+
+
+#. module: ollama_ticket_summarizer
+msgid "Escalation Needed"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Escalations Detected"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Executive Summary"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Generate Summary"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Generated This Week"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Group By"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Key Discussion Points"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Long Threads (>10 msgs)"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Messages Summarized"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "No Long Threads"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "No message content found to summarize."
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "No threads with more than 10 messages found."
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Productivity/Discuss"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Quick Actions"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Record #%s"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Refresh"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Regenerate"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Source"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Source Model"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Source Record"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Source Record ID"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Status"
+msgstr "Estado"
+
+
+#. module: ollama_ticket_summarizer
+msgid "Summaries"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Summarize Long Threads"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Technical model name, e.g. crm.lead, helpdesk.ticket"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Total Summaries"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "Unknown"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "View All Summaries"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "View Escalations"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "email"
+msgstr ""
+
+
+#. module: ollama_ticket_summarizer
+msgid "res_id"
+msgstr ""

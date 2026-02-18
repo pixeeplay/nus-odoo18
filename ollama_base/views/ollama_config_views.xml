@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Actions                                                       -->
+    <!-- ============================================================ -->
+    <record id="action_ollama_config" model="ir.actions.act_window">
+        <field name="name">AI Configurations</field>
+        <field name="res_model">ollama.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure your AI Provider
+            </p>
+            <p>
+                Set up Ollama, OpenAI, Gemini, Anthropic or Llama.cpp to power the AI suite.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_ollama_model" model="ir.actions.act_window">
+        <field name="name">AI Models</field>
+        <field name="res_model">ollama.model</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_ollama_log" model="ir.actions.act_window">
+        <field name="name">AI Call Logs</field>
+        <field name="res_model">ollama.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No AI calls logged yet
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menus: Settings > Technical > Ollama AI                       -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_ollama_root"
+              name="Ollama AI"
+              parent="base.menu_custom"
+              sequence="90"/>
+
+    <menuitem id="menu_ollama_config"
+              name="AI Providers"
+              parent="menu_ollama_root"
+              action="action_ollama_config"
+              sequence="10"/>
+
+    <menuitem id="menu_ollama_model"
+              name="AI Models"
+              parent="menu_ollama_root"
+              action="action_ollama_model"
+              sequence="20"/>
+
+    <menuitem id="menu_ollama_log"
+              name="AI Logs"
+              parent="menu_ollama_root"
+              action="action_ollama_log"
+              sequence="30"/>
+
+    <!-- ============================================================ -->
+    <!-- ollama.config — List View                                     -->
+    <!-- ============================================================ -->
+    <record id="view_ollama_config_list" model="ir.ui.view">
+        <field name="name">ollama.config.list</field>
+        <field name="model">ollama.config</field>
+        <field name="arch" type="xml">
+            <list string="AI Configurations"
+                  decoration-bf="is_default"
+                  decoration-success="is_default">
+                <field name="is_default" widget="boolean_toggle" string="Default"/>
+                <field name="name"/>
+                <field name="provider" widget="badge"
+                       decoration-info="provider in ['openai', 'anthropic']"
+                       decoration-success="provider in ['ollama', 'llamacpp']"
+                       decoration-warning="provider == 'perplexity'"
+                       decoration-danger="provider == 'gemini'"/>
+                <field name="base_url" optional="show"/>
+                <field name="model_id"/>
+                <field name="ai_model_name" optional="hide"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- ollama.config — Form View                                     -->
+    <!-- ============================================================ -->
+    <record id="view_ollama_config_form" model="ir.ui.view">
+        <field name="name">ollama.config.form</field>
+        <field name="model">ollama.config</field>
+        <field name="arch" type="xml">
+            <form string="AI Configuration">
+                <header>
+                    <button name="action_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="btn-primary"
+                            help="Test the connection to the selected AI provider"/>
+                    <button name="action_discover_models"
+                            string="Discover Models"
+                            type="object"
+                            help="Fetch available models from the provider"/>
+                    <button name="action_set_default"
+                            string="Set as Default"
+                            type="object"
+                            class="btn-success"
+                            invisible="is_default"
+                            help="Use this configuration as the default AI provider"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                        <widget name="web_ribbon" title="Default" bg_color="text-bg-success" invisible="not is_default"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Main AI Configuration"/></h1>
+                    </div>
+                    <group>
+                        <group string="Provider Settings">
+                            <field name="provider"/>
+                            <field name="api_key" password="True"
+                                   invisible="provider in ['ollama', 'llamacpp'] and not ollama_web_search and not api_key"/>
+                            <field name="base_url"
+                                   placeholder="Auto-detected from provider"/>
+                            <field name="ollama_api_mode"
+                                   invisible="provider != 'ollama'"/>
+                            <field name="ollama_web_search" widget="boolean_toggle"
+                                   invisible="provider != 'ollama'"/>
+                            <field name="ollama_cloud_key" password="True"
+                                   invisible="provider != 'ollama' or not ollama_web_search"
+                                   placeholder="sk-... (from ollama.com/settings/keys)"/>
+                            <field name="api_endpoint"
+                                   invisible="provider not in ['ollama', 'llamacpp']"/>
+                            <field name="model_id"
+                                   domain="[('provider', '=', provider)]"
+                                   options="{'no_create': True}"/>
+                            <field name="ai_model_name"
+                                   invisible="model_id"
+                                   placeholder="e.g. llama3.2, gpt-4o-mini"/>
+                        </group>
+                        <group string="Generation Parameters">
+                            <field name="max_tokens"/>
+                            <field name="temperature"/>
+                            <field name="active"/>
+                            <field name="is_default" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Provider help banners -->
+                    <div class="alert alert-light border mt-2 mb-2" role="alert"
+                         invisible="provider != 'ollama'">
+                        <strong>Ollama</strong><br/>
+                        Local: <code>http://localhost:11434</code> |
+                        Remote: <code>http://192.168.x.x:11434</code><br/>
+                        <small class="text-muted">
+                            Make sure Ollama is running (<code>ollama serve</code>
+                            or <code>OLLAMA_HOST=0.0.0.0 ollama serve</code> for network access).
+                        </small><br/>
+                        <span invisible="not ollama_web_search">
+                            <strong>Web Search</strong> (cloud):
+                            Uses <code>ollama.com/api/web_search</code> with your cloud key.<br/>
+                            <small class="text-muted">
+                                Get your API key at
+                                <a href="https://ollama.com/settings/keys" target="_blank">ollama.com/settings/keys</a>.
+                            </small>
+                        </span>
+                    </div>
+                    <div class="alert alert-light border mt-2 mb-2" role="alert"
+                         invisible="provider != 'llamacpp'">
+                        <strong>Llama.cpp</strong> &#8212;
+                        Default: <code>http://localhost:8080</code> |
+                        Remote: <code>http://192.168.x.x:8080</code><br/>
+                        <small class="text-muted">
+                            Start with: <code>llama-server -m model.gguf --port 8080 --host 0.0.0.0</code>
+                        </small>
+                    </div>
+
+                    <!-- Last test result -->
+                    <group invisible="not last_test_result">
+                        <field name="last_test_result" readonly="1" nolabel="1"
+                               widget="text" class="text-muted"/>
+                    </group>
+
+                    <!-- Ollama Tuning -->
+                    <group string="Ollama Tuning" invisible="provider != 'ollama'">
+                        <group>
+                            <field name="ollama_request_timeout"/>
+                            <field name="ollama_num_ctx"/>
+                        </group>
+                        <group>
+                            <field name="ollama_num_gpu"/>
+                            <field name="ollama_keep_alive"/>
+                            <field name="ollama_parallel_workers"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- ollama.model — List View                                      -->
+    <!-- ============================================================ -->
+    <record id="view_ollama_model_list" model="ir.ui.view">
+        <field name="name">ollama.model.list</field>
+        <field name="model">ollama.model</field>
+        <field name="arch" type="xml">
+            <list string="AI Models" editable="bottom">
+                <field name="provider" widget="badge"/>
+                <field name="name"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- ollama.log — List View                                        -->
+    <!-- ============================================================ -->
+    <record id="view_ollama_log_list" model="ir.ui.view">
+        <field name="name">ollama.log.list</field>
+        <field name="model">ollama.log</field>
+        <field name="arch" type="xml">
+            <list string="AI Call Logs" create="0" edit="0"
+                  decoration-danger="status == 'error'"
+                  decoration-success="status == 'success'">
+                <field name="create_date" string="Date"/>
+                <field name="config_id"/>
+                <field name="provider" widget="badge"/>
+                <field name="model_name"/>
+                <field name="res_model"/>
+                <field name="res_id"/>
+                <field name="status" widget="badge"/>
+                <field name="prompt_preview" optional="hide"/>
+                <field name="response_preview" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ollama.log — Form View -->
+    <record id="view_ollama_log_form" model="ir.ui.view">
+        <field name="name">ollama.log.form</field>
+        <field name="model">ollama.log</field>
+        <field name="arch" type="xml">
+            <form string="AI Call Log" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="config_id"/>
+                            <field name="provider"/>
+                            <field name="model_name"/>
+                            <field name="status" widget="badge"/>
+                        </group>
+                        <group>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Prompt">
+                            <field name="prompt_preview" nolabel="1"/>
+                        </page>
+                        <page string="Response">
+                            <field name="response_preview" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

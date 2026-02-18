@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Form View                                          -->
+    <!-- ============================================================ -->
+    <record id="bank_reconciliation_dashboard_form" model="ir.ui.view">
+        <field name="name">bank.reconciliation.dashboard.form</field>
+        <field name="model">bank.reconciliation.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="AI Bank Reconciliation Dashboard" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_analyze_all"
+                            string="Analyze All Lines"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bolt"
+                            confirm="This will analyze up to 50 unreconciled lines. Continue?"/>
+                    <button name="action_apply_suggestions"
+                            string="Review AI Matches"
+                            type="object"
+                            class="btn-success"
+                            icon="fa-check-circle"/>
+                    <button name="action_open_unreconciled"
+                            string="All Unreconciled"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-list"/>
+                    <button name="action_open_config"
+                            string="AI Config"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cog"/>
+                    <button name="action_refresh"
+                            string="Refresh"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <h1 style="color: #009688;">AI Bank Reconciliation</h1>
+                    </div>
+
+                    <!-- AI Provider Banner -->
+                    <div class="alert alert-info" role="alert" style="background-color: #e0f2f1; border-color: #009688; color: #00695c;">
+                        <strong>AI Provider:</strong>
+                        <field name="ai_provider" class="fw-bold"/>
+                        <span class="mx-2">|</span>
+                        <strong>Model:</strong>
+                        <field name="ai_model" class="fw-bold"/>
+                    </div>
+
+                    <!-- Statistics Cards Row 1 -->
+                    <div class="row mt-3">
+                        <!-- Total Unreconciled -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-top: 4px solid #009688;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-bank"/> Unreconciled
+                                    </h5>
+                                    <h2 style="color: #009688;">
+                                        <field name="total_unreconciled"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- AI Analyzed -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-top: 4px solid #00897b;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-bolt"/> AI Analyzed
+                                    </h5>
+                                    <h2 class="text-info">
+                                        <field name="ai_analyzed"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- AI Matched -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-top: 4px solid #43a047;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-check-circle"/> AI Matched
+                                    </h5>
+                                    <h2 class="text-success">
+                                        <field name="ai_matched"/>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Average Confidence -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-top: 4px solid #ff8f00;">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">
+                                        <i class="fa fa-percent"/> Avg Confidence
+                                    </h5>
+                                    <h2 class="text-warning">
+                                        <field name="avg_confidence" widget="float" digits="[5,1]"/><small>%</small>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Review Card -->
+                    <div class="row mt-2">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card text-center shadow-sm" style="border-left: 4px solid #009688;">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fa fa-eye" style="color: #009688;"/> Pending Review
+                                    </h5>
+                                    <h2 style="color: #009688;">
+                                        <field name="pending_review"/>
+                                    </h2>
+                                    <small class="text-muted">
+                                        Lines analyzed but not yet reconciled
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <separator string="Quick Actions"/>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button name="action_analyze_all"
+                                    string="Batch Analyze Lines"
+                                    type="object"
+                                    class="btn btn-outline-info w-100 mb-2"
+                                    icon="fa-bolt"
+                                    style="border-color: #009688; color: #009688;"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_apply_suggestions"
+                                    string="Review AI Suggestions"
+                                    type="object"
+                                    class="btn btn-outline-success w-100 mb-2"
+                                    icon="fa-check-circle"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button name="action_open_config"
+                                    string="AI Settings"
+                                    type="object"
+                                    class="btn btn-outline-secondary w-100 mb-2"
+                                    icon="fa-cog"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Action                                             -->
+    <!-- ============================================================ -->
+    <record id="action_bank_reconciliation_dashboard" model="ir.actions.act_window">
+        <field name="name">AI Bank Reconciliation Dashboard</field>
+        <field name="res_model">bank.reconciliation.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu Items                                                   -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_bank_ai_root"
+              name="AI Bank"
+              web_icon="ollama_bank_reconciliation,static/description/icon.png"
+              sequence="311"/>
+
+    <menuitem id="menu_bank_ai_dashboard"
+              name="Dashboard"
+              parent="menu_bank_ai_root"
+              action="action_bank_reconciliation_dashboard"
+              sequence="1"/>
+
+</odoo>

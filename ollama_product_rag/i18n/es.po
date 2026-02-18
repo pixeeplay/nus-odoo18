@@ -1,0 +1,236 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ollama_product_rag
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 16:56+0000\n"
+"PO-Revision-Date: 2026-02-18 16:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: ollama_product_rag
+msgid "AI Answer"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "AI Product Assistant (RAG) powered by Ollama"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "AI Product RAG"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "AI Product RAG Dashboard"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "AI-powered virtual product assistant with RAG — conversational product search"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Assistant"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Avg Messages/Conv"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Concatenated product data used for search: name, description, price, category, etc."
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Content"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Conversation"
+msgstr "Conversación"
+
+
+#. module: ollama_product_rag
+msgid "Conversations"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Customer"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Dashboard"
+msgstr "Panel de control"
+
+
+#. module: ollama_product_rag
+msgid "Data"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Group By"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Index Now"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Indexed Content"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Indexed Products"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Indexed Text"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Last Indexed"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Messages"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Messages Today"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Please ask a question about our products."
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Please type a question first."
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Product"
+msgstr "Producto"
+
+
+#. module: ollama_product_rag
+msgid "Product Index"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Product catalog has been reindexed successfully."
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "RAG Conversations"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "RAG: Reindex Product Catalog"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Re-index"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Referenced Products"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Reindex Complete"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Role"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Sent"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Session ID"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Started"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Test Chatbot"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Test Question"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Total Messages"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Total Products"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Unindexed Products"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Unique identifier for this conversation session."
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "User"
+msgstr ""
+
+
+#. module: ollama_product_rag
+msgid "Website/Website"
+msgstr ""
