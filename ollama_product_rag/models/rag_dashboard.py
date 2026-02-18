@@ -123,7 +123,7 @@ class RagDashboard(models.TransientModel):
             'target': 'new',
         }
 
-    def _refresh(self):
+    def action_refresh(self):
         """Refresh dashboard stats."""
         self.ensure_one()
         stats = self._compute_stats()

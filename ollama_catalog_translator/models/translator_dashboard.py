@@ -96,7 +96,7 @@ class CatalogTranslatorDashboard(models.TransientModel):
             'target': 'current',
         }
 
-    def _refresh(self):
+    def action_refresh(self):
         """Refresh the dashboard by reloading the form."""
         return {
             'type': 'ir.actions.act_window',

@@ -195,7 +195,7 @@ class SummarizerDashboard(models.TransientModel):
             'target': 'current',
         }
 
-    def _refresh(self):
+    def action_refresh(self):
         """Refresh the dashboard by reloading the form view."""
         return {
             'type': 'ir.actions.act_window',

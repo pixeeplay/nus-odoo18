@@ -156,7 +156,7 @@
                                     type="object"
                                     class="btn-link"
                                     icon="fa-list"/>
-                            <button name="_refresh"
+                            <button name="action_refresh"
                                     string="Refresh Dashboard"
                                     type="object"
                                     class="btn-link"

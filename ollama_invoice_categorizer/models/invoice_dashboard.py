@@ -212,7 +212,7 @@ class InvoiceCategorizerDashboard(models.TransientModel):
             'target': 'current',
         }
 
-    def _refresh(self):
+    def action_refresh(self):
         """Reload the dashboard."""
         return {
             'type': 'ir.actions.act_window',

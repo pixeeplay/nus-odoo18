@@ -90,7 +90,7 @@ class EmailComposerDashboard(models.TransientModel):
             'target': 'current',
         }
 
-    def _refresh(self):
+    def action_refresh(self):
         return {
             'type': 'ir.actions.act_window',
             'name': _('Email Composer Dashboard'),

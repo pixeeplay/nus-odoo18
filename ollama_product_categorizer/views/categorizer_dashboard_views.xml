@@ -141,7 +141,7 @@
                                     type="object"
                                     class="btn-secondary me-2 mb-2"
                                     icon="fa-cog"/>
-                            <button name="_refresh"
+                            <button name="action_refresh"
                                     string="Refresh"
                                     type="object"
                                     class="btn-secondary me-2 mb-2"
