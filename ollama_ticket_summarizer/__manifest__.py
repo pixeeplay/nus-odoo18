@@ -1,6 +1,6 @@
 {
     'name': 'AI Ticket Summarizer powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Productivity/Discuss',
     'sequence': 306,
     'summary': 'AI-powered executive summaries of long ticket and message threads',

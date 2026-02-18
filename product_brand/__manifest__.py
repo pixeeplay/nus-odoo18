@@ -9,7 +9,7 @@
 
 {
     "name": "Product Brand Manager",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "development_status": "Mature",
     "category": "Sales/Products",
     "summary": "Manage product brands with logos, descriptions and reporting",

@@ -1,6 +1,6 @@
 {
     'name': 'Payment Provider: Sherlocks (Sips)',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Accounting/Payment Providers',
     'summary': "Payment provider for Sherlocks/Sips (LCL, Worldline)",
     'depends': ['payment'],

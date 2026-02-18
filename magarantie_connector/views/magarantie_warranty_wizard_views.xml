@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_magarantie_warranty_wizard_form" model="ir.ui.view">
+        <field name="name">magarantie.warranty.wizard.form</field>
+        <field name="model">magarantie.warranty.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="sale_order_id" readonly="1"/>
+                </group>
+                <separator string="Eligible Products - Select warranties to add"/>
+                <field name="line_ids" nolabel="1">
+                    <list editable="bottom">
+                        <field name="selected" widget="boolean_toggle"/>
+                        <field name="product_name" readonly="1"/>
+                        <field name="product_price" readonly="1"/>
+                        <field name="category_name" readonly="1"/>
+                        <field name="warranty_id"
+                               domain="[('id', 'in', available_warranty_ids)]"
+                               options="{'no_create': True}"/>
+                        <field name="warranty_price" readonly="1"/>
+                        <field name="available_warranty_ids" column_invisible="1"/>
+                        <field name="sale_order_line_id" column_invisible="1"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_add_warranties"
+                            string="Add Selected Warranties"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

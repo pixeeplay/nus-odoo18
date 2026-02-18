@@ -16,7 +16,7 @@ Features:
 * Price tag formatting with tax display
 * Integration with PIM and AI Enrichment data
     """,
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'author': 'Antigravity',
     'website': 'https://antigravity.fr',
     'support': 'support@antigravity.fr',

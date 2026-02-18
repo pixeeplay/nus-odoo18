@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_magarantie_sync_categories" model="ir.cron">
+        <field name="name">MaGarantie: Sync Categories (daily)</field>
+        <field name="model_id" ref="model_magarantie_category"/>
+        <field name="state">code</field>
+        <field name="code">model.action_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="ir_cron_magarantie_sync_warranties" model="ir.cron">
+        <field name="name">MaGarantie: Sync Warranties (daily)</field>
+        <field name="model_id" ref="model_magarantie_warranty"/>
+        <field name="state">code</field>
+        <field name="code">model.action_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

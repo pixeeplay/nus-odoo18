@@ -15,7 +15,7 @@ Features:
 * Connection management and monitoring
 * Compatible with PrestaShop 1.7+ and 8.x
     """,
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Sales/Sales',
     'author': 'Antigravity',
     'website': 'https://antigravity.fr',

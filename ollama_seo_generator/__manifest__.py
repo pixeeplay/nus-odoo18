@@ -1,6 +1,6 @@
 {
     'name': 'AI SEO Generator powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Website/Website',
     'sequence': 303,
     'summary': 'AI-powered SEO meta generation for products — titles, descriptions, keywords',

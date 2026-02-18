@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root menu -->
+    <menuitem id="menu_magarantie_root"
+              name="MaGarantie"
+              web_icon="magarantie_connector,static/description/icon.png"
+              sequence="90"/>
+
+    <!-- Sub menus -->
+    <menuitem id="menu_magarantie_categories"
+              name="Categories"
+              parent="menu_magarantie_root"
+              action="action_magarantie_category"
+              sequence="10"/>
+
+    <menuitem id="menu_magarantie_warranties"
+              name="Warranties"
+              parent="menu_magarantie_root"
+              action="action_magarantie_warranty"
+              sequence="20"/>
+
+    <menuitem id="menu_magarantie_sales"
+              name="Warranty Sales"
+              parent="menu_magarantie_root"
+              action="action_magarantie_sale"
+              sequence="30"/>
+</odoo>

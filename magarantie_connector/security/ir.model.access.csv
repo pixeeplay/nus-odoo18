@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_magarantie_category_user,magarantie.category.user,model_magarantie_category,base.group_user,1,0,0,0
+access_magarantie_category_manager,magarantie.category.manager,model_magarantie_category,base.group_system,1,1,1,1
+access_magarantie_warranty_user,magarantie.warranty.user,model_magarantie_warranty,base.group_user,1,0,0,0
+access_magarantie_warranty_manager,magarantie.warranty.manager,model_magarantie_warranty,base.group_system,1,1,1,1
+access_magarantie_sale_user,magarantie.sale.user,model_magarantie_sale,sales_team.group_sale_salesman,1,1,1,0
+access_magarantie_sale_manager,magarantie.sale.manager,model_magarantie_sale,sales_team.group_sale_manager,1,1,1,1
+access_magarantie_warranty_wizard_user,magarantie.warranty.wizard.user,model_magarantie_warranty_wizard,sales_team.group_sale_salesman,1,1,1,1
+access_magarantie_warranty_wizard_line_user,magarantie.warranty.wizard.line.user,model_magarantie_warranty_wizard_line,sales_team.group_sale_salesman,1,1,1,1

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'AI Helpdesk Responder powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Services/Helpdesk',
     'sequence': 305,
     'summary': 'AI-powered helpdesk with ticket classification, priority detection, and auto-responses',

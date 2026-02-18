@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_magarantie" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.magarantie</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="MaGarantie" string="MaGarantie" groups="base.group_system">
+                    <block title="API Configuration" name="magarantie_api">
+                        <setting string="API Mode" help="Choose between test and production mode">
+                            <field name="magarantie_mode" widget="radio"/>
+                        </setting>
+                        <setting string="Test Token" help="Token provided by MaGarantie for test environment">
+                            <field name="magarantie_token_test" password="True"/>
+                        </setting>
+                        <setting string="Production Token" help="Token provided by MaGarantie for production environment">
+                            <field name="magarantie_token_prod" password="True"/>
+                        </setting>
+                        <setting string="Authorized IP" help="IP address(es) authorized for API access. Separate multiple IPs with commas.">
+                            <field name="magarantie_ip_access"/>
+                        </setting>
+                    </block>
+                    <block title="Actions" name="magarantie_actions">
+                        <div class="mt16">
+                            <button name="action_magarantie_test_connection"
+                                    string="Test Connection"
+                                    type="object"
+                                    class="btn-primary me-2"
+                                    icon="fa-plug"/>
+                            <button name="action_magarantie_sync_all"
+                                    string="Sync Categories &amp; Warranties"
+                                    type="object"
+                                    class="btn-secondary"
+                                    icon="fa-refresh"/>
+                        </div>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

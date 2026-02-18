@@ -1,6 +1,6 @@
 {
     'name': 'Ollama AI Base',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Technical',
     'sequence': 300,
     'summary': 'Multi-provider AI engine for Odoo — Ollama, OpenAI, Gemini, Anthropic, Llama.cpp',

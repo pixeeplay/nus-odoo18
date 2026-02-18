@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_magarantie_category_tree" model="ir.ui.view">
+        <field name="name">magarantie.category.tree</field>
+        <field name="model">magarantie.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="rubrique"/>
+                <field name="name"/>
+                <field name="product_count" string="Products"/>
+                <field name="warranty_count" string="Warranties"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_magarantie_category_form" model="ir.ui.view">
+        <field name="name">magarantie.category.form</field>
+        <field name="model">magarantie.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Category"/>
+                        <h1><field name="name" placeholder="Category title"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="rubrique"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="product_count"/>
+                            <field name="warranty_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Warranties" name="warranties">
+                            <field name="warranty_ids" readonly="1">
+                                <list create="false">
+                                    <field name="idgarantie"/>
+                                    <field name="libelle"/>
+                                    <field name="prix"/>
+                                    <field name="min_tranche"/>
+                                    <field name="max_tranche"/>
+                                    <field name="programme"/>
+                                    <field name="type_garantie"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_magarantie_category_search" model="ir.ui.view">
+        <field name="name">magarantie.category.search</field>
+        <field name="model">magarantie.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="rubrique"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_magarantie_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">magarantie.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

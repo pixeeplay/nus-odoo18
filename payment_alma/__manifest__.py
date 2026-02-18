@@ -5,7 +5,7 @@
     'category': 'Accounting/Payment Providers',
     'sequence': 360,
     'summary': 'A French payment provider covering several countries in Europe.',
-    'version': '18.0.1.1',
+    'version': '19.0.1.1',
     'depends': ['payment'],
     'website': 'https://almapay.com',
     'author': 'Corbieapp',

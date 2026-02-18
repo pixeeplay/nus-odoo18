@@ -18,7 +18,7 @@ Features:
 * Colbee integration for product data
 * Multi-company and multi-brand support
     """,
-    "version": "18.0.2.11.0",
+    "version": "19.0.2.11.0",
     "author": "Antigravity",
     "website": "https://antigravity.fr",
     "support": "support@antigravity.fr",

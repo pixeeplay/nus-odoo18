@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'AI CRM Assistant powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Sales/CRM',
     'sequence': 304,
     'summary': 'AI lead scoring, email analysis, and follow-up suggestions for CRM',

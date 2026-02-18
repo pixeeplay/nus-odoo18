@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_order_form_magarantie" model="ir.ui.view">
+        <field name="name">sale.order.form.magarantie</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Smart button for warranty sales -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button"
+                        name="action_view_magarantie_sales"
+                        type="object"
+                        icon="fa-shield"
+                        invisible="magarantie_sale_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="magarantie_sale_count"/>
+                        </span>
+                        <span class="o_stat_text">Warranties</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Propose Warranty button in header -->
+            <xpath expr="//header" position="inside">
+                <field name="has_magarantie_eligible" invisible="1"/>
+                <button name="action_open_magarantie_wizard"
+                        string="Propose Warranty"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-shield"
+                        invisible="not has_magarantie_eligible or state not in ('draft', 'sent')"/>
+            </xpath>
+
+            <!-- Mark warranty lines in the order lines -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='price_subtotal']" position="before">
+                <field name="is_magarantie_warranty" column_invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

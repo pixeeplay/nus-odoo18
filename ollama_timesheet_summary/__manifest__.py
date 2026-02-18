@@ -1,6 +1,6 @@
 {
     'name': 'AI Timesheet Summary powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Human Resources/Timesheets',
     'sequence': 309,
     'summary': 'AI-powered weekly timesheet summaries, highlights, and alerts',

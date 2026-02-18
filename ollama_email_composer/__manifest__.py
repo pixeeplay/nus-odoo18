@@ -1,6 +1,6 @@
 {
     'name': 'AI Email Composer powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Productivity/Discuss',
     'sequence': 301,
     'summary': 'Draft professional emails with AI — tone selection, contextual generation',

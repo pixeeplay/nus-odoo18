@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'AI Catalog Translator powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Sales/Product',
     'sequence': 307,
     'summary': 'AI-powered product catalog translation — FR, EN, DE, ES and more',

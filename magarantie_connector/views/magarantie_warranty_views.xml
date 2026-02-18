@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_magarantie_warranty_tree" model="ir.ui.view">
+        <field name="name">magarantie.warranty.tree</field>
+        <field name="model">magarantie.warranty</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="idgarantie"/>
+                <field name="libelle"/>
+                <field name="category_id"/>
+                <field name="rubrique"/>
+                <field name="prix"/>
+                <field name="min_tranche"/>
+                <field name="max_tranche"/>
+                <field name="programme" optional="show"/>
+                <field name="type_garantie" optional="show"/>
+                <field name="duree" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_magarantie_warranty_form" model="ir.ui.view">
+        <field name="name">magarantie.warranty.form</field>
+        <field name="model">magarantie.warranty</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_refresh_details"
+                            string="Refresh from API"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Warranty">
+                            <field name="idgarantie"/>
+                            <field name="libelle"/>
+                            <field name="category_id"/>
+                            <field name="programme"/>
+                            <field name="type_garantie"/>
+                            <field name="duree"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="prix"/>
+                            <field name="min_tranche"/>
+                            <field name="max_tranche"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_magarantie_warranty_search" model="ir.ui.view">
+        <field name="name">magarantie.warranty.search</field>
+        <field name="model">magarantie.warranty</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="libelle"/>
+                <field name="idgarantie"/>
+                <field name="category_id"/>
+                <field name="programme"/>
+                <filter string="Category" name="groupby_category"
+                        context="{'group_by': 'category_id'}"/>
+                <filter string="Programme" name="groupby_programme"
+                        context="{'group_by': 'programme'}"/>
+                <filter string="Warranty Type" name="groupby_type"
+                        context="{'group_by': 'type_garantie'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_magarantie_warranty" model="ir.actions.act_window">
+        <field name="name">Warranties</field>
+        <field name="res_model">magarantie.warranty</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

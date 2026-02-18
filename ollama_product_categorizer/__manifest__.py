@@ -1,6 +1,6 @@
 {
     'name': 'AI Product Categorizer powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Sales/Product',
     'sequence': 302,
     'summary': 'AI-powered product categorization with Google/Amazon taxonomy support',

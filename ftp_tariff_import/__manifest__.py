@@ -18,7 +18,7 @@ Features:
 * Multi-company support with security rules
 * Pre-configured provider templates
     """,
-    "version": "18.0.3.0.0",
+    "version": "19.0.3.0.0",
     "category": "Sales/Products",
     "author": "Antigravity",
     "website": "https://antigravity.fr",

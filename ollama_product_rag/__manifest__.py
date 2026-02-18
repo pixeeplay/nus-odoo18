@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'AI Product Assistant (RAG) powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Website/Website',
     'sequence': 312,
     'summary': 'AI-powered virtual product assistant with RAG — conversational product search',

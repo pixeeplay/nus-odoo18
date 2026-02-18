@@ -24,7 +24,7 @@ Features:
     'website': "https://antigravity.fr",
     'support': 'support@antigravity.fr',
     'category': 'Sales/Products',
-    'version': '18.0.6.1.37',
+    'version': '19.0.6.1.37',
     'application': True,
     'depends': ['base', 'web', 'product'],
     'data': [

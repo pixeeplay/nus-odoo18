@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'AI CV Analyzer powered by Ollama',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Human Resources/Recruitment',
     'sequence': 308,
     'summary': 'AI-powered CV analysis, scoring, and interview question generation',

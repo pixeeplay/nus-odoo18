@@ -1,6 +1,6 @@
 {
     'name': 'PrestaShop Product Sync',
-    'version': '18.0.4.2.0',
+    'version': '19.0.4.2.0',
     'category': 'Sales/Sales',
     'summary': 'Import products from PrestaShop with dashboard, preview, eco-tax, taxes, re-import wizard, field mapping, progressive import, images, stock and features',
     'author': 'Antigravity',
