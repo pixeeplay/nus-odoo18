@@ -338,6 +338,29 @@ class PrestaShopProductPreview(models.Model):
     def action_reset(self):
         self.write({'state': 'pending', 'error_message': False})
 
+    def action_refetch_data(self):
+        """Re-fetch full data from PS for selected previews."""
+        updated = 0
+        for preview in self:
+            try:
+                instance = preview.instance_id
+                ps_product = instance._fetch_single_product_full(preview.prestashop_id)
+                if ps_product and len(ps_product) > 2:
+                    preview._update_preview_from_ps_data(ps_product)
+                    updated += 1
+            except Exception as exc:
+                _logger.warning("Re-fetch failed for PS-%s: %s", preview.prestashop_id, exc)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Re-fetch Complete'),
+                'message': _('%d / %d previews updated.') % (updated, len(self)),
+                'type': 'success' if updated == len(self) else 'warning',
+                'sticky': False,
+            },
+        }
+
     def action_view_product(self):
         """Open the imported Odoo product."""
         self.ensure_one()

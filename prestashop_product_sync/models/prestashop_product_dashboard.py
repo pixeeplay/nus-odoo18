@@ -305,6 +305,20 @@ class PrestaShopProductDashboard(models.TransientModel):
             },
         }
 
+    def action_open_cleanup_wizard(self):
+        instance = self._get_instance()
+        wizard = self.env['prestashop.cleanup.wizard'].create({
+            'instance_id': instance.id,
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Diagnostic & Cleanup'),
+            'res_model': 'prestashop.cleanup.wizard',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
     def _refresh(self):
         return {
             'type': 'ir.actions.act_window',

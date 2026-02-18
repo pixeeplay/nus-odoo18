@@ -30,6 +30,10 @@
                             string="Reset to Pending"
                             type="object"
                             class="btn-secondary"/>
+                    <button name="action_refetch_data"
+                            string="Re-fetch from PS"
+                            type="object"
+                            class="btn-info"/>
                 </header>
 
                 <field name="state_sequence" column_invisible="1"/>

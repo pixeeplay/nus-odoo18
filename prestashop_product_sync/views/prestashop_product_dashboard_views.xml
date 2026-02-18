@@ -199,6 +199,11 @@
                                     class="btn-danger me-2 mb-2"
                                     icon="fa-magic"
                                     confirm="Re-synchroniser TOUS les produits Odoo depuis PrestaShop ? Les donn&#233;es existantes seront &#233;cras&#233;es."/>
+                            <button name="action_open_cleanup_wizard"
+                                    string="Diagnostic &amp; Wizard"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-stethoscope"/>
                         </div>
                     </div>
 

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_prestashop_cleanup_wizard_form" model="ir.ui.view">
+        <field name="name">prestashop.cleanup.wizard.form</field>
+        <field name="model">prestashop.cleanup.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Diagnostic &amp; Cleanup PrestaShop">
+                <header>
+                    <button name="action_test_5"
+                            string="Tester 5 produits"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-stethoscope"
+                            invisible="state not in ('draft', 'tested')"/>
+                    <button name="action_clean_previews"
+                            string="Nettoyer toutes les Previews"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-refresh"
+                            invisible="state not in ('draft', 'tested')"
+                            confirm="Re-fetch les donn&#233;es pour toutes les previews ?"/>
+                    <button name="action_clean_products"
+                            string="Re-sync tous les Produits Odoo"
+                            type="object"
+                            class="btn-danger"
+                            icon="fa-magic"
+                            invisible="state not in ('draft', 'tested')"
+                            confirm="Re-synchroniser TOUS les produits Odoo depuis PrestaShop ?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,tested,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert"
+                         invisible="state != 'draft'">
+                        <strong>Workflow :</strong>
+                        1. Cliquez <em>Tester 5 produits</em> pour voir quelle strat&#233;gie API fonctionne.
+                        2. Si le test est OK, cliquez <em>Nettoyer toutes les Previews</em> pour mettre &#224; jour les donn&#233;es.
+                        3. Puis <em>Re-sync tous les Produits Odoo</em> pour corriger les fiches produit.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="instance_id"/>
+                            <field name="only_active"/>
+                        </group>
+                        <group invisible="state not in ('done',)">
+                            <field name="products_fixed"/>
+                            <field name="products_failed"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="diagnostic" string="Diagnostic"
+                              invisible="not test_results">
+                            <field name="test_results" readonly="1"
+                                   widget="text" nolabel="1"/>
+                        </page>
+                        <page name="log" string="Log"
+                              invisible="not progress_log">
+                            <field name="progress_log" readonly="1"
+                                   widget="text" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_prestashop_cleanup_wizard" model="ir.actions.act_window">
+        <field name="name">Diagnostic &amp; Cleanup</field>
+        <field name="res_model">prestashop.cleanup.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
