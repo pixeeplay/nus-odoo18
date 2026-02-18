@@ -305,8 +305,7 @@ class PrestaShopInstance(models.Model):
             return existing
 
         try:
-            data = self._api_get('categories', cat_str)
-            cat = data.get('category', {})
+            cat = self._api_get_via_list('categories', cat_str, 'category')
             name = self._get_ps_text(cat.get('name', ''))
             if not name:
                 name = f'PS Category {cat_str}'
@@ -336,8 +335,8 @@ class PrestaShopInstance(models.Model):
         try:
             if not manufacturer_id or str(manufacturer_id) == '0':
                 return ''
-            data = self._api_get('manufacturers', str(manufacturer_id))
-            return data.get('manufacturer', {}).get('name', '') or ''
+            mfr = self._api_get_via_list('manufacturers', str(manufacturer_id), 'manufacturer')
+            return mfr.get('name', '') or ''
         except Exception:
             return ''
 
@@ -348,21 +347,18 @@ class PrestaShopInstance(models.Model):
         """Resolve a PrestaShop tax_rules_group ID to (rate, group_name).
 
         Chain: tax_rule_groups → tax_rules → taxes
+        Uses list endpoints with filter[id] (View permission may be missing).
         Returns (float rate, str group_name).
         """
         self.ensure_one()
         group_name = ''
         rate = 0.0
         try:
-            # Get the tax rules group name
-            grp_data = self._api_get_long(
-                'tax_rule_groups', resource_id=str(tax_rules_group_id),
-                timeout=30,
-            )
-            grp = grp_data.get('tax_rule_group', {})
+            # Get the tax rules group name (via list endpoint)
+            grp = self._api_get_via_list('tax_rule_groups', str(tax_rules_group_id), 'tax_rule_group')
             group_name = self._get_ps_text(grp.get('name', ''))
 
-            # Get tax rules for this group
+            # Get tax rules for this group (already uses list endpoint)
             rules_data = self._api_get_long(
                 'tax_rules', params={
                     'filter[id_tax_rules_group]': str(tax_rules_group_id),
@@ -376,10 +372,8 @@ class PrestaShopInstance(models.Model):
             if rules:
                 tax_id_ps = str(rules[0].get('id_tax', '0'))
                 if tax_id_ps and tax_id_ps != '0':
-                    tax_data = self._api_get_long(
-                        'taxes', resource_id=tax_id_ps, timeout=30,
-                    )
-                    tax = tax_data.get('tax', {})
+                    # Get tax rate (via list endpoint)
+                    tax = self._api_get_via_list('taxes', tax_id_ps, 'tax')
                     rate = float(tax.get('rate', 0) or 0)
         except Exception as exc:
             _logger.warning(
@@ -415,15 +409,15 @@ class PrestaShopInstance(models.Model):
     # ------------------------------------
     def _get_feature_name(self, feature_id):
         try:
-            data = self._api_get('product_features', str(feature_id))
-            return self._get_ps_text(data.get('product_feature', {}).get('name', ''))
+            feat = self._api_get_via_list('product_features', str(feature_id), 'product_feature')
+            return self._get_ps_text(feat.get('name', ''))
         except Exception:
             return f'Feature {feature_id}'
 
     def _get_feature_value_text(self, value_id):
         try:
-            data = self._api_get('product_feature_values', str(value_id))
-            return self._get_ps_text(data.get('product_feature_value', {}).get('value', ''))
+            fval = self._api_get_via_list('product_feature_values', str(value_id), 'product_feature_value')
+            return self._get_ps_text(fval.get('value', ''))
         except Exception:
             return f'Value {value_id}'
 
@@ -739,24 +733,18 @@ class PrestaShopInstance(models.Model):
         # --- images (respects mapping) ---
         if (self.sync_product_images
                 and self._is_mapping_active('associations.images')):
-            image_data = associations.get('images', {}) or {}
-            image_list = image_data.get('image', [])
-            if isinstance(image_list, dict):
-                image_list = [image_list]
+            image_list = self._normalize_association_list(associations, 'images', 'image')
             _logger.info(
-                "PS-%s: %d images to sync (raw images key: %s)",
+                "PS-%s: %d images to sync (raw images type: %s)",
                 ps_id, len(image_list),
-                type(associations.get('images')).__name__,
+                type(associations.get('images')).__name__ if associations.get('images') else 'None',
             )
             self._sync_product_images_to_odoo(product_tmpl, ps_id, image_list)
 
         # --- features / characteristics (respects mapping) ---
         if (self.sync_product_features
                 and self._is_mapping_active('associations.product_features')):
-            feat_data = associations.get('product_features', {}) or {}
-            feat_list = feat_data.get('product_feature', [])
-            if isinstance(feat_list, dict):
-                feat_list = [feat_list]
+            feat_list = self._normalize_association_list(associations, 'product_features', 'product_feature')
             self._sync_product_features_to_odoo(product_tmpl, feat_list)
 
         # --- stock (respects mapping) ---
@@ -1125,15 +1113,122 @@ class PrestaShopInstance(models.Model):
     )
 
     def _extract_product_from_response(self, data):
-        """Extract product dict from a PS API response (handles both formats)."""
+        """Extract product dict from a PS API response (handles all formats).
+
+        Handles:
+        - {"product": {...}}           (single resource response)
+        - {"products": [{...}]}        (list response)
+        - {"products": {"product": [{...}]}}  (list with nested key)
+        - [{...}]                      (raw list at top level)
+        - data is None / empty
+        """
+        if not data:
+            return {}
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict) and item.get('id'):
+                    return item
+            return {}
+        if not isinstance(data, dict):
+            return {}
         product = data.get('product')
-        if not product:
-            products = data.get('products', [])
-            if isinstance(products, list) and products:
-                product = products[0]
-            elif isinstance(products, dict):
-                product = products
-        return product or {}
+        if isinstance(product, dict) and product:
+            return product
+        products = data.get('products')
+        if isinstance(products, list) and products:
+            return products[0] if isinstance(products[0], dict) else {}
+        if isinstance(products, dict):
+            # Could be {"products": {"product": [{...}]}} or {"products": {...}}
+            nested = products.get('product')
+            if isinstance(nested, list) and nested:
+                return nested[0] if isinstance(nested[0], dict) else {}
+            if isinstance(nested, dict):
+                return nested
+            # Treat the dict itself as the product
+            if products.get('id'):
+                return products
+        return {}
+
+    @staticmethod
+    def _normalize_association_list(associations, key, nested_key=None):
+        """Normalize an associations entry to always return a list of dicts.
+
+        PrestaShop returns associations in two formats depending on the endpoint:
+        - List endpoint (display=full): {"images": [{"id": "123"}, ...]}
+        - Single resource endpoint:     {"images": {"image": [{"id": "123"}, ...]}}
+
+        This helper handles both, returning a flat list of dicts in all cases.
+
+        :param associations: the full associations dict from ps_product
+        :param key: top-level key, e.g. 'images', 'product_features'
+        :param nested_key: inner key for single-resource format, e.g. 'image', 'product_feature'.
+                          If None, defaults to key without trailing 's'.
+        """
+        if not associations or not isinstance(associations, dict):
+            return []
+        entry = associations.get(key)
+        if entry is None:
+            return []
+        # Format A: directly a list (list endpoint with display=full)
+        if isinstance(entry, list):
+            return [item for item in entry if isinstance(item, dict)]
+        # Format B: dict with nested key (single resource endpoint)
+        if isinstance(entry, dict):
+            if nested_key is None:
+                nested_key = key.rstrip('s') if key.endswith('s') else key
+            inner = entry.get(nested_key)
+            if isinstance(inner, list):
+                return [item for item in inner if isinstance(item, dict)]
+            if isinstance(inner, dict):
+                return [inner]
+            # Maybe the dict itself has 'id' → treat as single item
+            if entry.get('id'):
+                return [entry]
+        return []
+
+    def _api_get_via_list(self, resource, resource_id, singular_key=None):
+        """Fetch a single resource via the list endpoint + filter[id].
+
+        The API key has List permission but NOT View permission, so
+        /api/resource/ID fails but /api/resource?filter[id]=ID&display=full works.
+
+        :param resource: e.g. 'categories', 'manufacturers'
+        :param resource_id: the PS ID to fetch
+        :param singular_key: key in response for single item, e.g. 'category'.
+                            If None, tries resource without trailing 's'.
+        :returns: the inner resource dict, or {}
+        """
+        self.ensure_one()
+        try:
+            data = self._api_get_long(
+                resource, params={
+                    'display': 'full',
+                    'filter[id]': str(resource_id),
+                }, timeout=30,
+            )
+            if not data or not isinstance(data, dict):
+                return {}
+            # Try singular key first: {"category": {...}}
+            if singular_key is None:
+                singular_key = resource.rstrip('s') if resource.endswith('s') else resource
+            item = data.get(singular_key)
+            if isinstance(item, dict):
+                return item
+            # Try plural key: {"categories": [{...}]}
+            items = data.get(resource)
+            if isinstance(items, list) and items:
+                return items[0] if isinstance(items[0], dict) else {}
+            if isinstance(items, dict):
+                nested = items.get(singular_key)
+                if isinstance(nested, list) and nested:
+                    return nested[0] if isinstance(nested[0], dict) else {}
+                if isinstance(nested, dict):
+                    return nested
+                if items.get('id'):
+                    return items
+        except Exception as exc:
+            _logger.warning("_api_get_via_list(%s, %s) failed: %s", resource, resource_id, exc)
+        return {}
 
     def _fetch_single_product_full(self, ps_product_id):
         """Fetch full details for a single product by ID.

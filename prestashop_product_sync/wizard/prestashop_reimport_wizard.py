@@ -98,17 +98,11 @@ class PrestaShopReimportWizard(models.TransientModel):
                 # Extra sync actions
                 associations = ps_product.get('associations', {}) or {}
                 if self.sync_images and instance.sync_product_images:
-                    img_data = associations.get('images', {}) or {}
-                    img_list = img_data.get('image', [])
-                    if isinstance(img_list, dict):
-                        img_list = [img_list]
+                    img_list = instance._normalize_association_list(associations, 'images', 'image')
                     instance._sync_product_images_to_odoo(product, ps_id, img_list)
 
                 if self.sync_features and instance.sync_product_features:
-                    feat_data = associations.get('product_features', {}) or {}
-                    feat_list = feat_data.get('product_feature', [])
-                    if isinstance(feat_list, dict):
-                        feat_list = [feat_list]
+                    feat_list = instance._normalize_association_list(associations, 'product_features', 'product_feature')
                     instance._sync_product_features_to_odoo(product, feat_list)
 
                 if self.sync_stock and instance.sync_product_stock:

@@ -142,33 +142,25 @@ class PrestaShopProductPreview(models.Model):
         except (ValueError, TypeError):
             pass
 
-        # Associations-based counts
+        # Associations-based counts (handles both list and dict-with-nested-key formats)
         associations = ps_product.get('associations', {}) or {}
-        images = associations.get('images', {}) or {}
-        image_list = images.get('image', [])
-        if isinstance(image_list, dict):
-            image_list = [image_list]
-        vals['image_count'] = len(image_list) if isinstance(image_list, list) else 0
+        image_list = instance._normalize_association_list(associations, 'images', 'image')
+        vals['image_count'] = len(image_list)
 
-        features = associations.get('product_features', {}) or {}
-        feat_list = features.get('product_feature', [])
-        if isinstance(feat_list, dict):
-            feat_list = [feat_list]
-        vals['feature_count'] = len(feat_list) if isinstance(feat_list, list) else 0
+        feat_list = instance._normalize_association_list(associations, 'product_features', 'product_feature')
+        vals['feature_count'] = len(feat_list)
 
-        # Category name (from API)
+        # Category name (via list endpoint since View permission may be missing)
         cat_id = ps_product.get('id_category_default', '0')
         if cat_id and str(cat_id) not in ('0', '1', '2'):
             try:
-                cat_data = instance._api_get('categories', str(cat_id))
-                cat_name = instance._get_ps_text(
-                    cat_data.get('category', {}).get('name', '')
-                )
+                cat_data = instance._api_get_via_list('categories', str(cat_id), 'category')
+                cat_name = instance._get_ps_text(cat_data.get('name', ''))
                 vals['category_name'] = cat_name or f'Category {cat_id}'
             except Exception:
                 vals['category_name'] = f'Category {cat_id}'
 
-        # Manufacturer name
+        # Manufacturer name (via list endpoint)
         mfr_id = ps_product.get('id_manufacturer', '0')
         if mfr_id and str(mfr_id) != '0':
             vals['manufacturer_name'] = instance._get_manufacturer_name(mfr_id)
