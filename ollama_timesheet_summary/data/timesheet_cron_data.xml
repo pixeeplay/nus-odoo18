@@ -11,10 +11,7 @@
         <field name="code">model.generate_weekly_summaries()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">weeks</field>
-        <field name="numbercall">-1</field>
-        <field name="doall" eval="False"/>
         <field name="active" eval="False"/>
-        <field name="nextcall" eval="(DateTime.now().replace(hour=7, minute=0, second=0))"/>
     </record>
 
 </odoo>
