@@ -1116,15 +1116,16 @@ class PrestaShopInstance(models.Model):
             products = [products]
         return [str(p.get('id', '')) for p in products if p.get('id')]
 
-    def _fetch_single_product_full(self, ps_product_id):
-        """Fetch full details for a single product by ID."""
-        self.ensure_one()
-        data = self._api_get_long(
-            'products', resource_id=str(ps_product_id),
-            params={'display': 'full'},
-            timeout=120,
-        )
-        # PrestaShop may return {'product': {...}} or {'products': [{...}]}
+    # Explicit field list — more reliable than display=full on many PS versions
+    _PS_PRODUCT_FIELDS = (
+        'id,name,description,description_short,price,wholesale_price,'
+        'reference,ean13,weight,active,id_category_default,'
+        'id_manufacturer,meta_title,meta_description,link_rewrite,'
+        'ecotax,id_tax_rules_group,associations'
+    )
+
+    def _extract_product_from_response(self, data):
+        """Extract product dict from a PS API response (handles both formats)."""
         product = data.get('product')
         if not product:
             products = data.get('products', [])
@@ -1132,12 +1133,80 @@ class PrestaShopInstance(models.Model):
                 product = products[0]
             elif isinstance(products, dict):
                 product = products
-        if not product:
-            _logger.warning(
-                "Empty product response for PS-%s. Keys: %s",
-                ps_product_id, list(data.keys()),
-            )
         return product or {}
+
+    def _fetch_single_product_full(self, ps_product_id):
+        """Fetch full details for a single product by ID.
+
+        Uses 3 strategies in order:
+        1. Explicit field list (most reliable on all PS versions)
+        2. display=full (classic, may fail on some PS configs)
+        3. List endpoint with filter[id] (last resort)
+        """
+        self.ensure_one()
+        ps_id = str(ps_product_id)
+
+        # Strategy 1: explicit field list on single resource
+        try:
+            data = self._api_get_long(
+                'products', resource_id=ps_id,
+                params={'display': f'[{self._PS_PRODUCT_FIELDS}]'},
+                timeout=120,
+            )
+            product = self._extract_product_from_response(data)
+            if product and len(product) > 2:
+                _logger.info("PS-%s: fetched OK via explicit fields (%d keys)", ps_id, len(product))
+                return product
+            _logger.warning(
+                "PS-%s: explicit fields returned only %d keys, trying display=full...",
+                ps_id, len(product),
+            )
+        except Exception as exc:
+            _logger.warning("PS-%s: explicit fields failed (%s), trying display=full...", ps_id, exc)
+
+        # Strategy 2: display=full on single resource
+        try:
+            data = self._api_get_long(
+                'products', resource_id=ps_id,
+                params={'display': 'full'},
+                timeout=120,
+            )
+            product = self._extract_product_from_response(data)
+            if product and len(product) > 2:
+                _logger.info("PS-%s: fetched OK via display=full (%d keys)", ps_id, len(product))
+                return product
+            _logger.warning(
+                "PS-%s: display=full returned only %d keys, trying list filter...",
+                ps_id, len(product),
+            )
+        except Exception as exc:
+            _logger.warning("PS-%s: display=full failed (%s), trying list filter...", ps_id, exc)
+
+        # Strategy 3: list endpoint with filter[id]
+        try:
+            data = self._api_get_long(
+                'products', params={
+                    'display': f'[{self._PS_PRODUCT_FIELDS}]',
+                    'filter[id]': f'[{ps_id}]',
+                },
+                timeout=120,
+            )
+            products = data.get('products', [])
+            if isinstance(products, dict):
+                products = [products]
+            if products and isinstance(products, list):
+                product = products[0]
+                if product and len(product) > 2:
+                    _logger.info("PS-%s: fetched OK via list filter (%d keys)", ps_id, len(product))
+                    return product
+        except Exception as exc:
+            _logger.warning("PS-%s: list filter also failed: %s", ps_id, exc)
+
+        _logger.error(
+            "PS-%s: ALL 3 fetch strategies returned empty/minimal data",
+            ps_id,
+        )
+        return product if product else {}
 
     def action_sync_products(self):
         """Fetch all active products from PrestaShop and sync them into Odoo.

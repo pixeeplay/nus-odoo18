@@ -1,7 +1,6 @@
 import json
 import logging
 
-import odoo
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -210,26 +209,22 @@ class PrestaShopProductPreview(models.Model):
         self.ensure_one()
         instance = self.instance_id
         try:
-            data = instance._api_get_long(
-                'products', resource_id=str(self.prestashop_id),
-                params={'display': 'full'},
-                timeout=120,
-            )
-            raw = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+            # Single fetch using the 3-strategy method
+            ps_product = instance._fetch_single_product_full(self.prestashop_id)
+            raw = json.dumps(ps_product, indent=2, ensure_ascii=False, default=str)
             self.write({'raw_data': raw})
 
-            # Also extract the product and update preview extra fields
-            ps_product = instance._fetch_single_product_full(self.prestashop_id)
-            if ps_product:
+            key_count = len(ps_product) if ps_product else 0
+            if ps_product and key_count > 1:
                 self._update_preview_from_ps_data(ps_product)
 
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': _('Raw Data Fetched'),
+                    'title': _('Raw Data Fetched (%d fields)') % key_count,
                     'message': _('Check the "Raw Data" and "Descriptions" tabs.'),
-                    'type': 'info',
+                    'type': 'info' if key_count > 2 else 'warning',
                     'sticky': False,
                 },
             }

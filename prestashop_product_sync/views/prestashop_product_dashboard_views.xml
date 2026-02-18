@@ -177,6 +177,31 @@
                         </div>
                     </div>
 
+                    <!-- Cleanup & Repair Actions -->
+                    <separator string="Nettoyage &amp; R&#233;paration"/>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button name="action_refetch_all_previews"
+                                    string="Re-fetch toutes les previews"
+                                    type="object"
+                                    class="btn-info me-2 mb-2"
+                                    icon="fa-refresh"
+                                    confirm="Re-fetch les donn&#233;es compl&#232;tes depuis PrestaShop pour toutes les previews ? Cela peut prendre du temps."/>
+                            <button name="action_clean_and_reimport"
+                                    string="Nettoyer &amp; Re-importer"
+                                    type="object"
+                                    class="btn-warning me-2 mb-2"
+                                    icon="fa-recycle"
+                                    confirm="Remettre tous les produits import&#233;s/en erreur &#224; 'En attente' et relancer l'import ?"/>
+                            <button name="action_refresh_all_products"
+                                    string="Rafra&#238;chir produits Odoo"
+                                    type="object"
+                                    class="btn-danger me-2 mb-2"
+                                    icon="fa-magic"
+                                    confirm="Re-synchroniser TOUS les produits Odoo depuis PrestaShop ? Les donn&#233;es existantes seront &#233;cras&#233;es."/>
+                        </div>
+                    </div>
+
                     <!-- Hidden fields for visibility conditions -->
                     <field name="instance_id" invisible="1"/>
                     <field name="instance_connected" invisible="1"/>

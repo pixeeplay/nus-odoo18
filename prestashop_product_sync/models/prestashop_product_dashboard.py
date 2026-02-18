@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
 from datetime import timedelta
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class PrestaShopProductDashboard(models.TransientModel):
@@ -197,6 +200,110 @@ class PrestaShopProductDashboard(models.TransientModel):
         if errors:
             errors.write({'state': 'pending', 'error_message': False})
         return self._refresh()
+
+    def action_clean_and_reimport(self):
+        """Reset all imported/updated previews to pending and re-import."""
+        instance = self._get_instance()
+        previews = self.env['prestashop.product.preview'].search([
+            ('instance_id', '=', instance.id),
+            ('state', 'in', ('imported', 'updated', 'error')),
+        ])
+        if not previews:
+            raise UserError(_("No products to re-import."))
+
+        # Reset state and clear fallback names
+        for preview in previews:
+            vals = {'state': 'pending', 'error_message': False}
+            # Clear fallback names like "Product PS-xxxx"
+            if preview.name and preview.name.startswith('Product PS-'):
+                vals['name'] = False
+            previews.write(vals)
+
+        # Trigger background import
+        instance._import_previews_background(previews.ids)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Clean & Re-import Started'),
+                'message': _('%d products reset and queued for re-import.') % len(previews),
+                'type': 'info',
+                'sticky': False,
+            },
+        }
+
+    def action_refetch_all_previews(self):
+        """Re-fetch full data for all previews that are missing data."""
+        instance = self._get_instance()
+        previews = self.env['prestashop.product.preview'].search([
+            ('instance_id', '=', instance.id),
+        ])
+        if not previews:
+            raise UserError(_("No preview records found."))
+
+        updated = 0
+        errors = 0
+        for preview in previews:
+            try:
+                ps_product = instance._fetch_single_product_full(preview.prestashop_id)
+                if ps_product and len(ps_product) > 1:
+                    preview._update_preview_from_ps_data(ps_product)
+                    updated += 1
+                else:
+                    errors += 1
+            except Exception as exc:
+                _logger.warning("Re-fetch failed for PS-%s: %s", preview.prestashop_id, exc)
+                errors += 1
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Re-fetch Complete'),
+                'message': _('%d updated, %d failed.') % (updated, errors),
+                'type': 'success' if errors == 0 else 'warning',
+                'sticky': True,
+            },
+        }
+
+    def action_refresh_all_products(self):
+        """Re-fetch and update all Odoo products with empty/fallback data."""
+        instance = self._get_instance()
+        products = self.env['product.template'].search([
+            ('prestashop_instance_id', '=', instance.id),
+            ('prestashop_id', '!=', False),
+        ])
+        if not products:
+            raise UserError(_("No PrestaShop products found in Odoo."))
+
+        fixed = 0
+        errors = 0
+        for product in products:
+            try:
+                ps_product = instance._fetch_single_product_full(product.prestashop_id)
+                if ps_product and len(ps_product) > 2:
+                    instance._sync_single_product(ps_product)
+                    fixed += 1
+                else:
+                    errors += 1
+            except Exception as exc:
+                _logger.warning(
+                    "Refresh failed for Odoo product %s (PS-%s): %s",
+                    product.id, product.prestashop_id, exc,
+                )
+                errors += 1
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Product Refresh Complete'),
+                'message': _('%d products refreshed, %d failed.') % (fixed, errors),
+                'type': 'success' if errors == 0 else 'warning',
+                'sticky': True,
+            },
+        }
 
     def _refresh(self):
         return {
