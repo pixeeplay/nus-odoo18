@@ -22,6 +22,8 @@ DEFAULT_MAPPINGS = [
     ('associations.images', 'Product Images', 'image_1920', 'Product Image', 'image', True),
     ('associations.product_features', 'Features / Characteristics', 'product_attributes', 'Product Attributes', 'relation', True),
     ('stock_availables', 'Stock Quantity', 'qty_available', 'Quantity On Hand', 'stock', True),
+    ('ecotax', 'Eco-Tax', 'prestashop_ecotax', 'PS Eco-Tax', 'float', True),
+    ('id_tax_rules_group', 'Tax Rules Group', 'prestashop_tax_rules_group_id', 'PS Tax Group', 'relation', True),
 ]
 
 

@@ -33,10 +33,14 @@
                 </header>
 
                 <field name="state_sequence" column_invisible="1"/>
+                <field name="image_preview" string="" widget="image" width="40px" optional="show"/>
                 <field name="prestashop_id" string="PS ID" width="80px"/>
                 <field name="name" string="Product Name"/>
                 <field name="reference" string="SKU"/>
                 <field name="price" string="Price (HT)" widget="monetary"/>
+                <field name="ecotax" string="Eco-Tax" optional="show"/>
+                <field name="tax_rate" string="Tax %" optional="show"/>
+                <field name="tax_group_name" string="Tax Group" optional="hide"/>
                 <field name="ean13" string="EAN13" optional="hide"/>
                 <field name="active_in_ps" string="Active PS" widget="boolean"/>
                 <field name="state" string="Status" widget="badge"
@@ -45,10 +49,16 @@
                        decoration-danger="state == 'error'"
                        decoration-warning="state == 'pending'"
                        decoration-muted="state == 'skipped'"/>
-                <field name="category_name" string="Category" optional="hide"/>
+                <field name="category_name" string="Category" optional="show"/>
                 <field name="manufacturer_name" string="Manufacturer" optional="hide"/>
                 <field name="image_count" string="Images" optional="hide"/>
+                <field name="feature_count" string="Features" optional="hide"/>
+                <field name="weight" string="Weight" optional="hide"/>
                 <field name="imported_product_id" string="Odoo Product" optional="show"/>
+                <field name="odoo_price" string="Odoo Price" optional="hide"/>
+                <field name="price_diff" string="Price Diff" optional="hide"
+                       decoration-danger="price_diff != 0"/>
+                <field name="price_match" string="Price OK" widget="boolean" optional="hide"/>
                 <field name="import_date" string="Imported" optional="show"/>
                 <field name="error_message" string="Error" optional="hide"/>
                 <button name="action_import_single"
@@ -101,27 +111,37 @@
                            statusbar_visible="pending,importing,imported"/>
                 </header>
                 <sheet>
+                    <field name="image_preview" widget="image" class="oe_avatar" readonly="1"/>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
+                        <div class="text-muted">
+                            <span invisible="not reference">Ref: <field name="reference" readonly="1" class="d-inline"/> | </span>
+                            <span invisible="not ean13">EAN: <field name="ean13" readonly="1" class="d-inline"/></span>
+                        </div>
                     </div>
                     <group>
                         <group string="PrestaShop Info">
                             <field name="prestashop_id" readonly="1"/>
-                            <field name="reference" readonly="1"/>
                             <field name="price" readonly="1" widget="monetary"/>
                             <field name="wholesale_price" readonly="1" widget="monetary"/>
+                            <field name="ecotax" readonly="1"/>
                             <field name="weight" readonly="1"/>
-                            <field name="ean13" readonly="1"/>
                             <field name="active_in_ps" readonly="1"/>
                             <field name="instance_id" readonly="1"/>
                         </group>
-                        <group string="Import Status">
-                            <field name="imported_product_id" readonly="1"/>
-                            <field name="import_date" readonly="1"/>
+                        <group string="Tax &amp; Classification">
+                            <field name="tax_rate" readonly="1"/>
+                            <field name="tax_group_name" readonly="1"/>
                             <field name="category_name" readonly="1"/>
                             <field name="manufacturer_name" readonly="1"/>
                             <field name="image_count" readonly="1"/>
                             <field name="feature_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Import Status">
+                            <field name="imported_product_id" readonly="1"/>
+                            <field name="import_date" readonly="1"/>
                             <field name="error_message" readonly="1"
                                    invisible="not error_message"/>
                         </group>
@@ -204,6 +224,9 @@
                 <filter name="filter_active_ps"
                         string="Active in PS"
                         domain="[('active_in_ps', '=', True)]"/>
+                <filter name="filter_price_mismatch"
+                        string="Price Mismatch"
+                        domain="[('price_match', '=', False), ('imported_product_id', '!=', False)]"/>
                 <separator/>
                 <group expand="0" string="Group By">
                     <filter name="group_state"

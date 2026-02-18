@@ -52,8 +52,10 @@
                         <field name="default_product_categ_id"/>
                     </group>
                     <group>
+                        <field name="product_sync_mode"/>
                         <field name="product_sync_limit"/>
-                        <field name="product_sync_interval" string="Product Auto-Sync (min)"/>
+                        <field name="product_sync_interval" string="Product Auto-Sync (min)"
+                               invisible="product_sync_mode == 'disabled'"/>
                         <field name="last_product_sync_date"/>
                         <field name="import_running" readonly="1"
                                widget="boolean" string="Import Running"/>

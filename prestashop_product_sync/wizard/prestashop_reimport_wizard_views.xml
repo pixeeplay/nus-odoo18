@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_prestashop_reimport_wizard_form" model="ir.ui.view">
+        <field name="name">prestashop.reimport.wizard.form</field>
+        <field name="model">prestashop.reimport.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Re-import from PrestaShop">
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                        <i class="fa fa-info-circle me-2"/>
+                        Select the fields you want to re-synchronize from PrestaShop.
+                        Only checked fields will be updated.
+                    </div>
+                    <div class="alert alert-success" role="alert" invisible="state != 'done'">
+                        <i class="fa fa-check-circle me-2"/>
+                        <strong>Re-import complete.</strong>
+                    </div>
+
+                    <group invisible="state != 'draft'">
+                        <group string="Instance">
+                            <field name="instance_id" readonly="1"/>
+                            <field name="product_count" readonly="1"/>
+                        </group>
+                        <group string="Quick">
+                            <field name="select_all"/>
+                        </group>
+                    </group>
+
+                    <group string="Fields to Re-import" invisible="state != 'draft'" col="4">
+                        <field name="sync_name"/>
+                        <field name="sync_price"/>
+                        <field name="sync_wholesale"/>
+                        <field name="sync_weight"/>
+                        <field name="sync_description"/>
+                        <field name="sync_images"/>
+                        <field name="sync_features"/>
+                        <field name="sync_stock"/>
+                        <field name="sync_ecotax"/>
+                        <field name="sync_tax"/>
+                        <field name="sync_category"/>
+                        <field name="sync_manufacturer"/>
+                        <field name="sync_meta"/>
+                        <field name="sync_barcode"/>
+                    </group>
+
+                    <group string="Products" invisible="state != 'draft'">
+                        <field name="product_ids" nolabel="1" readonly="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="prestashop_id"/>
+                                <field name="default_code"/>
+                                <field name="list_price"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <group string="Log" invisible="state != 'done'">
+                        <field name="log" nolabel="1" readonly="1"/>
+                    </group>
+
+                    <field name="state" invisible="1"/>
+                </sheet>
+                <footer>
+                    <button name="action_reimport"
+                            string="Start Re-import"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

@@ -11,6 +11,13 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page name="prestashop" string="PrestaShop" invisible="not prestashop_id">
+                    <div class="mb-3" invisible="not prestashop_id">
+                        <button name="action_open_reimport_wizard"
+                                string="Re-sync from PrestaShop"
+                                type="object"
+                                class="btn-primary"
+                                icon="fa-refresh"/>
+                    </div>
                     <group>
                         <group string="PrestaShop Info">
                             <field name="prestashop_id" readonly="1"/>
@@ -20,6 +27,12 @@
                             <field name="prestashop_manufacturer" readonly="1"/>
                             <field name="prestashop_ean13" readonly="1"/>
                             <field name="prestashop_active" readonly="1"/>
+                        </group>
+                        <group string="Taxes &amp; Eco-Tax">
+                            <field name="prestashop_ecotax" readonly="1"/>
+                            <field name="prestashop_tax_rules_group_id" readonly="1"/>
+                            <field name="prestashop_tax_rate" readonly="1"/>
+                            <field name="prestashop_tax_id"/>
                         </group>
                         <group string="SEO">
                             <field name="prestashop_meta_title" readonly="1"/>

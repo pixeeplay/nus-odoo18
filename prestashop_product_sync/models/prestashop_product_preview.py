@@ -51,6 +51,21 @@ class PrestaShopProductPreview(models.Model):
     feature_count = fields.Integer('Feature Count', readonly=True)
     weight = fields.Float('Weight', readonly=True)
     wholesale_price = fields.Float('Wholesale Price', readonly=True)
+    ecotax = fields.Float('Eco-Tax', readonly=True, digits=(12, 4))
+    tax_rate = fields.Float('Tax Rate (%)', readonly=True, digits=(5, 2))
+    tax_group_name = fields.Char('Tax Group', readonly=True)
+    image_preview = fields.Binary('Thumbnail', attachment=True, readonly=True)
+
+    # Computed: price comparison
+    odoo_price = fields.Float(
+        'Odoo Price', compute='_compute_odoo_price', store=True,
+    )
+    price_diff = fields.Float(
+        'Price Diff', compute='_compute_odoo_price', store=True,
+    )
+    price_match = fields.Boolean(
+        'Price Match', compute='_compute_odoo_price', store=True,
+    )
 
     _sql_constraints = [
         ('unique_ps_product_instance',
@@ -70,6 +85,18 @@ class PrestaShopProductPreview(models.Model):
         }
         for rec in self:
             rec.state_sequence = order.get(rec.state, 9)
+
+    @api.depends('price', 'imported_product_id', 'imported_product_id.list_price')
+    def _compute_odoo_price(self):
+        for rec in self:
+            if rec.imported_product_id:
+                rec.odoo_price = rec.imported_product_id.list_price
+                rec.price_diff = round(rec.price - rec.imported_product_id.list_price, 4)
+                rec.price_match = abs(rec.price_diff) < 0.01
+            else:
+                rec.odoo_price = 0.0
+                rec.price_diff = 0.0
+                rec.price_match = True
 
     def _update_preview_from_ps_data(self, ps_product):
         """Update preview extra fields from full PS product data."""
@@ -146,6 +173,34 @@ class PrestaShopProductPreview(models.Model):
         mfr_id = ps_product.get('id_manufacturer', '0')
         if mfr_id and str(mfr_id) != '0':
             vals['manufacturer_name'] = instance._get_manufacturer_name(mfr_id)
+
+        # Eco-tax
+        try:
+            vals['ecotax'] = float(ps_product.get('ecotax', 0) or 0)
+        except (ValueError, TypeError):
+            pass
+
+        # Tax rate (resolve from tax_rules_group)
+        tax_group_id = ps_product.get('id_tax_rules_group', '0')
+        if tax_group_id and str(tax_group_id) != '0':
+            try:
+                rate, group_name = instance._resolve_tax_rate(str(tax_group_id))
+                vals['tax_rate'] = rate
+                vals['tax_group_name'] = group_name or f'Group {tax_group_id}'
+            except Exception:
+                vals['tax_group_name'] = f'Group {tax_group_id}'
+
+        # First image thumbnail
+        if image_list and isinstance(image_list, list) and image_list:
+            first_img = image_list[0]
+            img_id = str(first_img.get('id', '')) if isinstance(first_img, dict) else str(first_img)
+            if img_id:
+                try:
+                    b64 = instance._download_image(str(ps_product.get('id', '')), img_id)
+                    if b64:
+                        vals['image_preview'] = b64
+                except Exception:
+                    pass
 
         if vals:
             self.write(vals)

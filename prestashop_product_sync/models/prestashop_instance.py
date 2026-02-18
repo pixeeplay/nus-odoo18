@@ -45,6 +45,13 @@ class PrestaShopInstance(models.Model):
         help="Auto-sync interval for products in minutes. 0 = disabled.",
     )
     import_running = fields.Boolean('Import Running', default=False, readonly=True)
+    product_sync_mode = fields.Selection([
+        ('disabled', 'Disabled'),
+        ('hourly', 'Hourly'),
+        ('daily', 'Daily'),
+    ], string='Auto-Sync Mode', default='disabled',
+        help="Automatic product synchronization schedule.",
+    )
     mapping_ids = fields.One2many(
         'prestashop.field.mapping', 'instance_id', string='Field Mappings',
     )
@@ -333,6 +340,75 @@ class PrestaShopInstance(models.Model):
             return data.get('manufacturer', {}).get('name', '') or ''
         except Exception:
             return ''
+
+    # ------------------------------------
+    # Helpers – tax resolution
+    # ------------------------------------
+    def _resolve_tax_rate(self, tax_rules_group_id):
+        """Resolve a PrestaShop tax_rules_group ID to (rate, group_name).
+
+        Chain: tax_rule_groups → tax_rules → taxes
+        Returns (float rate, str group_name).
+        """
+        self.ensure_one()
+        group_name = ''
+        rate = 0.0
+        try:
+            # Get the tax rules group name
+            grp_data = self._api_get_long(
+                'tax_rule_groups', resource_id=str(tax_rules_group_id),
+                timeout=30,
+            )
+            grp = grp_data.get('tax_rule_group', {})
+            group_name = self._get_ps_text(grp.get('name', ''))
+
+            # Get tax rules for this group
+            rules_data = self._api_get_long(
+                'tax_rules', params={
+                    'filter[id_tax_rules_group]': str(tax_rules_group_id),
+                    'display': '[id_tax]',
+                    'limit': '1',
+                }, timeout=30,
+            )
+            rules = rules_data.get('tax_rules', [])
+            if isinstance(rules, dict):
+                rules = [rules]
+            if rules:
+                tax_id_ps = str(rules[0].get('id_tax', '0'))
+                if tax_id_ps and tax_id_ps != '0':
+                    tax_data = self._api_get_long(
+                        'taxes', resource_id=tax_id_ps, timeout=30,
+                    )
+                    tax = tax_data.get('tax', {})
+                    rate = float(tax.get('rate', 0) or 0)
+        except Exception as exc:
+            _logger.warning(
+                "Tax resolution failed for group %s: %s",
+                tax_rules_group_id, exc,
+            )
+        return rate, group_name
+
+    def _find_odoo_tax(self, rate, company=None):
+        """Find an Odoo sale tax matching the given rate (percentage)."""
+        self.ensure_one()
+        if not rate:
+            return self.env['account.tax']
+        if not company:
+            company = self.env.company
+        tax = self.env['account.tax'].search([
+            ('type_tax_use', '=', 'sale'),
+            ('amount', '=', rate),
+            ('company_id', '=', company.id),
+        ], limit=1)
+        if not tax:
+            # Try approximate match (within 0.1%)
+            tax = self.env['account.tax'].search([
+                ('type_tax_use', '=', 'sale'),
+                ('amount', '>=', rate - 0.1),
+                ('amount', '<=', rate + 0.1),
+                ('company_id', '=', company.id),
+            ], limit=1)
+        return tax or self.env['account.tax']
 
     # ------------------------------------
     # Helpers – features / characteristics
@@ -631,6 +707,27 @@ class PrestaShopInstance(models.Model):
         if categ_id:
             vals['categ_id'] = categ_id
 
+        # --- eco-tax (respects mapping) ---
+        if self._is_mapping_active('ecotax'):
+            try:
+                vals['prestashop_ecotax'] = float(ps_product.get('ecotax', 0) or 0)
+            except (ValueError, TypeError):
+                pass
+
+        # --- taxes (respects mapping) ---
+        if self._is_mapping_active('id_tax_rules_group'):
+            tax_group_id = str(ps_product.get('id_tax_rules_group', '0'))
+            if tax_group_id and tax_group_id != '0':
+                vals['prestashop_tax_rules_group_id'] = tax_group_id
+                try:
+                    rate, _group_name = self._resolve_tax_rate(tax_group_id)
+                    vals['prestashop_tax_rate'] = rate
+                    odoo_tax = self._find_odoo_tax(rate)
+                    if odoo_tax:
+                        vals['prestashop_tax_id'] = odoo_tax.id
+                except Exception as exc:
+                    _logger.warning("Tax mapping failed for PS-%s: %s", ps_id, exc)
+
         # --- create or update ---
         if product_tmpl:
             product_tmpl.write(vals)
@@ -728,6 +825,9 @@ class PrestaShopInstance(models.Model):
             if existing_preview:
                 # Update name/price if changed
                 name = self._get_ps_text(ps_prod.get('name', ''))
+                # Validate — lightweight fetch can return raw JSON
+                if name and (name.startswith('{') or name.startswith('[') or len(name) > 500):
+                    name = ''
                 ref = ps_prod.get('reference', '') or ''
                 price = float(ps_prod.get('price', 0) or 0)
                 if name and existing_preview.name != name:
@@ -740,6 +840,9 @@ class PrestaShopInstance(models.Model):
                 continue
 
             name = self._get_ps_text(ps_prod.get('name', ''))
+            # Validate — lightweight fetch can return raw JSON for multi-lang
+            if not name or name.startswith('{') or name.startswith('[') or len(name) > 500:
+                name = ''  # Will be corrected during full import (display=full)
             reference = ps_prod.get('reference', '') or ''
             price = float(ps_prod.get('price', 0) or 0)
             ean13 = ps_prod.get('ean13', '') or ''
@@ -1188,10 +1291,27 @@ class PrestaShopInstance(models.Model):
     # ------------------------------------
     @api.model
     def _cron_sync_products(self):
-        """Cron entry-point: sync products for every active instance."""
-        for instance in self.search([('active', '=', True)]):
+        """Cron entry-point: sync products for every active instance (hourly mode)."""
+        for instance in self.search([
+            ('active', '=', True),
+            ('product_sync_mode', '=', 'hourly'),
+        ]):
             try:
                 instance.action_sync_products()
                 _logger.info("Product cron sync OK for %s", instance.name)
             except Exception as exc:
                 _logger.error("Product cron sync FAILED for %s: %s", instance.name, exc)
+
+    @api.model
+    def _cron_sync_products_daily(self):
+        """Cron entry-point: daily product sync for instances in daily mode."""
+        for instance in self.search([
+            ('active', '=', True),
+            ('product_sync_mode', '=', 'daily'),
+        ]):
+            try:
+                instance.action_fetch_product_previews()
+                instance.action_import_all_previews()
+                _logger.info("Daily product sync OK for %s", instance.name)
+            except Exception as exc:
+                _logger.error("Daily product sync FAILED for %s: %s", instance.name, exc)
