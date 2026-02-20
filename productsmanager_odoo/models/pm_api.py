@@ -67,7 +67,7 @@ class ProductsManagerAPI:
     def login(self, email, password):
         """POST /auth/login → returns access_token string."""
         data = self._request('POST', '/auth/login', data={
-            'email': email,
+            'username': email,
             'password': password,
         })
         token = data.get('access_token') or data.get('token')
