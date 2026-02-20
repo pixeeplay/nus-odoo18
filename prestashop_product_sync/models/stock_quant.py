@@ -1,6 +1,6 @@
 import logging
 
-from odoo import models
+from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -15,7 +15,11 @@ class StockQuant(models.Model):
         return res
 
     def _trigger_ps_stock_push(self):
-        """Push stock to PrestaShop in real-time when quant quantities change."""
+        """Push stock to PrestaShop in real-time when quant quantities change.
+
+        Only active if the instance has stock_realtime_push_date set
+        and today >= that date. Otherwise, stock is only pushed via cron.
+        """
         product_ids = self.mapped('product_id')
         if not product_ids:
             return
@@ -28,11 +32,17 @@ class StockQuant(models.Model):
         if not templates:
             return
 
+        today = fields.Date.today()
         for tmpl in templates:
             instance = tmpl.prestashop_instance_id
             if not instance or not instance.active:
                 continue
             if instance.stock_sync_mode == 'disabled':
+                continue
+            # Check activation date — skip if not yet active
+            if not instance.stock_realtime_push_date:
+                continue
+            if today < instance.stock_realtime_push_date:
                 continue
             try:
                 instance._push_stock_to_ps(tmpl)

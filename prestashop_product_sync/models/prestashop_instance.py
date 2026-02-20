@@ -81,6 +81,11 @@ class PrestaShopInstance(models.Model):
         ('every_15min', 'Every 15 Minutes'),
         ('hourly', 'Every Hour'),
     ], string='Stock Push Schedule', default='disabled')
+    stock_realtime_push_date = fields.Date(
+        'Activate Real-time Stock Push',
+        help="Date from which real-time stock push is active. "
+             "Leave empty to disable real-time push (cron only).",
+    )
     price_sync_mode = fields.Selection([
         ('disabled', 'Disabled'),
         ('hourly', 'Every Hour'),

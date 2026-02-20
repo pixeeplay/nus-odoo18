@@ -176,6 +176,9 @@
                         </group>
                         <group string="Automated Push">
                             <field name="stock_sync_mode"/>
+                            <field name="stock_realtime_push_date"
+                                   string="Activer push stock temps r&#233;el &#224; partir du"
+                                   invisible="stock_sync_mode == 'disabled'"/>
                             <field name="price_sync_mode"/>
                             <field name="last_product_export_date" readonly="1"/>
                             <field name="last_stock_export_date" readonly="1"/>
