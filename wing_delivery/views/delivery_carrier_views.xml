@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Inherit delivery.carrier form: add Wing configuration
+         ============================================================ -->
+    <record id="view_delivery_carrier_form_wing" model="ir.ui.view">
+        <field name="name">delivery.carrier.form.wing</field>
+        <field name="model">delivery.carrier</field>
+        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Wing credentials and configuration inside provider_details -->
+            <xpath expr="//group[@name='provider_details']" position="after">
+                <group string="Wing Configuration"
+                       invisible="delivery_type != 'wing'"
+                       name="wing_config">
+                    <group string="Credentials">
+                        <field name="wing_email"
+                               placeholder="your@email.com"
+                               required="delivery_type == 'wing'"/>
+                        <field name="wing_password" password="True"
+                               required="delivery_type == 'wing'"/>
+                    </group>
+                    <group string="Settings">
+                        <field name="wing_pickup_id" readonly="1"/>
+                        <field name="wing_pickup_name" readonly="1"/>
+                        <field name="wing_default_weight"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <!-- Wing action buttons after the title -->
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <div invisible="delivery_type != 'wing'" class="mb-3">
+                    <button name="action_wing_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="btn-primary me-2"
+                            icon="fa-plug"
+                            invisible="delivery_type != 'wing' or not id"/>
+                    <button name="action_wing_load_expeditors"
+                            string="Load Carriers"
+                            type="object"
+                            class="btn-info me-2"
+                            icon="fa-truck"
+                            invisible="delivery_type != 'wing' or not id"/>
+                    <button name="action_wing_load_pickups"
+                            string="Load Pickup Points"
+                            type="object"
+                            class="btn-secondary me-2"
+                            icon="fa-map-marker"
+                            invisible="delivery_type != 'wing' or not id"/>
+                </div>
+            </xpath>
+
+            <!-- Wing carriers JSON in a notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Wing Carriers" name="wing_carriers"
+                      invisible="delivery_type != 'wing'">
+                    <group>
+                        <field name="wing_expeditors_json" nolabel="1"
+                               readonly="1" widget="text"
+                               placeholder="Click 'Load Carriers' to fetch available Wing carriers."/>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
