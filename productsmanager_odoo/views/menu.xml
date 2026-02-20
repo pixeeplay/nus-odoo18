@@ -26,6 +26,7 @@
         <field name="name">Imported Products</field>
         <field name="res_model">product.product</field>
         <field name="view_mode">list,form</field>
+        <field name="view_id" ref="pm_product_view_list"/>
         <field name="domain">[('pm_external_id', '!=', False)]</field>
         <field name="context">{'search_default_pm_imported': 1}</field>
     </record>

@@ -1,55 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Extend product.product form to show PM fields -->
-    <record id="product_product_view_form_pm" model="ir.ui.view">
-        <field name="name">product.product.form.pm</field>
+    <!-- Dedicated PM product form (standalone, no inheritance conflict) -->
+    <record id="pm_product_view_form" model="ir.ui.view">
+        <field name="name">product.product.form.pm.dedicated</field>
         <field name="model">product.product</field>
-        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="priority">50</field>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='purchase']" position="after">
-                <page string="Products Manager" name="products_manager"
-                      invisible="not pm_external_id">
+            <form string="Product (PM)">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="True"/></h1>
+                    </div>
                     <group>
-                        <group string="PM Info">
+                        <group string="General">
+                            <field name="default_code"/>
+                            <field name="barcode"/>
+                            <field name="list_price"/>
+                            <field name="standard_price"/>
+                            <field name="categ_id"/>
+                        </group>
+                        <group string="Products Manager">
                             <field name="pm_external_id" readonly="True"/>
                             <field name="pm_brand"/>
                             <field name="pm_completeness" widget="progressbar"/>
                             <field name="pm_last_sync"/>
                         </group>
                     </group>
-                    <group string="Supplier Prices (from PM)">
-                        <field name="pm_supplier_prices_html" nolabel="1"/>
+                    <group string="Supplier Prices">
+                        <field name="pm_supplier_prices_html" nolabel="True"/>
                     </group>
-                </page>
-            </xpath>
+                    <notebook>
+                        <page string="Suppliers" name="suppliers">
+                            <field name="seller_ids">
+                                <list editable="bottom">
+                                    <field name="partner_id"/>
+                                    <field name="price"/>
+                                    <field name="min_qty"/>
+                                    <field name="delay"/>
+                                    <field name="pm_supplier_stock"/>
+                                    <field name="pm_is_best"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
         </field>
     </record>
 
-    <!-- Extend product.product list to show PM badge -->
-    <record id="product_product_view_list_pm" model="ir.ui.view">
+    <!-- PM Imported Products list view -->
+    <record id="pm_product_view_list" model="ir.ui.view">
         <field name="name">product.product.list.pm</field>
         <field name="model">product.product</field>
-        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="priority">50</field>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='default_code']" position="after">
-                <field name="pm_external_id" optional="hide"/>
-                <field name="pm_brand" optional="hide"/>
-            </xpath>
+            <list string="Imported Products">
+                <field name="name"/>
+                <field name="default_code"/>
+                <field name="barcode"/>
+                <field name="pm_brand"/>
+                <field name="standard_price" widget="monetary"/>
+                <field name="pm_external_id"/>
+                <field name="pm_last_sync"/>
+            </list>
         </field>
     </record>
 
     <!-- Search filter for PM products -->
-    <record id="product_product_view_search_pm" model="ir.ui.view">
+    <record id="pm_product_view_search" model="ir.ui.view">
         <field name="name">product.product.search.pm</field>
         <field name="model">product.product</field>
-        <field name="inherit_id" ref="product.product_search_form_view"/>
+        <field name="priority">50</field>
         <field name="arch" type="xml">
-            <xpath expr="//filter[1]" position="before">
+            <search string="PM Products">
+                <field name="name"/>
+                <field name="default_code"/>
+                <field name="barcode"/>
+                <field name="pm_brand"/>
                 <filter name="pm_imported" string="From Products Manager"
                         domain="[('pm_external_id', '!=', False)]"/>
-                <separator/>
-            </xpath>
+            </search>
         </field>
     </record>
 
