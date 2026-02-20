@@ -37,6 +37,7 @@ Integrate your external Products Manager web app with Odoo:
     'assets': {
         'web.assets_backend': [
             'productsmanager_odoo/static/src/scss/pm_styles.scss',
+            'productsmanager_odoo/static/src/js/pm_search.js',
         ],
     },
     'images': [

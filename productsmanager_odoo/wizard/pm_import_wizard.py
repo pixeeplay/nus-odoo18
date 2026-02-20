@@ -50,34 +50,54 @@ class PmImportWizard(models.TransientModel):
         lines = []
 
         # Search Products Manager API
+        api = None
         try:
             api = self.config_id._get_api_client()
             pm_results = api.search_products(self.search_query, limit=50)
+            _logger.info('PM search returned %d results', len(pm_results))
+            if pm_results and isinstance(pm_results[0], dict):
+                _logger.info('PM first result keys: %s', list(pm_results[0].keys()))
+                _logger.info('PM first result data: %s', json.dumps(pm_results[0], default=str)[:2000])
             for pm_prod in pm_results:
-                line_vals = self._pm_product_to_line(pm_prod)
+                line_vals = self._pm_product_to_line(pm_prod, api)
                 if line_vals:
                     lines.append((0, 0, line_vals))
         except ProductsManagerAPIError as exc:
             _logger.warning('PM search failed: %s', exc)
 
-        # Search Odoo products (use savepoint to isolate SQL failures
-        # from broken columns in other modules like theme_nova)
+        # Search Odoo products using raw SQL to bypass ORM field issues
+        # (other modules may have broken columns on product.template)
         try:
-            with self.env.cr.savepoint():
-                odoo_products = self.env['product.product'].sudo().search([
-                    '|', '|',
-                    ('name', 'ilike', self.search_query),
-                    ('default_code', 'ilike', self.search_query),
-                    ('barcode', 'ilike', self.search_query),
-                ], limit=50)
-                # Read minimal fields only to avoid triggering broken columns
-                odoo_data = odoo_products.read([
-                    'id', 'name', 'default_code', 'barcode', 'standard_price',
-                    'pm_external_id', 'pm_brand',
-                ])
-                for data in odoo_data:
-                    line_vals = self._odoo_data_to_line(data)
-                    lines.append((0, 0, line_vals))
+            query_param = f'%{self.search_query}%'
+            self.env.cr.execute("""
+                SELECT pp.id, pt.name, pp.default_code, pp.barcode,
+                       pt.list_price, pp.pm_external_id, pp.pm_brand
+                FROM product_product pp
+                JOIN product_template pt ON pt.id = pp.product_tmpl_id
+                WHERE pt.name::text ILIKE %s
+                   OR pp.default_code ILIKE %s
+                   OR pp.barcode ILIKE %s
+                LIMIT 50
+            """, (query_param, query_param, query_param))
+            rows = self.env.cr.dictfetchall()
+            for row in rows:
+                # pt.name is stored as jsonb in Odoo 18
+                name = row.get('name') or ''
+                if isinstance(name, dict):
+                    name = name.get('en_US') or name.get('fr_FR') or next(iter(name.values()), '')
+                line_vals = {
+                    'source': 'odoo',
+                    'odoo_product_id': row['id'],
+                    'name': name,
+                    'brand': row.get('pm_brand') or '',
+                    'barcode': row.get('barcode') or '',
+                    'best_price': row.get('list_price') or 0,
+                    'best_supplier': '',
+                    'total_stock': 0,
+                    'supplier_count': 0,
+                    'already_imported': bool(row.get('pm_external_id')),
+                }
+                lines.append((0, 0, line_vals))
         except Exception as exc:
             _logger.warning('Odoo product search failed: %s', exc)
 
@@ -99,7 +119,7 @@ class PmImportWizard(models.TransientModel):
             'target': 'current',
         }
 
-    def _pm_product_to_line(self, pm_prod):
+    def _pm_product_to_line(self, pm_prod, api=None):
         """Convert a PM API product dict to wizard line values."""
         pm_id = str(pm_prod.get('id') or pm_prod.get('product_id') or '')
         if not pm_id:
@@ -114,11 +134,44 @@ class PmImportWizard(models.TransientModel):
             ('pm_external_id', '=', pm_id),
         ], limit=1))
 
-        # Extract suppliers
+        # Extract suppliers from the product data
         suppliers = self._extract_pm_suppliers(pm_prod)
-        best_price = 0
-        best_supplier = ''
-        total_stock = 0
+
+        # If no suppliers found in search data, try fetching from API
+        if not suppliers and api:
+            try:
+                supplier_data = api.get_product_suppliers(pm_id)
+                _logger.info('PM suppliers for %s: %s', pm_id,
+                             json.dumps(supplier_data, default=str)[:1000])
+                if isinstance(supplier_data, list):
+                    suppliers = self._extract_pm_suppliers({'suppliers': supplier_data})
+                elif isinstance(supplier_data, dict):
+                    suppliers = self._extract_pm_suppliers(supplier_data)
+            except ProductsManagerAPIError:
+                pass
+
+        # If still no suppliers, try the product detail endpoint
+        if not suppliers and api:
+            try:
+                detail = api.get_product(pm_id)
+                if isinstance(detail, dict):
+                    suppliers = self._extract_pm_suppliers(detail)
+                    # Also try to get more product info
+                    if not name or name == 'Unknown':
+                        name = detail.get('name') or detail.get('title') or name
+                    if not ean:
+                        ean = detail.get('ean') or detail.get('barcode') or ean
+                    if not brand:
+                        brand = detail.get('brand') or detail.get('marque') or brand
+            except ProductsManagerAPIError:
+                pass
+
+        # Also extract price directly from the product if available
+        best_price = float(pm_prod.get('best_price') or pm_prod.get('price')
+                          or pm_prod.get('prix') or pm_prod.get('purchase_price') or 0)
+        best_supplier = pm_prod.get('best_supplier') or pm_prod.get('supplier_name') or ''
+        total_stock = int(pm_prod.get('total_stock') or pm_prod.get('stock')
+                         or pm_prod.get('quantity') or 0)
 
         for s in suppliers:
             total_stock += s.get('stock', 0)
@@ -149,38 +202,45 @@ class PmImportWizard(models.TransientModel):
         return vals
 
     def _extract_pm_suppliers(self, pm_prod):
-        """Extract supplier info from PM product data."""
+        """Extract supplier info from PM product data.
+
+        Tries multiple possible keys and formats for supplier data.
+        """
         suppliers = []
-        raw = pm_prod.get('suppliers') or pm_prod.get('tarification') or pm_prod.get('pricing') or []
+        # Try multiple possible keys for supplier data
+        raw = (pm_prod.get('suppliers') or pm_prod.get('tarification')
+               or pm_prod.get('pricing') or pm_prod.get('supplier_prices')
+               or pm_prod.get('offers') or pm_prod.get('tarifs') or [])
+
         if isinstance(raw, list):
             for s in raw:
+                if not isinstance(s, dict):
+                    continue
                 suppliers.append({
-                    'name': s.get('name') or s.get('supplier_name') or s.get('supplier') or 'Unknown',
-                    'price': float(s.get('price') or s.get('prix') or 0),
-                    'stock': int(s.get('stock') or s.get('quantity') or 0),
-                    'moq': int(s.get('moq') or s.get('min_qty') or 1),
-                    'is_best': bool(s.get('is_best') or s.get('best')),
+                    'name': (s.get('name') or s.get('supplier_name')
+                             or s.get('supplier') or s.get('fournisseur') or 'Unknown'),
+                    'price': float(s.get('price') or s.get('prix')
+                                   or s.get('unit_price') or s.get('buying_price') or 0),
+                    'stock': int(s.get('stock') or s.get('quantity')
+                                 or s.get('available') or s.get('qty') or 0),
+                    'moq': int(s.get('moq') or s.get('min_qty')
+                               or s.get('minimum_quantity') or 1),
+                    'is_best': bool(s.get('is_best') or s.get('best')
+                                    or s.get('is_main') or s.get('principal')),
                 })
+        elif isinstance(raw, dict):
+            # Some APIs nest suppliers in a dict keyed by supplier name
+            for key, val in raw.items():
+                if isinstance(val, dict):
+                    suppliers.append({
+                        'name': val.get('name') or key,
+                        'price': float(val.get('price') or val.get('prix') or 0),
+                        'stock': int(val.get('stock') or val.get('quantity') or 0),
+                        'moq': int(val.get('moq') or val.get('min_qty') or 1),
+                        'is_best': bool(val.get('is_best') or val.get('best')),
+                    })
         return suppliers
 
-    def _odoo_data_to_line(self, data):
-        """Convert a dict from product.read() to wizard line values.
-
-        Uses dict data instead of record access to avoid triggering
-        broken related fields from other modules.
-        """
-        return {
-            'source': 'odoo',
-            'odoo_product_id': data['id'],
-            'name': data.get('name') or '',
-            'brand': data.get('pm_brand') or '',
-            'barcode': data.get('barcode') or '',
-            'best_price': data.get('standard_price') or 0,
-            'best_supplier': '',
-            'total_stock': 0,
-            'supplier_count': 0,
-            'already_imported': bool(data.get('pm_external_id')),
-        }
 
     # ── Import ──────────────────────────────────────────────────────────
 
