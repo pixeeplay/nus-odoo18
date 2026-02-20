@@ -1,0 +1,28 @@
+// ============================================================================
+// Nova Features
+// ============================================================================
+
+.s_nova_features {
+    .nova-feature-item {
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+
+            .nova-feature-icon {
+                transform: scale(1.1);
+            }
+        }
+    }
+
+    .nova-feature-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.05);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+    }
+}

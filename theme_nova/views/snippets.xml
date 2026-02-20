@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Register all Nova snippets in a custom "Nova" panel -->
+    <template id="snippets" inherit_id="website.snippets" name="Nova Snippets">
+        <xpath expr="//snippets[@id='snippet_structure']" position="before">
+            <div id="nova_snippets" class="o_panel">
+                <div class="o_panel_header">Nova</div>
+                <div class="o_panel_body">
+                    <t t-snippet="theme_nova.s_nova_hero"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_hero.svg">
+                        <keywords>hero, banner, cover, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_categories"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_categories.svg">
+                        <keywords>categories, grid, shop, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_products"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_products.svg">
+                        <keywords>products, showcase, cards, shop, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_brands"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_brands.svg">
+                        <keywords>brands, logos, partners, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_testimonials"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_testimonials.svg">
+                        <keywords>testimonials, reviews, quotes, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_promo_banner"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_promo_banner.svg">
+                        <keywords>promo, banner, sale, offer, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_newsletter"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_newsletter.svg">
+                        <keywords>newsletter, subscribe, email, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_countdown"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_countdown.svg">
+                        <keywords>countdown, timer, sale, offer, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_features"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_features.svg">
+                        <keywords>features, benefits, icons, services, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_instagram"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_instagram.svg">
+                        <keywords>instagram, gallery, photos, social, nova</keywords>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

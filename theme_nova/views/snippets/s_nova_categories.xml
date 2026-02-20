@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_categories" name="Nova Categories Grid">
+        <section class="s_nova_categories pt-5 pb-5" data-snippet="s_nova_categories" data-name="Nova Categories">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Shop by Category</h2>
+                    <p class="text-muted">Find exactly what you're looking for</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="nova-cat-card position-relative overflow-hidden rounded-3">
+                            <div class="nova-cat-img ratio ratio-4x3 bg-200">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-image fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <div class="nova-cat-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end p-4">
+                                <div>
+                                    <h5 class="text-white fw-bold mb-1">Women</h5>
+                                    <a href="/shop" class="text-white small">
+                                        Discover <i class="fa fa-arrow-right ms-1"/>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="nova-cat-card position-relative overflow-hidden rounded-3">
+                            <div class="nova-cat-img ratio ratio-4x3 bg-200">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-image fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <div class="nova-cat-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end p-4">
+                                <div>
+                                    <h5 class="text-white fw-bold mb-1">Men</h5>
+                                    <a href="/shop" class="text-white small">
+                                        Discover <i class="fa fa-arrow-right ms-1"/>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="nova-cat-card position-relative overflow-hidden rounded-3">
+                            <div class="nova-cat-img ratio ratio-4x3 bg-200">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-image fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <div class="nova-cat-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end p-4">
+                                <div>
+                                    <h5 class="text-white fw-bold mb-1">Accessories</h5>
+                                    <a href="/shop" class="text-white small">
+                                        Discover <i class="fa fa-arrow-right ms-1"/>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

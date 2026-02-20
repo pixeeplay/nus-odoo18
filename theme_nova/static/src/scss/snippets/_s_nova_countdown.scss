@@ -1,0 +1,36 @@
+// ============================================================================
+// Nova Countdown
+// ============================================================================
+
+.s_nova_countdown {
+    .nova-countdown-timer {
+        .nova-countdown-item {
+            min-width: 80px;
+        }
+
+        .nova-countdown-value {
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            transition: transform 0.3s ease;
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 576px) {
+    .s_nova_countdown {
+        .nova-countdown-timer {
+            .nova-countdown-value {
+                font-size: 2rem !important;
+            }
+
+            .nova-countdown-sep {
+                font-size: 2rem !important;
+            }
+
+            .nova-countdown-item {
+                min-width: 60px;
+            }
+        }
+    }
+}

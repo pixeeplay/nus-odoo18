@@ -1,0 +1,45 @@
+// ============================================================================
+// Nova Categories Grid
+// ============================================================================
+
+.s_nova_categories {
+    .nova-cat-card {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: scale(1.02);
+
+            .nova-cat-img img,
+            .nova-cat-img > div {
+                transform: scale(1.05);
+            }
+
+            .nova-cat-overlay {
+                background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+            }
+        }
+    }
+
+    .nova-cat-img {
+        img, > div {
+            transition: transform 0.5s ease;
+        }
+    }
+
+    .nova-cat-overlay {
+        background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.6) 100%);
+        transition: background 0.3s ease;
+        z-index: 1;
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            opacity: 0.8;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+// ============================================================================
+// Theme Nova — Bootstrap Overrides
+// Loaded BEFORE Bootstrap helpers via web._assets_frontend_helpers (prepend)
+// ============================================================================
+
+// Smooth transitions everywhere
+$enable-transitions: true;
+$enable-reduced-motion: true;
+
+// Refined shadows
+$box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+$box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+$box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.12);
+
+// Card defaults
+$card-border-width: 0;
+$card-border-radius: 0.75rem;
+$card-cap-padding-y: 1rem;
+$card-cap-padding-x: 1.25rem;
+
+// Input focus ring — use a neutral color; theme colors applied at runtime
+$input-focus-box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.08);

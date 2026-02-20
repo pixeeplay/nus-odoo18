@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_brands" name="Nova Brands Banner">
+        <section class="s_nova_brands py-5 o_cc o_cc3" data-snippet="s_nova_brands" data-name="Nova Brands">
+            <div class="container">
+                <div class="text-center mb-4">
+                    <p class="text-muted small text-uppercase fw-bold letter-spacing-2 mb-0">Trusted by leading brands</p>
+                </div>
+                <div class="nova-brands-track d-flex align-items-center justify-content-around flex-wrap gap-4">
+                    <div class="nova-brand-logo opacity-50 px-3">
+                        <span class="h4 fw-bold text-muted">Brand 1</span>
+                    </div>
+                    <div class="nova-brand-logo opacity-50 px-3">
+                        <span class="h4 fw-bold text-muted">Brand 2</span>
+                    </div>
+                    <div class="nova-brand-logo opacity-50 px-3">
+                        <span class="h4 fw-bold text-muted">Brand 3</span>
+                    </div>
+                    <div class="nova-brand-logo opacity-50 px-3">
+                        <span class="h4 fw-bold text-muted">Brand 4</span>
+                    </div>
+                    <div class="nova-brand-logo opacity-50 px-3">
+                        <span class="h4 fw-bold text-muted">Brand 5</span>
+                    </div>
+                    <div class="nova-brand-logo opacity-50 px-3">
+                        <span class="h4 fw-bold text-muted">Brand 6</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

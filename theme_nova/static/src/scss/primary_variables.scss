@@ -1,0 +1,1135 @@
+// ============================================================================
+// Theme Nova — Primary Variables
+// 20 Unique Looks with Google Fonts
+// ============================================================================
+
+// ── Google Fonts Registration ───────────────────────────────────────────────
+
+$o-theme-font-configs: map-merge($o-theme-font-configs, (
+    // Serif / Display fonts (headings)
+    'Playfair Display': (
+        'family': ('Playfair Display', serif),
+        'url': 'Playfair+Display:400,400i,700,700i',
+    ),
+    'Cormorant Garamond': (
+        'family': ('Cormorant Garamond', serif),
+        'url': 'Cormorant+Garamond:300,400,500,600,700',
+    ),
+    'DM Serif Display': (
+        'family': ('DM Serif Display', serif),
+        'url': 'DM+Serif+Display:400,400i',
+    ),
+    'Libre Baskerville': (
+        'family': ('Libre Baskerville', serif),
+        'url': 'Libre+Baskerville:400,400i,700',
+    ),
+    'Crimson Text': (
+        'family': ('Crimson Text', serif),
+        'url': 'Crimson+Text:400,400i,600,600i,700,700i',
+    ),
+    'Italiana': (
+        'family': ('Italiana', serif),
+        'url': 'Italiana:400',
+    ),
+    'Merriweather': (
+        'family': ('Merriweather', serif),
+        'url': 'Merriweather:300,300i,400,400i,700,700i',
+    ),
+    'Lora': (
+        'family': ('Lora', serif),
+        'url': 'Lora:400,400i,500,600,700',
+    ),
+    'Fraunces': (
+        'family': ('Fraunces', serif),
+        'url': 'Fraunces:300,400,500,600,700',
+    ),
+    'Spectral': (
+        'family': ('Spectral', serif),
+        'url': 'Spectral:300,400,500,600,700',
+    ),
+    'Cormorant': (
+        'family': ('Cormorant', serif),
+        'url': 'Cormorant:300,400,500,600,700',
+    ),
+
+    // Sans-serif fonts (body & headings)
+    'Montserrat': (
+        'family': ('Montserrat', sans-serif),
+        'url': 'Montserrat:300,400,500,600,700',
+    ),
+    'Poppins': (
+        'family': ('Poppins', sans-serif),
+        'url': 'Poppins:300,400,500,600,700',
+    ),
+    'Lato': (
+        'family': ('Lato', sans-serif),
+        'url': 'Lato:300,300i,400,400i,700,700i',
+    ),
+    'Nunito': (
+        'family': ('Nunito', sans-serif),
+        'url': 'Nunito:300,400,500,600,700',
+    ),
+    'Mulish': (
+        'family': ('Mulish', sans-serif),
+        'url': 'Mulish:300,400,500,600,700',
+    ),
+    'Work Sans': (
+        'family': ('Work Sans', sans-serif),
+        'url': 'Work+Sans:300,400,500,600,700',
+    ),
+    'DM Sans': (
+        'family': ('DM Sans', sans-serif),
+        'url': 'DM+Sans:300,400,500,600,700',
+    ),
+    'Josefin Sans': (
+        'family': ('Josefin Sans', sans-serif),
+        'url': 'Josefin+Sans:300,400,500,600,700',
+    ),
+    'Source Sans 3': (
+        'family': ('Source Sans 3', sans-serif),
+        'url': 'Source+Sans+3:300,400,500,600,700',
+    ),
+    'Quicksand': (
+        'family': ('Quicksand', sans-serif),
+        'url': 'Quicksand:300,400,500,600,700',
+    ),
+    'Rubik': (
+        'family': ('Rubik', sans-serif),
+        'url': 'Rubik:300,400,500,600,700',
+    ),
+    'Bebas Neue': (
+        'family': ('Bebas Neue', sans-serif),
+        'url': 'Bebas+Neue:400',
+    ),
+    'Outfit': (
+        'family': ('Outfit', sans-serif),
+        'url': 'Outfit:300,400,500,600,700',
+    ),
+    'Karla': (
+        'family': ('Karla', sans-serif),
+        'url': 'Karla:300,400,500,600,700',
+    ),
+    'Space Grotesk': (
+        'family': ('Space Grotesk', sans-serif),
+        'url': 'Space+Grotesk:300,400,500,600,700',
+    ),
+    'Manrope': (
+        'family': ('Manrope', sans-serif),
+        'url': 'Manrope:300,400,500,600,700,800',
+    ),
+    'Cabin': (
+        'family': ('Cabin', sans-serif),
+        'url': 'Cabin:400,500,600,700',
+    ),
+    'Jost': (
+        'family': ('Jost', sans-serif),
+        'url': 'Jost:300,400,500,600,700',
+    ),
+    'Nunito Sans': (
+        'family': ('Nunito Sans', sans-serif),
+        'url': 'Nunito+Sans:300,400,500,600,700',
+    ),
+    'Fira Sans': (
+        'family': ('Fira Sans', sans-serif),
+        'url': 'Fira+Sans:300,400,500,600,700',
+    ),
+    'Sora': (
+        'family': ('Sora', sans-serif),
+        'url': 'Sora:300,400,500,600,700',
+    ),
+    'Plus Jakarta Sans': (
+        'family': ('Plus Jakarta Sans', sans-serif),
+        'url': 'Plus+Jakarta+Sans:300,400,500,600,700',
+    ),
+    'Lexend': (
+        'family': ('Lexend', sans-serif),
+        'url': 'Lexend:300,400,500,600,700',
+    ),
+    'Public Sans': (
+        'family': ('Public Sans', sans-serif),
+        'url': 'Public+Sans:300,400,500,600,700',
+    ),
+    'Figtree': (
+        'family': ('Figtree', sans-serif),
+        'url': 'Figtree:300,400,500,600,700',
+    ),
+));
+
+
+// ── Color Palettes ──────────────────────────────────────────────────────────
+// Each palette defines 5 colors + color combinations for text/links/headings
+// o-color-1: Primary brand color
+// o-color-2: Secondary/accent color
+// o-color-3: Light background
+// o-color-4: White/card background
+// o-color-5: Dark (text/header/footer)
+
+$o-color-palettes: map-merge($o-color-palettes, (
+
+    // ── 1. Elegance — Luxe minimaliste ──────────────────────────
+    'nova-elegance': (
+        'o-color-1': #1a1a2e,
+        'o-color-2': #e94560,
+        'o-color-3': #f8f7f4,
+        'o-color-4': #ffffff,
+        'o-color-5': #0f0f1a,
+
+        'o-cc1-text': #4a4a5a,
+        'o-cc1-headings': 'o-color-1',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #4a4a5a,
+        'o-cc2-link': 'o-color-2',
+        'o-cc2-headings': 'o-color-1',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 2. Fresh — Nature/bio ───────────────────────────────────
+    'nova-fresh': (
+        'o-color-1': #2d6a4f,
+        'o-color-2': #95d5b2,
+        'o-color-3': #d8f3dc,
+        'o-color-4': #ffffff,
+        'o-color-5': #1b4332,
+
+        'o-cc1-text': #40513b,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #40513b,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 3. Sunset — Dynamique/jeune ─────────────────────────────
+    'nova-sunset': (
+        'o-color-1': #e63946,
+        'o-color-2': #f4a261,
+        'o-color-3': #fff5ee,
+        'o-color-4': #ffffff,
+        'o-color-5': #1d3557,
+
+        'o-cc1-text': #4a4a5a,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #4a4a5a,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 4. Ocean — Frais/tech ───────────────────────────────────
+    'nova-ocean': (
+        'o-color-1': #0077b6,
+        'o-color-2': #00b4d8,
+        'o-color-3': #e8f4f8,
+        'o-color-4': #ffffff,
+        'o-color-5': #023e8a,
+
+        'o-cc1-text': #4a5568,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #4a5568,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 5. Blush — Feminin/beaute ───────────────────────────────
+    'nova-blush': (
+        'o-color-1': #c9184a,
+        'o-color-2': #ff758f,
+        'o-color-3': #fff0f3,
+        'o-color-4': #ffffff,
+        'o-color-5': #590d22,
+
+        'o-cc1-text': #5c5c6d,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #5c5c6d,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 6. Graphite — Corporate/pro ─────────────────────────────
+    'nova-graphite': (
+        'o-color-1': #2b2d42,
+        'o-color-2': #ef233c,
+        'o-color-3': #edf2f4,
+        'o-color-4': #ffffff,
+        'o-color-5': #14213d,
+
+        'o-cc1-text': #4a4e69,
+        'o-cc1-headings': 'o-color-1',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #4a4e69,
+        'o-cc2-link': 'o-color-2',
+        'o-cc2-headings': 'o-color-1',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 7. Honey — Chaleureux/food ──────────────────────────────
+    'nova-honey': (
+        'o-color-1': #f4a261,
+        'o-color-2': #e76f51,
+        'o-color-3': #fdf6ec,
+        'o-color-4': #ffffff,
+        'o-color-5': #264653,
+
+        'o-cc1-text': #5c5040,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #5c5040,
+        'o-cc2-link': 'o-color-2',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-1',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-1',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-1',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 8. Mint — Fun/jeune ─────────────────────────────────────
+    'nova-mint': (
+        'o-color-1': #06d6a0,
+        'o-color-2': #118ab2,
+        'o-color-3': #edfdf7,
+        'o-color-4': #ffffff,
+        'o-color-5': #073b4c,
+
+        'o-cc1-text': #3d5a5a,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #3d5a5a,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-1',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-1',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-1',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 9. Charcoal — Urbain/street ─────────────────────────────
+    'nova-charcoal': (
+        'o-color-1': #212529,
+        'o-color-2': #ffd166,
+        'o-color-3': #f5f5f5,
+        'o-color-4': #ffffff,
+        'o-color-5': #000000,
+
+        'o-cc1-text': #495057,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #495057,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 10. Lavender — Creatif/art ──────────────────────────────
+    'nova-lavender': (
+        'o-color-1': #7209b7,
+        'o-color-2': #f72585,
+        'o-color-3': #f5f0ff,
+        'o-color-4': #ffffff,
+        'o-color-5': #3a0ca3,
+
+        'o-cc1-text': #555577,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #555577,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 11. Terracotta — Artisanal/craft ────────────────────────
+    'nova-terracotta': (
+        'o-color-1': #bc6c25,
+        'o-color-2': #dda15e,
+        'o-color-3': #fefae0,
+        'o-color-4': #ffffff,
+        'o-color-5': #606c38,
+
+        'o-cc1-text': #5a5340,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #5a5340,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 12. Arctic — Futuriste/tech ─────────────────────────────
+    'nova-arctic': (
+        'o-color-1': #48cae4,
+        'o-color-2': #00b4d8,
+        'o-color-3': #f0f9ff,
+        'o-color-4': #ffffff,
+        'o-color-5': #03045e,
+
+        'o-cc1-text': #4a6070,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #4a6070,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 13. Sand — Boheme/voyage ────────────────────────────────
+    'nova-sand': (
+        'o-color-1': #dda15e,
+        'o-color-2': #bc6c25,
+        'o-color-3': #faf6f1,
+        'o-color-4': #ffffff,
+        'o-color-5': #283618,
+
+        'o-cc1-text': #5a5040,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #5a5040,
+        'o-cc2-link': 'o-color-2',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-1',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-1',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-1',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 14. Onyx — Ultra luxe/bijoux ────────────────────────────
+    'nova-onyx': (
+        'o-color-1': #000000,
+        'o-color-2': #c9a96e,
+        'o-color-3': #f5f5f0,
+        'o-color-4': #ffffff,
+        'o-color-5': #1a1a1a,
+
+        'o-cc1-text': #555555,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-2',
+
+        'o-cc2-text': #555555,
+        'o-cc2-link': 'o-color-2',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 15. Sage — Naturel/bien-etre ────────────────────────────
+    'nova-sage': (
+        'o-color-1': #588157,
+        'o-color-2': #a3b18a,
+        'o-color-3': #f0f4ec,
+        'o-color-4': #ffffff,
+        'o-color-5': #344e41,
+
+        'o-cc1-text': #4a5a4a,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #4a5a4a,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 16. Burgundy — Premium/vin/gastro ───────────────────────
+    'nova-burgundy': (
+        'o-color-1': #800020,
+        'o-color-2': #c1666b,
+        'o-color-3': #faf0f0,
+        'o-color-4': #ffffff,
+        'o-color-5': #4a0010,
+
+        'o-cc1-text': #5a4040,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #5a4040,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 17. Electric — Tech/startup ─────────────────────────────
+    'nova-electric': (
+        'o-color-1': #4361ee,
+        'o-color-2': #4cc9f0,
+        'o-color-3': #eef2ff,
+        'o-color-4': #ffffff,
+        'o-color-5': #1a1a40,
+
+        'o-cc1-text': #4a5568,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #4a5568,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 18. Cream — Elegant doux/maison ─────────────────────────
+    'nova-cream': (
+        'o-color-1': #b08968,
+        'o-color-2': #ddb892,
+        'o-color-3': #f5ebe0,
+        'o-color-4': #ffffff,
+        'o-color-5': #3d2c2c,
+
+        'o-cc1-text': #5a4a40,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #5a4a40,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 19. Forest — Outdoor/aventure ───────────────────────────
+    'nova-forest': (
+        'o-color-1': #344e41,
+        'o-color-2': #a3b18a,
+        'o-color-3': #f0f4ec,
+        'o-color-4': #ffffff,
+        'o-color-5': #1a2e22,
+
+        'o-cc1-text': #4a5a4a,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #4a5a4a,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+
+    // ── 20. Rose Gold — Bijoux/mode/luxe ────────────────────────
+    'nova-rosegold': (
+        'o-color-1': #b76e79,
+        'o-color-2': #e8b4b8,
+        'o-color-3': #fdf2f4,
+        'o-color-4': #ffffff,
+        'o-color-5': #2d2024,
+
+        'o-cc1-text': #5a4a4e,
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-btn-secondary': 'o-color-1',
+
+        'o-cc2-text': #5a4a4e,
+        'o-cc2-link': 'o-color-1',
+        'o-cc2-headings': 'o-color-5',
+
+        'o-cc3-text': 'o-color-4',
+        'o-cc3-link': 'o-color-2',
+        'o-cc3-headings': 'o-color-4',
+
+        'o-cc4-text': 'o-color-3',
+        'o-cc4-link': 'o-color-2',
+        'o-cc4-headings': 'o-color-4',
+
+        'o-cc5-text': 'o-color-3',
+        'o-cc5-link': 'o-color-2',
+        'o-cc5-headings': 'o-color-4',
+
+        'menu': 1,
+        'footer': 5,
+        'copyright': 5,
+    ),
+));
+
+
+// ── Website Values Palettes (20 Looks) ──────────────────────────────────────
+// Each look = color palette + font pairing + button/UI style
+
+$o-website-values-palettes: (
+
+    // ── 1. Elegance — Luxe minimaliste
+    (
+        'color-palettes-name': 'nova-elegance',
+        'font': 'Inter',
+        'headings-font': 'Playfair Display',
+        'navbar-font': 'Inter',
+        'buttons-font': 'Inter',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.25rem,
+        'btn-border-radius-sm': 0.2rem,
+        'btn-border-radius-lg': 0.3rem,
+        'link-underline': 'never',
+        'logo-height': 3rem,
+    ),
+
+    // ── 2. Fresh — Nature/bio
+    (
+        'color-palettes-name': 'nova-fresh',
+        'font': 'Lato',
+        'headings-font': 'Montserrat',
+        'navbar-font': 'Montserrat',
+        'buttons-font': 'Montserrat',
+        'font-size-base': 1rem,
+        'btn-border-radius': 10rem,
+        'btn-border-radius-sm': 10rem,
+        'btn-border-radius-lg': 10rem,
+        'link-underline': 'never',
+        'logo-height': 3rem,
+    ),
+
+    // ── 3. Sunset — Dynamique/jeune
+    (
+        'color-palettes-name': 'nova-sunset',
+        'font': 'Nunito',
+        'headings-font': 'Poppins',
+        'navbar-font': 'Poppins',
+        'buttons-font': 'Poppins',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.5rem,
+        'btn-border-radius-sm': 0.375rem,
+        'btn-border-radius-lg': 0.75rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 4. Ocean — Frais/tech
+    (
+        'color-palettes-name': 'nova-ocean',
+        'font': 'Open Sans',
+        'headings-font': 'Raleway',
+        'navbar-font': 'Raleway',
+        'buttons-font': 'Open Sans',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.375rem,
+        'btn-border-radius-sm': 0.25rem,
+        'btn-border-radius-lg': 0.5rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 5. Blush — Feminin/beaute
+    (
+        'color-palettes-name': 'nova-blush',
+        'font': 'Mulish',
+        'headings-font': 'Cormorant Garamond',
+        'navbar-font': 'Mulish',
+        'buttons-font': 'Mulish',
+        'font-size-base': 1rem,
+        'btn-border-radius': 10rem,
+        'btn-border-radius-sm': 10rem,
+        'btn-border-radius-lg': 10rem,
+        'link-underline': 'never',
+        'logo-height': 3.5rem,
+    ),
+
+    // ── 6. Graphite — Corporate/pro
+    (
+        'color-palettes-name': 'nova-graphite',
+        'font': 'DM Sans',
+        'headings-font': 'Work Sans',
+        'navbar-font': 'Work Sans',
+        'buttons-font': 'DM Sans',
+        'font-size-base': (15 / 16) * 1rem,
+        'btn-border-radius': 0,
+        'btn-border-radius-sm': 0,
+        'btn-border-radius-lg': 0,
+        'link-underline': 'hover',
+        'logo-height': 2.5rem,
+    ),
+
+    // ── 7. Honey — Chaleureux/food
+    (
+        'color-palettes-name': 'nova-honey',
+        'font': 'Source Sans 3',
+        'headings-font': 'Josefin Sans',
+        'navbar-font': 'Josefin Sans',
+        'buttons-font': 'Source Sans 3',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.5rem,
+        'btn-border-radius-sm': 0.375rem,
+        'btn-border-radius-lg': 0.625rem,
+        'link-underline': 'never',
+        'logo-height': 3rem,
+    ),
+
+    // ── 8. Mint — Fun/jeune
+    (
+        'color-palettes-name': 'nova-mint',
+        'font': 'Rubik',
+        'headings-font': 'Quicksand',
+        'navbar-font': 'Quicksand',
+        'buttons-font': 'Rubik',
+        'font-size-base': 1rem,
+        'btn-border-radius': 10rem,
+        'btn-border-radius-sm': 10rem,
+        'btn-border-radius-lg': 10rem,
+        'link-underline': 'never',
+        'logo-height': 3rem,
+    ),
+
+    // ── 9. Charcoal — Urbain/street
+    (
+        'color-palettes-name': 'nova-charcoal',
+        'font': 'Roboto',
+        'headings-font': 'Bebas Neue',
+        'navbar-font': 'Roboto',
+        'buttons-font': 'Roboto',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0,
+        'btn-border-radius-sm': 0,
+        'btn-border-radius-lg': 0,
+        'link-underline': 'never',
+        'logo-height': 3rem,
+    ),
+
+    // ── 10. Lavender — Creatif/art
+    (
+        'color-palettes-name': 'nova-lavender',
+        'font': 'Outfit',
+        'headings-font': 'DM Serif Display',
+        'navbar-font': 'Outfit',
+        'buttons-font': 'Outfit',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.5rem,
+        'btn-border-radius-sm': 0.375rem,
+        'btn-border-radius-lg': 0.75rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 11. Terracotta — Artisanal/craft
+    (
+        'color-palettes-name': 'nova-terracotta',
+        'font': 'Karla',
+        'headings-font': 'Libre Baskerville',
+        'navbar-font': 'Karla',
+        'buttons-font': 'Karla',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.25rem,
+        'btn-border-radius-sm': 0.2rem,
+        'btn-border-radius-lg': 0.375rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 12. Arctic — Futuriste/tech
+    (
+        'color-palettes-name': 'nova-arctic',
+        'font': 'Manrope',
+        'headings-font': 'Space Grotesk',
+        'navbar-font': 'Space Grotesk',
+        'buttons-font': 'Manrope',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.75rem,
+        'btn-border-radius-sm': 0.5rem,
+        'btn-border-radius-lg': 1rem,
+        'link-underline': 'never',
+        'logo-height': 2.5rem,
+    ),
+
+    // ── 13. Sand — Boheme/voyage
+    (
+        'color-palettes-name': 'nova-sand',
+        'font': 'Cabin',
+        'headings-font': 'Crimson Text',
+        'navbar-font': 'Cabin',
+        'buttons-font': 'Cabin',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.375rem,
+        'btn-border-radius-sm': 0.25rem,
+        'btn-border-radius-lg': 0.5rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 14. Onyx — Ultra luxe/bijoux
+    (
+        'color-palettes-name': 'nova-onyx',
+        'font': 'Jost',
+        'headings-font': 'Italiana',
+        'navbar-font': 'Jost',
+        'buttons-font': 'Jost',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0,
+        'btn-border-radius-sm': 0,
+        'btn-border-radius-lg': 0,
+        'link-underline': 'never',
+        'logo-height': 3.5rem,
+    ),
+
+    // ── 15. Sage — Naturel/bien-etre
+    (
+        'color-palettes-name': 'nova-sage',
+        'font': 'Nunito Sans',
+        'headings-font': 'Merriweather',
+        'navbar-font': 'Nunito Sans',
+        'buttons-font': 'Nunito Sans',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.5rem,
+        'btn-border-radius-sm': 0.375rem,
+        'btn-border-radius-lg': 0.75rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 16. Burgundy — Premium/vin/gastro
+    (
+        'color-palettes-name': 'nova-burgundy',
+        'font': 'Fira Sans',
+        'headings-font': 'Lora',
+        'navbar-font': 'Fira Sans',
+        'buttons-font': 'Fira Sans',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.25rem,
+        'btn-border-radius-sm': 0.2rem,
+        'btn-border-radius-lg': 0.375rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 17. Electric — Tech/startup
+    (
+        'color-palettes-name': 'nova-electric',
+        'font': 'Plus Jakarta Sans',
+        'headings-font': 'Sora',
+        'navbar-font': 'Sora',
+        'buttons-font': 'Plus Jakarta Sans',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.75rem,
+        'btn-border-radius-sm': 0.5rem,
+        'btn-border-radius-lg': 1rem,
+        'link-underline': 'never',
+        'logo-height': 2.5rem,
+    ),
+
+    // ── 18. Cream — Elegant doux/maison
+    (
+        'color-palettes-name': 'nova-cream',
+        'font': 'Lexend',
+        'headings-font': 'Fraunces',
+        'navbar-font': 'Lexend',
+        'buttons-font': 'Lexend',
+        'font-size-base': 1rem,
+        'btn-border-radius': 10rem,
+        'btn-border-radius-sm': 10rem,
+        'btn-border-radius-lg': 10rem,
+        'link-underline': 'never',
+        'logo-height': 3rem,
+    ),
+
+    // ── 19. Forest — Outdoor/aventure
+    (
+        'color-palettes-name': 'nova-forest',
+        'font': 'Public Sans',
+        'headings-font': 'Spectral',
+        'navbar-font': 'Public Sans',
+        'buttons-font': 'Public Sans',
+        'font-size-base': 1rem,
+        'btn-border-radius': 0.375rem,
+        'btn-border-radius-sm': 0.25rem,
+        'btn-border-radius-lg': 0.5rem,
+        'link-underline': 'hover',
+        'logo-height': 3rem,
+    ),
+
+    // ── 20. Rose Gold — Bijoux/mode/luxe
+    (
+        'color-palettes-name': 'nova-rosegold',
+        'font': 'Figtree',
+        'headings-font': 'Cormorant',
+        'navbar-font': 'Figtree',
+        'buttons-font': 'Figtree',
+        'font-size-base': 1rem,
+        'btn-border-radius': 10rem,
+        'btn-border-radius-sm': 10rem,
+        'btn-border-radius-lg': 10rem,
+        'link-underline': 'never',
+        'logo-height': 3.5rem,
+    ),
+) !default;

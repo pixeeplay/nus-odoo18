@@ -1,0 +1,47 @@
+// ============================================================================
+// Nova Products Showcase
+// ============================================================================
+
+.s_nova_products {
+    .nova-product-card {
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+
+            .nova-product-actions {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .nova-product-img img {
+                transform: scale(1.05);
+            }
+        }
+    }
+
+    .nova-product-img {
+        border-radius: 0.75rem;
+
+        img {
+            transition: transform 0.5s ease;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            z-index: 1;
+        }
+    }
+
+    .nova-product-actions {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 1;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
+        padding-top: 2rem !important;
+        border-radius: 0 0 0.75rem 0.75rem;
+    }
+}

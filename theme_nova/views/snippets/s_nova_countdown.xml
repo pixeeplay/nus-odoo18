@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_countdown" name="Nova Countdown">
+        <section class="s_nova_countdown py-5 o_cc o_cc5"
+                 data-snippet="s_nova_countdown" data-name="Nova Countdown">
+            <div class="container text-center">
+                <h3 class="fw-bold mb-2">Sale Ends In</h3>
+                <p class="opacity-75 mb-4">Hurry up! Don't miss this limited-time offer</p>
+                <div class="nova-countdown-timer d-flex justify-content-center gap-3 gap-md-4 mb-4"
+                     data-nova-countdown-target="2025-12-31T23:59:59">
+                    <div class="nova-countdown-item text-center">
+                        <div class="nova-countdown-value display-5 fw-bold" data-nova-cd="days">00</div>
+                        <div class="small opacity-50 text-uppercase mt-1">Days</div>
+                    </div>
+                    <div class="nova-countdown-sep display-5 fw-light opacity-25">:</div>
+                    <div class="nova-countdown-item text-center">
+                        <div class="nova-countdown-value display-5 fw-bold" data-nova-cd="hours">00</div>
+                        <div class="small opacity-50 text-uppercase mt-1">Hours</div>
+                    </div>
+                    <div class="nova-countdown-sep display-5 fw-light opacity-25">:</div>
+                    <div class="nova-countdown-item text-center">
+                        <div class="nova-countdown-value display-5 fw-bold" data-nova-cd="minutes">00</div>
+                        <div class="small opacity-50 text-uppercase mt-1">Min</div>
+                    </div>
+                    <div class="nova-countdown-sep display-5 fw-light opacity-25">:</div>
+                    <div class="nova-countdown-item text-center">
+                        <div class="nova-countdown-value display-5 fw-bold" data-nova-cd="seconds">00</div>
+                        <div class="small opacity-50 text-uppercase mt-1">Sec</div>
+                    </div>
+                </div>
+                <a href="/shop" class="btn btn-primary btn-lg px-5">Shop Now</a>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

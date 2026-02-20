@@ -1,0 +1,96 @@
+// ============================================================================
+// Theme Nova — Product Card Styles
+// Applied to website_sale product listings (/shop)
+// ============================================================================
+
+// ── Enhanced product cards ──────────────────────────────────────────────────
+.oe_website_sale {
+    .oe_product_cart {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: none;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+
+            .oe_product_image img {
+                transform: scale(1.05);
+            }
+
+            .nova-quick-actions {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        // Product image container
+        .oe_product_image {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.75rem 0.75rem 0 0;
+
+            img {
+                transition: transform 0.5s ease;
+            }
+        }
+
+        // Product info
+        .oe_product_details {
+            padding: 1rem;
+
+            .oe_product_name {
+                font-weight: 600;
+                font-size: 0.95rem;
+                line-height: 1.3;
+            }
+
+            .product_price {
+                font-weight: 700;
+                color: var(--o-color-1);
+
+                .text-danger, del {
+                    font-weight: 400;
+                    font-size: 0.85em;
+                }
+            }
+        }
+    }
+}
+
+// ── Sale badges on product images ───────────────────────────────────────────
+.oe_website_sale .ribbon-container .ribbon {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.75rem;
+}
+
+// ── Product grid spacing ────────────────────────────────────────────────────
+#products_grid {
+    .o_wsale_products_grid_table_wrapper {
+        .oe_product {
+            padding: 0.5rem;
+        }
+    }
+}
+
+// ── Wishlist / Compare buttons ──────────────────────────────────────────────
+.o_wsale_product_btn {
+    .o_add_wishlist,
+    .o_add_compare {
+        transition: all 0.2s ease;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background: var(--o-color-1);
+            color: #fff;
+        }
+    }
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Snippet template -->
+    <template id="s_nova_hero" name="Nova Hero Banner">
+        <section class="s_nova_hero o_cc o_cc5 position-relative overflow-hidden"
+                 data-snippet="s_nova_hero" data-name="Nova Hero"
+                 style="min-height: 80vh;">
+            <div class="s_nova_hero_overlay position-absolute top-0 start-0 w-100 h-100"
+                 style="background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 100%);"/>
+            <div class="container position-relative d-flex align-items-center" style="min-height: 80vh;">
+                <div class="row w-100">
+                    <div class="col-lg-7">
+                        <span class="badge bg-light text-dark px-3 py-2 mb-3 rounded-pill fw-normal">
+                            New Collection 2025
+                        </span>
+                        <h1 class="display-3 fw-bold text-white mb-3" style="line-height: 1.1;">
+                            Discover Our<br/>Latest Arrivals
+                        </h1>
+                        <p class="lead text-white opacity-75 mb-4 pe-lg-5">
+                            Curated pieces designed for the modern lifestyle.
+                            Quality craftsmanship meets contemporary style.
+                        </p>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="/shop" class="btn btn-primary btn-lg px-4">
+                                Shop Now <i class="fa fa-arrow-right ms-2"/>
+                            </a>
+                            <a href="#" class="btn btn-outline-light btn-lg px-4">
+                                Learn More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+</odoo>

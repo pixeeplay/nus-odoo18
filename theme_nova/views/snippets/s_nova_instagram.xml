@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_instagram" name="Nova Instagram Grid">
+        <section class="s_nova_instagram py-5" data-snippet="s_nova_instagram" data-name="Nova Instagram">
+            <div class="container">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold mb-1">Follow Us on Instagram</h3>
+                    <p class="text-muted">@yourstore — Share your style with <strong>#YourStore</strong></p>
+                </div>
+                <div class="row g-2 g-md-3">
+                    <div class="col-4 col-md-2">
+                        <div class="nova-insta-item ratio ratio-1x1 rounded overflow-hidden bg-200">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram fa-2x text-muted"/>
+                            </div>
+                            <a href="#" class="nova-insta-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram text-white fa-2x"/>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <div class="nova-insta-item ratio ratio-1x1 rounded overflow-hidden bg-200">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram fa-2x text-muted"/>
+                            </div>
+                            <a href="#" class="nova-insta-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram text-white fa-2x"/>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <div class="nova-insta-item ratio ratio-1x1 rounded overflow-hidden bg-200">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram fa-2x text-muted"/>
+                            </div>
+                            <a href="#" class="nova-insta-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram text-white fa-2x"/>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <div class="nova-insta-item ratio ratio-1x1 rounded overflow-hidden bg-200">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram fa-2x text-muted"/>
+                            </div>
+                            <a href="#" class="nova-insta-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram text-white fa-2x"/>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <div class="nova-insta-item ratio ratio-1x1 rounded overflow-hidden bg-200">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram fa-2x text-muted"/>
+                            </div>
+                            <a href="#" class="nova-insta-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram text-white fa-2x"/>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <div class="nova-insta-item ratio ratio-1x1 rounded overflow-hidden bg-200">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram fa-2x text-muted"/>
+                            </div>
+                            <a href="#" class="nova-insta-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-instagram text-white fa-2x"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

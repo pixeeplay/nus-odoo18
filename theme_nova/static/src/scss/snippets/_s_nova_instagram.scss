@@ -1,0 +1,31 @@
+// ============================================================================
+// Nova Instagram Grid
+// ============================================================================
+
+.s_nova_instagram {
+    .nova-insta-item {
+        cursor: pointer;
+
+        .nova-insta-overlay {
+            opacity: 0;
+            background: rgba(0, 0, 0, 0.4);
+            transition: opacity 0.3s ease;
+            text-decoration: none;
+        }
+
+        &:hover {
+            .nova-insta-overlay {
+                opacity: 1;
+            }
+
+            img {
+                transform: scale(1.05);
+            }
+        }
+
+        img {
+            transition: transform 0.4s ease;
+            object-fit: cover;
+        }
+    }
+}

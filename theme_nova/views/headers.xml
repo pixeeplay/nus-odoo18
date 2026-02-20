@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================
+         Header 1: Topbar — Info bar (shipping, phone) above main header
+         ================================================================= -->
+    <record id="nova_header_topbar" model="theme.ir.ui.view">
+        <field name="name">Nova Header: Topbar</field>
+        <field name="key">theme_nova.nova_header_topbar</field>
+        <field name="inherit_id" ref="website.layout"/>
+        <field name="active" eval="True"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header//nav" position="before">
+                <div class="nova-topbar d-none d-lg-block py-2 small"
+                     style="background-color: var(--o-color-5); color: var(--o-color-3);">
+                    <div class="container d-flex justify-content-between align-items-center">
+                        <div class="nova-topbar-left">
+                            <span class="me-3"><i class="fa fa-truck me-1"/> Free shipping over $50</span>
+                            <span><i class="fa fa-undo me-1"/> Easy 30-day returns</span>
+                        </div>
+                        <div class="nova-topbar-right">
+                            <span class="me-3"><i class="fa fa-phone me-1"/> +1 (555) 123-4567</span>
+                            <span><i class="fa fa-envelope me-1"/> support@example.com</span>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Header 2: Centered — Logo centered, menu below
+         ================================================================= -->
+    <record id="nova_header_centered" model="theme.ir.ui.view">
+        <field name="name">Nova Header: Centered</field>
+        <field name="key">theme_nova.nova_header_centered</field>
+        <field name="inherit_id" ref="website.layout"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute name="class" add="nova-header-centered" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Header 3: Transparent — Transparent background overlay on hero
+         ================================================================= -->
+    <record id="nova_header_transparent" model="theme.ir.ui.view">
+        <field name="name">Nova Header: Transparent</field>
+        <field name="key">theme_nova.nova_header_transparent</field>
+        <field name="inherit_id" ref="website.layout"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute name="class" add="nova-header-transparent" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Header 4: Minimal — Clean minimal header
+         ================================================================= -->
+    <record id="nova_header_minimal" model="theme.ir.ui.view">
+        <field name="name">Nova Header: Minimal</field>
+        <field name="key">theme_nova.nova_header_minimal</field>
+        <field name="inherit_id" ref="website.layout"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute name="class" add="nova-header-minimal" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Header 5: Mega — Category bar under main header
+         ================================================================= -->
+    <record id="nova_header_mega" model="theme.ir.ui.view">
+        <field name="name">Nova Header: Mega Menu</field>
+        <field name="key">theme_nova.nova_header_mega</field>
+        <field name="inherit_id" ref="website.layout"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute name="class" add="nova-header-mega" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

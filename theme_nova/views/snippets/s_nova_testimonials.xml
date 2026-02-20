@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_testimonials" name="Nova Testimonials">
+        <section class="s_nova_testimonials py-5" data-snippet="s_nova_testimonials" data-name="Nova Testimonials">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">What Our Customers Say</h2>
+                    <p class="text-muted">Real reviews from real customers</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 p-4 border-0 shadow-sm">
+                            <div class="nova-stars mb-3">
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                            </div>
+                            <p class="mb-4">"Absolutely love the quality! The packaging was beautiful and
+                            the product exceeded my expectations. Will definitely order again."</p>
+                            <div class="d-flex align-items-center mt-auto">
+                                <div class="nova-avatar rounded-circle bg-200 d-flex align-items-center justify-content-center me-3"
+                                     style="width: 48px; height: 48px;">
+                                    <i class="fa fa-user text-muted"/>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Sarah M.</h6>
+                                    <small class="text-muted">Verified Buyer</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 p-4 border-0 shadow-sm">
+                            <div class="nova-stars mb-3">
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                            </div>
+                            <p class="mb-4">"Fast shipping and excellent customer service.
+                            The product is exactly as described. Very happy with my purchase!"</p>
+                            <div class="d-flex align-items-center mt-auto">
+                                <div class="nova-avatar rounded-circle bg-200 d-flex align-items-center justify-content-center me-3"
+                                     style="width: 48px; height: 48px;">
+                                    <i class="fa fa-user text-muted"/>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">James D.</h6>
+                                    <small class="text-muted">Verified Buyer</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="card h-100 p-4 border-0 shadow-sm">
+                            <div class="nova-stars mb-3">
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star text-warning"/>
+                                <i class="fa fa-star-half-o text-warning"/>
+                            </div>
+                            <p class="mb-4">"Great selection and competitive prices. The website is
+                            easy to navigate and checkout was a breeze. Highly recommend!"</p>
+                            <div class="d-flex align-items-center mt-auto">
+                                <div class="nova-avatar rounded-circle bg-200 d-flex align-items-center justify-content-center me-3"
+                                     style="width: 48px; height: 48px;">
+                                    <i class="fa fa-user text-muted"/>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">Emma L.</h6>
+                                    <small class="text-muted">Verified Buyer</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

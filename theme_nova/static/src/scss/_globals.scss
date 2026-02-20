@@ -1,0 +1,115 @@
+// ============================================================================
+// Theme Nova — Global Styles
+// ============================================================================
+
+// ── Smooth transitions ──────────────────────────────────────────────────────
+a, .btn, .card, .nav-link, .dropdown-item {
+    transition: all 0.25s ease-in-out;
+}
+
+// ── Typography refinements ──────────────────────────────────────────────────
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    letter-spacing: -0.01em;
+}
+
+h1, .h1 {
+    letter-spacing: -0.02em;
+}
+
+p {
+    color: inherit;
+}
+
+// ── Links ───────────────────────────────────────────────────────────────────
+a:not(.btn):not(.nav-link) {
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+// ── Buttons enhancements ────────────────────────────────────────────────────
+.btn {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.btn-lg {
+    padding: 0.875rem 2rem;
+    font-size: 1.05rem;
+}
+
+// ── Cards ───────────────────────────────────────────────────────────────────
+.card {
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+}
+
+// ── Images ──────────────────────────────────────────────────────────────────
+.img-fluid {
+    transition: transform 0.4s ease;
+}
+
+// ── Section spacing ─────────────────────────────────────────────────────────
+section {
+    position: relative;
+}
+
+// ── Scroll behavior ─────────────────────────────────────────────────────────
+html {
+    scroll-behavior: smooth;
+}
+
+// ── Selection color ─────────────────────────────────────────────────────────
+::selection {
+    background-color: var(--o-color-1);
+    color: #fff;
+}
+
+// ── Form controls ───────────────────────────────────────────────────────────
+.form-control, .form-select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus {
+        border-color: var(--o-color-1);
+    }
+}
+
+// ── Badges ──────────────────────────────────────────────────────────────────
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.03em;
+}
+
+// ── Back to top button ──────────────────────────────────────────────────────
+.o_scroll_button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+}

@@ -1,0 +1,123 @@
+// ============================================================================
+// Theme Nova — Cart & Checkout Enhancements
+// ============================================================================
+
+// ── Cart page ───────────────────────────────────────────────────────────────
+.oe_cart {
+    .table {
+        td {
+            vertical-align: middle;
+        }
+
+        // Product image in cart
+        .o_cart_product img {
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        // Product name in cart
+        .td-product_name {
+            a {
+                font-weight: 600;
+                color: var(--o-color-5);
+                text-decoration: none;
+
+                &:hover {
+                    color: var(--o-color-1);
+                }
+            }
+        }
+
+        // Quantity input
+        .css_quantity {
+            .quantity {
+                max-width: 70px;
+                text-align: center;
+                font-weight: 600;
+                border-radius: 0.375rem;
+            }
+        }
+    }
+
+    // Order summary card
+    .card.bg-100 {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+    }
+}
+
+// ── Checkout ────────────────────────────────────────────────────────────────
+.oe_website_sale {
+    // Checkout steps
+    .wizard {
+        .nav-link {
+            font-weight: 500;
+
+            &.text-success {
+                color: var(--o-color-1) !important;
+            }
+        }
+    }
+
+    // Checkout form
+    .oe_cart {
+        .form-control, .form-select {
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e0e0e0;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+            &:focus {
+                border-color: var(--o-color-1);
+                box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.06);
+            }
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 0.375rem;
+        }
+    }
+}
+
+// ── Checkout button ─────────────────────────────────────────────────────────
+a[href="/shop/checkout"],
+a[href="/shop/confirm_order"],
+button[name="o_payment_submit_button"] {
+    font-weight: 600;
+    padding: 0.875rem 2rem;
+    letter-spacing: 0.02em;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+}
+
+// ── Mini-cart offcanvas styling ──────────────────────────────────────────────
+.o_offcanvas_cart {
+    .offcanvas-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 1.25rem;
+    }
+
+    .offcanvas-body {
+        .o_cart_product {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
+            img {
+                border-radius: 0.5rem;
+            }
+        }
+    }
+
+    .offcanvas-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 1.25rem;
+    }
+}

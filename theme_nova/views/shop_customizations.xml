@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================
+         Shop page: Add Nova class wrapper for styling hooks
+         ================================================================= -->
+    <record id="nova_shop_wrapper" model="theme.ir.ui.view">
+        <field name="name">Nova Shop Wrapper</field>
+        <field name="key">theme_nova.nova_shop_wrapper</field>
+        <field name="inherit_id" ref="website_sale.products"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_website_sale')]" position="attributes">
+                <attribute name="class" add="nova-shop" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Product page: Add Nova class wrapper
+         ================================================================= -->
+    <record id="nova_product_wrapper" model="theme.ir.ui.view">
+        <field name="name">Nova Product Page Wrapper</field>
+        <field name="key">theme_nova.nova_product_wrapper</field>
+        <field name="inherit_id" ref="website_sale.product"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='wrap']" position="attributes">
+                <attribute name="class" add="nova-product-page" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,162 @@
+// ============================================================================
+// Theme Nova — Header Styles
+// ============================================================================
+
+// ── Topbar (Header 1) ──────────────────────────────────────────────────────
+.nova-topbar {
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+
+    .fa {
+        font-size: 0.75rem;
+    }
+}
+
+// ── Centered (Header 2) ────────────────────────────────────────────────────
+.nova-header-centered {
+    #top_menu_container {
+        @media (min-width: 992px) {
+            flex-direction: column;
+            align-items: center;
+
+            .navbar-brand {
+                margin-bottom: 0.5rem;
+            }
+
+            #top_menu {
+                justify-content: center;
+            }
+        }
+    }
+
+    nav.navbar {
+        @media (min-width: 992px) {
+            text-align: center;
+        }
+    }
+}
+
+// ── Transparent (Header 3) ─────────────────────────────────────────────────
+.nova-header-transparent {
+    header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        background: transparent !important;
+    }
+
+    nav.navbar {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .navbar-brand, .nav-link, #top_menu > .nav-item > a {
+        color: #fff !important;
+    }
+
+    .nav-link:hover {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    // Add padding to main content to compensate for absolute header
+    & + #wrapwrap > main > :first-child {
+        padding-top: 80px;
+    }
+}
+
+// ── Minimal (Header 4) ─────────────────────────────────────────────────────
+.nova-header-minimal {
+    header {
+        box-shadow: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    nav.navbar {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .nav-link {
+        font-weight: 400;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+}
+
+// ── Mega (Header 5) ────────────────────────────────────────────────────────
+.nova-header-mega {
+    header {
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    // Mega dropdown full-width
+    .dropdown-menu {
+        @media (min-width: 992px) {
+            min-width: 600px;
+            padding: 1.5rem;
+        }
+    }
+
+    .nav-link {
+        font-weight: 500;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+}
+
+// ── Common header enhancements ──────────────────────────────────────────────
+header {
+    .navbar {
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .navbar-brand img {
+        transition: height 0.3s ease;
+    }
+
+    .nav-link {
+        position: relative;
+        transition: color 0.2s ease;
+
+        // Hover underline effect
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background-color: var(--o-color-1);
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+
+        &:hover::after,
+        &.active::after {
+            width: 100%;
+            left: 0;
+        }
+    }
+}
+
+// ── Sticky header shrink ────────────────────────────────────────────────────
+header.o_header_affixed {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    .navbar {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+}

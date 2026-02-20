@@ -1,0 +1,100 @@
+// ============================================================================
+// Theme Nova — Shop Page Enhancements
+// ============================================================================
+
+.oe_website_sale {
+    // ── Shop breadcrumb ─────────────────────────────────────────────────────
+    .breadcrumb {
+        font-size: 0.85rem;
+
+        .breadcrumb-item {
+            a {
+                color: var(--o-color-1);
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            &.active {
+                color: var(--o-color-5);
+                font-weight: 500;
+            }
+        }
+    }
+
+    // ── Shop page title ─────────────────────────────────────────────────────
+    .o_wsale_products_main_row {
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+    }
+
+    // ── Category sidebar ────────────────────────────────────────────────────
+    .o_wsale_products_categories {
+        .nav-link {
+            padding: 0.5rem 0;
+            color: var(--o-color-5);
+            font-weight: 400;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            border-left: 2px solid transparent;
+            padding-left: 1rem;
+
+            &:hover, &.active {
+                color: var(--o-color-1);
+                border-left-color: var(--o-color-1);
+                padding-left: 1.25rem;
+            }
+        }
+    }
+
+    // ── Filters ─────────────────────────────────────────────────────────────
+    .o_wsale_products_searchbar_form {
+        .form-control {
+            border-radius: 10rem;
+            padding-left: 1rem;
+        }
+    }
+
+    // ── Sort / display options ──────────────────────────────────────────────
+    .o_wsale_products_grid_before {
+        .dropdown-toggle {
+            font-size: 0.85rem;
+        }
+    }
+
+    // ── Pagination ──────────────────────────────────────────────────────────
+    .pagination {
+        .page-link {
+            border: none;
+            color: var(--o-color-5);
+            font-weight: 500;
+            padding: 0.5rem 0.875rem;
+            border-radius: 0.5rem;
+            margin: 0 0.125rem;
+            transition: all 0.2s ease;
+
+            &:hover {
+                background: rgba(0, 0, 0, 0.06);
+                color: var(--o-color-1);
+            }
+        }
+
+        .page-item.active .page-link {
+            background: var(--o-color-1);
+            color: #fff;
+        }
+    }
+}
+
+// ── Empty shop state ────────────────────────────────────────────────────────
+.oe_website_sale .o_wsale_products_grid_table_wrapper:empty + .text-center {
+    padding: 3rem;
+
+    .h3 {
+        font-weight: 600;
+    }
+}

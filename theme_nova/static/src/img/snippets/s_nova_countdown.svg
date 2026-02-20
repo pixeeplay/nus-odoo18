@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="176" viewBox="0 0 256 176">
+  <rect width="256" height="176" fill="#f0f0f0" rx="4"/>
+  <rect x="78" y="24" width="100" height="12" rx="2" fill="#888"/>
+  <rect x="22" y="56" width="46" height="56" rx="6" fill="#888"/>
+  <rect x="78" y="56" width="46" height="56" rx="6" fill="#888"/>
+  <rect x="134" y="56" width="46" height="56" rx="6" fill="#888"/>
+  <rect x="190" y="56" width="46" height="56" rx="6" fill="#888"/>
+  <text x="45" y="91" text-anchor="middle" font-size="20" font-weight="bold" fill="#f0f0f0">12</text>
+  <text x="101" y="91" text-anchor="middle" font-size="20" font-weight="bold" fill="#f0f0f0">08</text>
+  <text x="157" y="91" text-anchor="middle" font-size="20" font-weight="bold" fill="#f0f0f0">45</text>
+  <text x="213" y="91" text-anchor="middle" font-size="20" font-weight="bold" fill="#f0f0f0">30</text>
+  <text x="45" y="126" text-anchor="middle" font-size="8" fill="#888">DAYS</text>
+  <text x="101" y="126" text-anchor="middle" font-size="8" fill="#888">HRS</text>
+  <text x="157" y="126" text-anchor="middle" font-size="8" fill="#888">MIN</text>
+  <text x="213" y="126" text-anchor="middle" font-size="8" fill="#888">SEC</text>
+</svg>

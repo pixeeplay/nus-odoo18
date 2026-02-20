@@ -1,0 +1,133 @@
+// ============================================================================
+// Theme Nova — Product Page Enhancements
+// ============================================================================
+
+#product_detail {
+    // Product image gallery
+    .o_carousel_product_outer {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    // Thumbnails
+    .o_carousel_product_indicators {
+        .carousel-indicators {
+            button {
+                border-radius: 0.5rem;
+                overflow: hidden;
+                border: 2px solid transparent;
+                transition: border-color 0.2s ease;
+
+                &.active, &:hover {
+                    border-color: var(--o-color-1);
+                }
+            }
+        }
+    }
+
+    // Product name
+    .product_name h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    // Price
+    .product_price {
+        .oe_price {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--o-color-1);
+        }
+
+        .text-danger, del {
+            font-size: 1.1rem;
+        }
+    }
+
+    // Add to cart section
+    .js_main_product {
+        .css_quantity {
+            .quantity {
+                border-radius: 0.5rem;
+                text-align: center;
+                font-weight: 600;
+            }
+
+            .js_add_cart_json {
+                border-radius: 0.5rem;
+            }
+        }
+
+        #add_to_cart {
+            font-weight: 600;
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            }
+        }
+    }
+
+    // Product description tabs
+    .nav-tabs {
+        border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+
+        .nav-link {
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            position: relative;
+            color: var(--o-color-5);
+            opacity: 0.6;
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 0;
+                height: 2px;
+                background: var(--o-color-1);
+                transition: width 0.3s ease;
+            }
+
+            &.active, &:hover {
+                opacity: 1;
+                background: transparent;
+                border: none;
+
+                &::after {
+                    width: 100%;
+                }
+            }
+        }
+    }
+}
+
+// ── Product attributes (variants) ───────────────────────────────────────────
+.js_product {
+    .css_attribute_color {
+        input + span {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #e0e0e0;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+
+            &:hover {
+                transform: scale(1.15);
+            }
+        }
+
+        input:checked + span {
+            border-color: var(--o-color-1);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+        }
+    }
+}

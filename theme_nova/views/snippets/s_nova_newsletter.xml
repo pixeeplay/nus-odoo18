@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_newsletter" name="Nova Newsletter">
+        <section class="s_nova_newsletter py-5 o_cc o_cc3"
+                 data-snippet="s_nova_newsletter" data-name="Nova Newsletter">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="nova-newsletter-icon mb-3">
+                            <i class="fa fa-envelope-o fa-2x" style="color: var(--o-color-1);"/>
+                        </div>
+                        <h3 class="fw-bold mb-2">Stay in the Loop</h3>
+                        <p class="text-muted mb-4">
+                            Subscribe to our newsletter and get 10% off your first order.
+                            Plus early access to new arrivals and exclusive deals.
+                        </p>
+                        <div class="input-group nova-newsletter-form mx-auto" style="max-width: 420px;">
+                            <input type="email" class="form-control"
+                                   placeholder="Enter your email address"/>
+                            <button class="btn btn-primary px-4" type="button">
+                                Subscribe
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-3">
+                            <i class="fa fa-lock me-1"/> We respect your privacy. Unsubscribe anytime.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

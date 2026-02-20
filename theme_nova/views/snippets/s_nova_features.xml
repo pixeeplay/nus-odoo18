@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_features" name="Nova Features">
+        <section class="s_nova_features py-5 o_cc o_cc3"
+                 data-snippet="s_nova_features" data-name="Nova Features">
+            <div class="container">
+                <div class="row g-4 text-center">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-feature-item p-4">
+                            <div class="nova-feature-icon mb-3">
+                                <i class="fa fa-truck fa-2x" style="color: var(--o-color-1);"/>
+                            </div>
+                            <h6 class="fw-bold mb-2">Free Shipping</h6>
+                            <p class="small text-muted mb-0">On all orders over $50. Fast and reliable delivery.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-feature-item p-4">
+                            <div class="nova-feature-icon mb-3">
+                                <i class="fa fa-undo fa-2x" style="color: var(--o-color-1);"/>
+                            </div>
+                            <h6 class="fw-bold mb-2">Easy Returns</h6>
+                            <p class="small text-muted mb-0">30-day hassle-free return and exchange policy.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-feature-item p-4">
+                            <div class="nova-feature-icon mb-3">
+                                <i class="fa fa-shield fa-2x" style="color: var(--o-color-1);"/>
+                            </div>
+                            <h6 class="fw-bold mb-2">Secure Payment</h6>
+                            <p class="small text-muted mb-0">100% secure checkout with SSL encryption.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-feature-item p-4">
+                            <div class="nova-feature-icon mb-3">
+                                <i class="fa fa-headphones fa-2x" style="color: var(--o-color-1);"/>
+                            </div>
+                            <h6 class="fw-bold mb-2">24/7 Support</h6>
+                            <p class="small text-muted mb-0">Dedicated support team always ready to help.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+</odoo>

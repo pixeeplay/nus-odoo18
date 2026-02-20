@@ -1,0 +1,24 @@
+// ============================================================================
+// Theme Nova — Main Stylesheet
+// Loaded via web.assets_frontend
+// ============================================================================
+
+@import 'globals';
+@import 'headers';
+@import 'footers';
+@import 'product_cards';
+@import 'product_page';
+@import 'shop';
+@import 'cart';
+
+// Snippets
+@import 'snippets/s_nova_hero';
+@import 'snippets/s_nova_categories';
+@import 'snippets/s_nova_products';
+@import 'snippets/s_nova_brands';
+@import 'snippets/s_nova_testimonials';
+@import 'snippets/s_nova_promo_banner';
+@import 'snippets/s_nova_newsletter';
+@import 'snippets/s_nova_countdown';
+@import 'snippets/s_nova_features';
+@import 'snippets/s_nova_instagram';
