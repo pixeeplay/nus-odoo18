@@ -43,6 +43,7 @@ Built for Odoo 18 Apps Store.
         'views/snippets/s_nova_instagram.xml',
         'views/snippets.xml',
         'views/shop_customizations.xml',
+        'views/layout.xml',
     ],
     'assets': {
         'web._assets_primary_variables': [
@@ -61,6 +62,8 @@ Built for Odoo 18 Apps Store.
             'theme_nova/static/src/scss/_cart.scss',
             'theme_nova/static/src/scss/_quick_view.scss',
             'theme_nova/static/src/scss/_side_cart.scss',
+            'theme_nova/static/src/scss/_mobile.scss',
+            'theme_nova/static/src/scss/_search.scss',
             'theme_nova/static/src/scss/snippets/_s_nova_hero.scss',
             'theme_nova/static/src/scss/snippets/_s_nova_categories.scss',
             'theme_nova/static/src/scss/snippets/_s_nova_products.scss',
@@ -76,6 +79,9 @@ Built for Odoo 18 Apps Store.
             'theme_nova/static/src/js/product_nav.js',
             'theme_nova/static/src/js/product_zoom.js',
             'theme_nova/static/src/js/side_cart.js',
+            'theme_nova/static/src/js/bottom_bar.js',
+            'theme_nova/static/src/js/search.js',
+            'theme_nova/static/src/js/swatches.js',
             'theme_nova/static/src/js/snippets/s_nova_countdown.js',
             'theme_nova/static/src/js/snippets/s_nova_products.js',
         ],

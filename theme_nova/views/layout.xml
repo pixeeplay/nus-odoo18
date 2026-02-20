@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================
+         Mobile Bottom Bar — Fixed navigation bar on mobile devices
+         ================================================================= -->
+    <record id="nova_mobile_bottom_bar" model="theme.ir.ui.view">
+        <field name="name">Nova Mobile Bottom Bar</field>
+        <field name="key">theme_nova.nova_mobile_bottom_bar</field>
+        <field name="inherit_id" ref="website.layout"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer" position="after">
+                <div class="nova-bottom-bar d-lg-none">
+                    <a href="/" class="nova-bottom-bar-item" data-nova-bar="home">
+                        <i class="fa fa-home"/>
+                        <span>Home</span>
+                    </a>
+                    <a href="/shop" class="nova-bottom-bar-item" data-nova-bar="shop">
+                        <i class="fa fa-th-large"/>
+                        <span>Shop</span>
+                    </a>
+                    <button type="button" class="nova-bottom-bar-item nova-bottom-bar-search" data-nova-bar="search">
+                        <i class="fa fa-search"/>
+                        <span>Search</span>
+                    </button>
+                    <a href="/shop/cart" class="nova-bottom-bar-item" data-nova-bar="cart">
+                        <i class="fa fa-shopping-bag"/>
+                        <span>Cart</span>
+                        <span class="nova-bottom-bar-badge my_cart_quantity badge rounded-pill bg-danger"/>
+                    </a>
+                    <a href="/my" class="nova-bottom-bar-item" data-nova-bar="account">
+                        <i class="fa fa-user-o"/>
+                        <span>Account</span>
+                    </a>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

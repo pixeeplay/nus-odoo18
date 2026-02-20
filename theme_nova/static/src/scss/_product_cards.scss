@@ -122,6 +122,48 @@
     }
 }
 
+// ── Product Swatches (color dots on cards) ──────────────────────────────────
+.nova-swatches {
+    flex-wrap: wrap;
+
+    .nova-swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px #ddd;
+        cursor: pointer;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0;
+
+        &:hover,
+        &.active {
+            box-shadow: 0 0 0 2px var(--o-color-1);
+            transform: scale(1.15);
+        }
+
+        &.nova-swatch-text {
+            font-size: 0.5rem;
+            font-weight: 700;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        &.nova-swatch-more {
+            font-size: 0.55rem;
+            font-weight: 600;
+            background: #f0f0f0;
+            color: #666;
+            width: auto;
+            padding: 0 6px;
+            border-radius: 10rem;
+        }
+    }
+}
+
 // ── Wishlist / Compare buttons ──────────────────────────────────────────────
 .o_wsale_product_btn {
     .o_add_wishlist,

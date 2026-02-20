@@ -97,3 +97,95 @@ class ThemeNovaController(http.Controller):
                 'label_color': product.nova_label_id.text_color if product.nova_label_id else False,
             })
         return result
+
+    # ── Search Autocomplete ───────────────────────────────────────────────
+    @http.route('/theme_nova/search_autocomplete', type='json', auth='public', website=True)
+    def search_autocomplete(self, query='', limit=6, **kwargs):
+        """Return products and categories matching the search query."""
+        query = query.strip()
+        if len(query) < 2:
+            return {'products': [], 'categories': []}
+
+        # Search products
+        domain = expression.AND([
+            request.website.sale_product_domain(),
+            [('name', 'ilike', query)],
+        ])
+        Product = request.env['product.template']
+        products = Product.search(domain, limit=int(limit), order='website_sequence')
+
+        currency = request.website.currency_id
+        product_list = []
+        for p in products:
+            combination_info = p._get_combination_info(only_template=True, add_qty=1)
+            price = combination_info.get('price', 0)
+            if currency.position == 'before':
+                price_str = f'{currency.symbol}\N{NO-BREAK SPACE}{price:.2f}'
+            else:
+                price_str = f'{price:.2f}\N{NO-BREAK SPACE}{currency.symbol}'
+            product_list.append({
+                'id': p.id,
+                'name': p.name,
+                'url': p.website_url,
+                'image_url': f'/web/image/product.template/{p.id}/image_128',
+                'price_formatted': price_str,
+            })
+
+        # Search categories
+        Category = request.env['product.public.category']
+        categories = Category.search([('name', 'ilike', query)], limit=4)
+        category_list = [{'id': c.id, 'name': c.name} for c in categories]
+
+        return {'products': product_list, 'categories': category_list}
+
+    # ── Product Swatches ──────────────────────────────────────────────────
+    @http.route('/theme_nova/get_swatches', type='json', auth='public', website=True)
+    def get_swatches(self, product_id, **kwargs):
+        """Return variant swatches (color/size) for a product."""
+        domain = expression.AND([
+            request.website.sale_product_domain(),
+            [('id', '=', int(product_id))],
+        ])
+        product = request.env['product.template'].search(domain, limit=1)
+        if not product or product.product_variant_count <= 1:
+            return []
+
+        # Find the "Color" attribute (or first attribute with type=color)
+        color_attr = None
+        for line in product.attribute_line_ids:
+            if line.attribute_id.display_type == 'color':
+                color_attr = line
+                break
+        # Fallback: use first attribute with <= 10 values
+        if not color_attr:
+            for line in product.attribute_line_ids:
+                if len(line.value_ids) <= 10:
+                    color_attr = line
+                    break
+
+        if not color_attr:
+            return []
+
+        swatches = []
+        for value in color_attr.value_ids:
+            swatch = {
+                'name': value.name,
+                'html_color': value.html_color or False,
+                'image_url': False,
+                'product_image_url': False,
+            }
+            if value.image:
+                swatch['image_url'] = f'/web/image/product.attribute.value/{value.id}/image/30x30'
+
+            # Find variant with this attribute value to get its image
+            variant = product.product_variant_ids.filtered(
+                lambda v: value in v.product_template_attribute_value_ids.mapped('product_attribute_value_id')
+            )[:1]
+            if variant and variant.image_variant_1920:
+                swatch['product_image_url'] = f'/web/image/product.product/{variant.id}/image_256'
+            else:
+                swatch['product_image_url'] = f'/web/image/product.template/{product.id}/image_256'
+
+            swatches.append(swatch)
+
+        return swatches
