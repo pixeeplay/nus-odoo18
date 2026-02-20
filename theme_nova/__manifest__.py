@@ -11,8 +11,9 @@ A beautiful, modern, and highly customizable e-commerce theme featuring:
 * **Google Fonts** — Carefully paired heading & body fonts for each look
 * **5 header variants** — Centered, transparent, minimal, mega-menu, topbar
 * **4 footer variants** — Columns, dark, minimal, CTA
-* **10 e-commerce snippets** — Hero, categories, products, brands, testimonials,
-  promo banner, newsletter, countdown, features, Instagram grid
+* **16 premium snippets** — Hero, categories, products, brands, testimonials,
+  promo banner, newsletter, countdown, features, Instagram, pricing, team,
+  stats counters, gallery, CTA, blog posts
 * **6 product card styles** — Classic, overlay, minimal, bordered, rounded, dark
 * **Enhanced shop pages** — Improved product page, cart, checkout
 * **Fully responsive** — Perfect on desktop, tablet, and mobile
@@ -41,6 +42,12 @@ Built for Odoo 18 Apps Store.
         'views/snippets/s_nova_countdown.xml',
         'views/snippets/s_nova_features.xml',
         'views/snippets/s_nova_instagram.xml',
+        'views/snippets/s_nova_pricing.xml',
+        'views/snippets/s_nova_team.xml',
+        'views/snippets/s_nova_stats.xml',
+        'views/snippets/s_nova_gallery.xml',
+        'views/snippets/s_nova_cta.xml',
+        'views/snippets/s_nova_blog.xml',
         'views/snippets.xml',
         'views/shop_customizations.xml',
         'views/layout.xml',
@@ -74,6 +81,12 @@ Built for Odoo 18 Apps Store.
             'theme_nova/static/src/scss/snippets/_s_nova_countdown.scss',
             'theme_nova/static/src/scss/snippets/_s_nova_features.scss',
             'theme_nova/static/src/scss/snippets/_s_nova_instagram.scss',
+            'theme_nova/static/src/scss/snippets/_s_nova_pricing.scss',
+            'theme_nova/static/src/scss/snippets/_s_nova_team.scss',
+            'theme_nova/static/src/scss/snippets/_s_nova_stats.scss',
+            'theme_nova/static/src/scss/snippets/_s_nova_gallery.scss',
+            'theme_nova/static/src/scss/snippets/_s_nova_cta.scss',
+            'theme_nova/static/src/scss/snippets/_s_nova_blog.scss',
             'theme_nova/static/src/js/quick_view.js',
             'theme_nova/static/src/js/sticky_cart.js',
             'theme_nova/static/src/js/product_nav.js',
@@ -84,6 +97,7 @@ Built for Odoo 18 Apps Store.
             'theme_nova/static/src/js/swatches.js',
             'theme_nova/static/src/js/snippets/s_nova_countdown.js',
             'theme_nova/static/src/js/snippets/s_nova_products.js',
+            'theme_nova/static/src/js/snippets/s_nova_stats.js',
         ],
     },
     'configurator_snippets': {

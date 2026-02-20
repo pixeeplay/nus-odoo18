@@ -47,6 +47,30 @@
                        t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_instagram.svg">
                         <keywords>instagram, gallery, photos, social, nova</keywords>
                     </t>
+                    <t t-snippet="theme_nova.s_nova_pricing"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_pricing.svg">
+                        <keywords>pricing, plans, tables, price, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_team"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_team.svg">
+                        <keywords>team, members, people, about, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_stats"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_stats.svg">
+                        <keywords>stats, counters, numbers, achievements, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_gallery"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_gallery.svg">
+                        <keywords>gallery, images, photos, masonry, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_cta"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_cta.svg">
+                        <keywords>cta, call to action, banner, action, nova</keywords>
+                    </t>
+                    <t t-snippet="theme_nova.s_nova_blog"
+                       t-thumbnail="/theme_nova/static/src/img/snippets/s_nova_blog.svg">
+                        <keywords>blog, posts, articles, news, nova</keywords>
+                    </t>
                 </div>
             </div>
         </xpath>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_stats" name="Nova Stats Counter">
+        <section class="s_nova_stats o_cc o_cc1 pt-5 pb-5" data-snippet="s_nova_stats" data-name="Nova Stats">
+            <div class="container">
+                <div class="row g-4 text-center">
+                    <div class="col-6 col-lg-3">
+                        <div class="nova-stat-item">
+                            <div class="nova-stat-value fw-bold display-5" data-target="12500">0</div>
+                            <div class="nova-stat-label text-muted mt-1">Happy Customers</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="nova-stat-item">
+                            <div class="nova-stat-value fw-bold display-5" data-target="850">0</div>
+                            <div class="nova-stat-label text-muted mt-1">Products</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="nova-stat-item">
+                            <div class="nova-stat-value fw-bold display-5" data-target="45">0</div>
+                            <div class="nova-stat-label text-muted mt-1">Countries</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="nova-stat-item">
+                            <div class="nova-stat-value fw-bold display-5" data-target="99">0</div>
+                            <div class="nova-stat-suffix">%</div>
+                            <div class="nova-stat-label text-muted mt-1">Satisfaction</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+</odoo>

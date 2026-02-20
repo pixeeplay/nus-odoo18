@@ -1,0 +1,32 @@
+// ============================================================================
+// Theme Nova — Blog Posts Snippet
+// ============================================================================
+
+.s_nova_blog {
+    .nova-blog-card {
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+
+            .nova-blog-img img {
+                transform: scale(1.05);
+            }
+        }
+    }
+
+    .nova-blog-img {
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+    }
+
+    h5 a:hover {
+        color: var(--o-color-1) !important;
+    }
+}

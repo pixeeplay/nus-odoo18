@@ -1,0 +1,41 @@
+// ============================================================================
+// Theme Nova — Team Grid Snippet
+// ============================================================================
+
+.s_nova_team {
+    .nova-team-card {
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+
+            .nova-team-img {
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+        }
+    }
+
+    .nova-team-img {
+        transition: box-shadow 0.3s ease;
+        border: 3px solid #f0f0f0;
+    }
+
+    .nova-team-social {
+        .btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+
+            &:hover {
+                background: var(--o-color-1);
+                border-color: var(--o-color-1);
+                color: #fff;
+            }
+        }
+    }
+}

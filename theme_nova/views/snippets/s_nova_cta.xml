@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_cta" name="Nova Call to Action">
+        <section class="s_nova_cta o_cc o_cc1 position-relative overflow-hidden"
+                 data-snippet="s_nova_cta" data-name="Nova CTA"
+                 style="padding: 6rem 0;">
+            <div class="nova-cta-bg position-absolute top-0 start-0 w-100 h-100"
+                 style="background: linear-gradient(135deg, var(--o-color-1) 0%, var(--o-color-3, #6c63ff) 100%); opacity: 0.95;"/>
+            <div class="container position-relative text-center">
+                <h2 class="display-5 fw-bold text-white mb-3">
+                    Ready to Transform Your Business?
+                </h2>
+                <p class="lead text-white opacity-75 mb-4 mx-auto" style="max-width: 600px;">
+                    Join thousands of businesses already using our platform
+                    to grow and succeed.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="/contactus" class="btn btn-light btn-lg px-5 fw-bold">
+                        Get Started Free
+                    </a>
+                    <a href="/shop" class="btn btn-outline-light btn-lg px-5">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </section>
+    </template>
+
+</odoo>

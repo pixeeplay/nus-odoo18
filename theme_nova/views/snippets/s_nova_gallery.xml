@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_gallery" name="Nova Gallery">
+        <section class="s_nova_gallery pt-5 pb-5" data-snippet="s_nova_gallery" data-name="Nova Gallery">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Our Gallery</h2>
+                    <p class="text-muted mx-auto" style="max-width: 500px;">
+                        A glimpse into our world
+                    </p>
+                </div>
+                <div class="row g-3 nova-gallery-grid">
+                    <div class="col-md-4">
+                        <div class="nova-gallery-item rounded overflow-hidden bg-200" style="aspect-ratio: 1;">
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <i class="fa fa-image fa-3x text-muted"/>
+                            </div>
+                            <div class="nova-gallery-overlay">
+                                <i class="fa fa-search-plus fa-2x text-white"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="nova-gallery-item rounded overflow-hidden bg-200" style="aspect-ratio: 1;">
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <i class="fa fa-image fa-3x text-muted"/>
+                            </div>
+                            <div class="nova-gallery-overlay">
+                                <i class="fa fa-search-plus fa-2x text-white"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="nova-gallery-item rounded overflow-hidden bg-200" style="aspect-ratio: 2/1;">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <i class="fa fa-image fa-3x text-muted"/>
+                                    </div>
+                                    <div class="nova-gallery-overlay">
+                                        <i class="fa fa-search-plus fa-2x text-white"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="nova-gallery-item rounded overflow-hidden bg-200" style="aspect-ratio: 1;">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <i class="fa fa-image fa-2x text-muted"/>
+                                    </div>
+                                    <div class="nova-gallery-overlay">
+                                        <i class="fa fa-search-plus fa-lg text-white"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="nova-gallery-item rounded overflow-hidden bg-200" style="aspect-ratio: 1;">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <i class="fa fa-image fa-2x text-muted"/>
+                                    </div>
+                                    <div class="nova-gallery-overlay">
+                                        <i class="fa fa-search-plus fa-lg text-white"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+</odoo>

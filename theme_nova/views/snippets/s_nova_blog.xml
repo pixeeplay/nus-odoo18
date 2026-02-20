@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_blog" name="Nova Blog Posts">
+        <section class="s_nova_blog pt-5 pb-5" data-snippet="s_nova_blog" data-name="Nova Blog">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-end mb-5">
+                    <div>
+                        <h2 class="fw-bold mb-1">Latest from the Blog</h2>
+                        <p class="text-muted mb-0">Stories, tips, and insights</p>
+                    </div>
+                    <a href="/blog" class="btn btn-outline-dark">
+                        View All <i class="fa fa-arrow-right ms-1"/>
+                    </a>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="nova-blog-card card border-0 h-100">
+                            <div class="nova-blog-img rounded-top overflow-hidden bg-200" style="aspect-ratio: 16/10;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-pencil-square-o fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <div class="card-body px-0 pt-3">
+                                <div class="d-flex gap-3 text-muted small mb-2">
+                                    <span><i class="fa fa-calendar me-1"/>Jan 15, 2025</span>
+                                    <span><i class="fa fa-folder-o me-1"/>Design</span>
+                                </div>
+                                <h5 class="fw-bold mb-2">
+                                    <a href="#" class="text-decoration-none" style="color: inherit;">
+                                        10 Design Trends That Will Define 2025
+                                    </a>
+                                </h5>
+                                <p class="text-muted small mb-0">
+                                    Discover the design trends shaping the future of
+                                    e-commerce and digital experiences.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="nova-blog-card card border-0 h-100">
+                            <div class="nova-blog-img rounded-top overflow-hidden bg-200" style="aspect-ratio: 16/10;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-pencil-square-o fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <div class="card-body px-0 pt-3">
+                                <div class="d-flex gap-3 text-muted small mb-2">
+                                    <span><i class="fa fa-calendar me-1"/>Jan 8, 2025</span>
+                                    <span><i class="fa fa-folder-o me-1"/>Marketing</span>
+                                </div>
+                                <h5 class="fw-bold mb-2">
+                                    <a href="#" class="text-decoration-none" style="color: inherit;">
+                                        How to Boost Your Online Store Conversion
+                                    </a>
+                                </h5>
+                                <p class="text-muted small mb-0">
+                                    Practical strategies to increase your conversion
+                                    rate and maximize revenue.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="nova-blog-card card border-0 h-100">
+                            <div class="nova-blog-img rounded-top overflow-hidden bg-200" style="aspect-ratio: 16/10;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-pencil-square-o fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <div class="card-body px-0 pt-3">
+                                <div class="d-flex gap-3 text-muted small mb-2">
+                                    <span><i class="fa fa-calendar me-1"/>Dec 28, 2024</span>
+                                    <span><i class="fa fa-folder-o me-1"/>Tips</span>
+                                </div>
+                                <h5 class="fw-bold mb-2">
+                                    <a href="#" class="text-decoration-none" style="color: inherit;">
+                                        The Complete Guide to Product Photography
+                                    </a>
+                                </h5>
+                                <p class="text-muted small mb-0">
+                                    Professional tips for capturing stunning product
+                                    photos that sell.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+</odoo>

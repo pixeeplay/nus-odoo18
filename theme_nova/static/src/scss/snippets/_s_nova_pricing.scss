@@ -1,0 +1,48 @@
+// ============================================================================
+// Theme Nova — Pricing Tables Snippet
+// ============================================================================
+
+.s_nova_pricing {
+    .nova-pricing-card {
+        border-radius: 0.75rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+        }
+
+        &.nova-pricing-featured {
+            border: 2px solid var(--o-color-1) !important;
+            position: relative;
+            z-index: 1;
+
+            // Scale up slightly on desktop
+            @media (min-width: 992px) {
+                transform: scale(1.05);
+
+                &:hover {
+                    transform: scale(1.05) translateY(-4px);
+                }
+            }
+        }
+    }
+
+    .nova-pricing-amount {
+        .nova-pricing-currency {
+            font-size: 1.5rem;
+            font-weight: 600;
+            vertical-align: super;
+            color: var(--o-color-1);
+        }
+
+        .nova-pricing-value {
+            color: var(--o-color-5, #212529);
+        }
+    }
+
+    .nova-pricing-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+}

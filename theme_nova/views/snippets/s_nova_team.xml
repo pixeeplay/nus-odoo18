@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="s_nova_team" name="Nova Team Grid">
+        <section class="s_nova_team pt-5 pb-5" data-snippet="s_nova_team" data-name="Nova Team">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Meet Our Team</h2>
+                    <p class="text-muted mx-auto" style="max-width: 500px;">
+                        The passionate people behind our brand
+                    </p>
+                </div>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-team-card text-center">
+                            <div class="nova-team-img mb-3 mx-auto rounded-circle overflow-hidden bg-200"
+                                 style="width: 160px; height: 160px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-user fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <h5 class="fw-bold mb-1">Sarah Johnson</h5>
+                            <p class="text-muted small mb-2">CEO &amp; Founder</p>
+                            <div class="nova-team-social d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-linkedin"/></a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-twitter"/></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-team-card text-center">
+                            <div class="nova-team-img mb-3 mx-auto rounded-circle overflow-hidden bg-200"
+                                 style="width: 160px; height: 160px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-user fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <h5 class="fw-bold mb-1">Michael Chen</h5>
+                            <p class="text-muted small mb-2">Head of Design</p>
+                            <div class="nova-team-social d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-linkedin"/></a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-dribbble"/></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-team-card text-center">
+                            <div class="nova-team-img mb-3 mx-auto rounded-circle overflow-hidden bg-200"
+                                 style="width: 160px; height: 160px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-user fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <h5 class="fw-bold mb-1">Emma Davis</h5>
+                            <p class="text-muted small mb-2">Marketing Director</p>
+                            <div class="nova-team-social d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-linkedin"/></a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-twitter"/></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="nova-team-card text-center">
+                            <div class="nova-team-img mb-3 mx-auto rounded-circle overflow-hidden bg-200"
+                                 style="width: 160px; height: 160px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa fa-user fa-3x text-muted"/>
+                                </div>
+                            </div>
+                            <h5 class="fw-bold mb-1">Alex Rivera</h5>
+                            <p class="text-muted small mb-2">Lead Developer</p>
+                            <div class="nova-team-social d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-linkedin"/></a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="fa fa-github"/></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+</odoo>

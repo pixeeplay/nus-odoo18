@@ -1,0 +1,39 @@
+// ============================================================================
+// Theme Nova — Gallery Snippet
+// ============================================================================
+
+.s_nova_gallery {
+    .nova-gallery-item {
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        &:hover {
+            img {
+                transform: scale(1.08);
+            }
+
+            .nova-gallery-overlay {
+                opacity: 1;
+            }
+        }
+    }
+
+    .nova-gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+}
