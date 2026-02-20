@@ -66,3 +66,34 @@ class ThemeNovaController(http.Controller):
                 'image_url': f'/web/image/product.template/{p.id}/image_128',
             }
         return result
+
+    # ── Dynamic Products Snippet ──────────────────────────────────────────
+    @http.route('/theme_nova/get_products', type='json', auth='public', website=True)
+    def get_products(self, category_id=None, limit=8, order='website_sequence', **kwargs):
+        """Return product data for dynamic snippet rendering."""
+        domain = request.website.sale_product_domain()
+        if category_id:
+            domain = expression.AND([domain, [('public_categ_ids', 'child_of', int(category_id))]])
+
+        Product = request.env['product.template']
+        products = Product.search(domain, limit=int(limit), order=order)
+
+        currency = request.website.currency_id
+        result = []
+        for product in products:
+            combination_info = product._get_combination_info(only_template=True, add_qty=1)
+            result.append({
+                'id': product.id,
+                'name': product.name,
+                'url': product.website_url,
+                'image_url': f'/web/image/product.template/{product.id}/image_256',
+                'price': combination_info.get('price', 0),
+                'list_price': combination_info.get('list_price', 0),
+                'has_discount': combination_info.get('has_discounted_price', False),
+                'currency_symbol': currency.symbol,
+                'currency_position': currency.position,
+                'label': product.nova_label_id.name if product.nova_label_id else False,
+                'label_bg': product.nova_label_id.background_color if product.nova_label_id else False,
+                'label_color': product.nova_label_id.text_color if product.nova_label_id else False,
+            })
+        return result

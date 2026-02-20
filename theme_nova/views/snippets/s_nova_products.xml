@@ -2,7 +2,8 @@
 <odoo>
 
     <template id="s_nova_products" name="Nova Products Showcase">
-        <section class="s_nova_products pt-5 pb-5" data-snippet="s_nova_products" data-name="Nova Products">
+        <section class="s_nova_products pt-5 pb-5" data-snippet="s_nova_products" data-name="Nova Products"
+                 data-limit="8" data-order="website_sequence">
             <div class="container">
                 <div class="d-flex justify-content-between align-items-end mb-5">
                     <div>
@@ -13,94 +14,16 @@
                         View All <i class="fa fa-arrow-right ms-1"/>
                     </a>
                 </div>
-                <div class="row g-4 nova-products-grid" data-nova-products="true">
-                    <!-- Products will be loaded dynamically via JS or user can place static cards -->
-                    <div class="col-lg-3 col-md-6">
-                        <div class="nova-product-card card border-0 h-100">
-                            <div class="nova-product-img position-relative overflow-hidden">
-                                <div class="ratio ratio-1x1 bg-200 rounded-top-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-shopping-bag fa-3x text-muted"/>
-                                    </div>
-                                </div>
-                                <span class="badge bg-danger position-absolute top-0 start-0 m-3">-20%</span>
-                                <div class="nova-product-actions position-absolute bottom-0 start-0 w-100 p-3">
-                                    <button class="btn btn-dark btn-sm w-100">Quick Add</button>
-                                </div>
-                            </div>
-                            <div class="card-body px-0 pt-3">
-                                <p class="small text-muted mb-1">Category</p>
-                                <h6 class="fw-bold mb-1">Product Name</h6>
-                                <p class="mb-0">
-                                    <span class="fw-bold">$49.00</span>
-                                    <span class="text-muted text-decoration-line-through ms-2 small">$59.00</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="nova-product-card card border-0 h-100">
-                            <div class="nova-product-img position-relative overflow-hidden">
-                                <div class="ratio ratio-1x1 bg-200 rounded-top-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-shopping-bag fa-3x text-muted"/>
-                                    </div>
-                                </div>
-                                <span class="badge bg-success position-absolute top-0 start-0 m-3">New</span>
-                                <div class="nova-product-actions position-absolute bottom-0 start-0 w-100 p-3">
-                                    <button class="btn btn-dark btn-sm w-100">Quick Add</button>
-                                </div>
-                            </div>
-                            <div class="card-body px-0 pt-3">
-                                <p class="small text-muted mb-1">Category</p>
-                                <h6 class="fw-bold mb-1">Product Name</h6>
-                                <p class="mb-0"><span class="fw-bold">$79.00</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="nova-product-card card border-0 h-100">
-                            <div class="nova-product-img position-relative overflow-hidden">
-                                <div class="ratio ratio-1x1 bg-200 rounded-top-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-shopping-bag fa-3x text-muted"/>
-                                    </div>
-                                </div>
-                                <div class="nova-product-actions position-absolute bottom-0 start-0 w-100 p-3">
-                                    <button class="btn btn-dark btn-sm w-100">Quick Add</button>
-                                </div>
-                            </div>
-                            <div class="card-body px-0 pt-3">
-                                <p class="small text-muted mb-1">Category</p>
-                                <h6 class="fw-bold mb-1">Product Name</h6>
-                                <p class="mb-0"><span class="fw-bold">$35.00</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="nova-product-card card border-0 h-100">
-                            <div class="nova-product-img position-relative overflow-hidden">
-                                <div class="ratio ratio-1x1 bg-200 rounded-top-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-shopping-bag fa-3x text-muted"/>
-                                    </div>
-                                </div>
-                                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-3">Hot</span>
-                                <div class="nova-product-actions position-absolute bottom-0 start-0 w-100 p-3">
-                                    <button class="btn btn-dark btn-sm w-100">Quick Add</button>
-                                </div>
-                            </div>
-                            <div class="card-body px-0 pt-3">
-                                <p class="small text-muted mb-1">Category</p>
-                                <h6 class="fw-bold mb-1">Product Name</h6>
-                                <p class="mb-0"><span class="fw-bold">$99.00</span></p>
-                            </div>
+                <div class="row g-4 nova-products-grid">
+                    <!-- Products loaded dynamically via AJAX -->
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
     </template>
-
 
 </odoo>

@@ -1,0 +1,48 @@
+// ============================================================================
+// Theme Nova — Side Cart (Offcanvas)
+// ============================================================================
+
+.nova-side-cart {
+    width: 380px !important;
+    max-width: 90vw;
+
+    .offcanvas-header {
+        padding: 1.25rem 1.5rem;
+        background: #fafafa;
+    }
+
+    .offcanvas-body {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .offcanvas-footer {
+        background: #fafafa;
+    }
+}
+
+.nova-side-cart-items {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.nova-side-cart-item {
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+    img {
+        border: 1px solid #f0f0f0;
+        flex-shrink: 0;
+    }
+}
+
+.nova-side-cart-footer {
+    .btn-primary {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+}

@@ -139,4 +139,23 @@
         </field>
     </record>
 
+    <!-- =================================================================
+         Shop page: Product Labels on cards
+         ================================================================= -->
+    <record id="nova_product_label_card" model="theme.ir.ui.view">
+        <field name="name">Nova Product Label on Card</field>
+        <field name="key">theme_nova.nova_product_label_card</field>
+        <field name="inherit_id" ref="website_sale.products_item"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_product_image')]" position="inside">
+                <t t-if="product.nova_label_id">
+                    <span t-attf-class="nova-product-label nova-label-#{product.nova_label_id.style}"
+                          t-attf-style="background-color: #{product.nova_label_id.background_color}; color: #{product.nova_label_id.text_color};">
+                        <t t-out="product.nova_label_id.name"/>
+                    </span>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

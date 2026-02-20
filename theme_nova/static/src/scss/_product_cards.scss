@@ -76,6 +76,52 @@
     }
 }
 
+// ── Product Labels ────────────────────────────────────────────────────────────
+.nova-product-label {
+    position: absolute;
+    z-index: 2;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1;
+
+    // Badge style (top-left rounded)
+    &.nova-label-badge {
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.25rem;
+    }
+
+    // Ribbon style (angled corner)
+    &.nova-label-ribbon {
+        top: 0;
+        left: 0;
+        padding: 0.4rem 2rem;
+        transform: rotate(-45deg) translate(-30%, -10%);
+        transform-origin: top left;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    // Pill style (rounded pill)
+    &.nova-label-pill {
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 10rem;
+    }
+
+    // Corner style (top-right triangle)
+    &.nova-label-corner {
+        top: 0;
+        right: 0;
+        padding: 0.4rem 0.6rem;
+        border-radius: 0 0 0 0.5rem;
+    }
+}
+
 // ── Wishlist / Compare buttons ──────────────────────────────────────────────
 .o_wsale_product_btn {
     .o_add_wishlist,

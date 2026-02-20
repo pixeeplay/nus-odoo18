@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_nova_product_label_public,nova.product.label.public,model_nova_product_label,base.group_public,1,0,0,0
+access_nova_product_label_portal,nova.product.label.portal,model_nova_product_label,base.group_portal,1,0,0,0
+access_nova_product_label_user,nova.product.label.user,model_nova_product_label,base.group_user,1,0,0,0
+access_nova_product_label_manager,nova.product.label.manager,model_nova_product_label,website.group_website_designer,1,1,1,1

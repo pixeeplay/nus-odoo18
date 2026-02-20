@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Product Label Tree View ──────────────────────────────────────── -->
+    <record id="nova_product_label_tree" model="ir.ui.view">
+        <field name="name">nova.product.label.tree</field>
+        <field name="model">nova.product.label</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="style"/>
+                <field name="background_color" widget="color"/>
+                <field name="text_color" widget="color"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ── Product Label Action ──────────────────────────────────────── -->
+    <record id="nova_product_label_action" model="ir.actions.act_window">
+        <field name="name">Product Labels</field>
+        <field name="res_model">nova.product.label</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <!-- ── Menu Entry ──────────────────────────────────────── -->
+    <menuitem id="nova_menu_product_label"
+              name="Product Labels"
+              parent="website.menu_website_configuration"
+              action="nova_product_label_action"
+              sequence="100"/>
+
+    <!-- ── Add label field to product form ──────────────────────────── -->
+    <record id="nova_product_template_label" model="ir.ui.view">
+        <field name="name">product.template.nova.label</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="website_sale.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='shop']" position="inside">
+                <field name="nova_label_id"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
