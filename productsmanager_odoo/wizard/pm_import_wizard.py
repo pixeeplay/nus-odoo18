@@ -60,21 +60,24 @@ class PmImportWizard(models.TransientModel):
         except ProductsManagerAPIError as exc:
             _logger.warning('PM search failed: %s', exc)
 
-        # Search Odoo products
+        # Search Odoo products (use savepoint to isolate SQL failures
+        # from broken columns in other modules like theme_nova)
         try:
-            odoo_products = self.env['product.product'].sudo().search([
-                '|', '|',
-                ('name', 'ilike', self.search_query),
-                ('default_code', 'ilike', self.search_query),
-                ('barcode', 'ilike', self.search_query),
-            ], limit=50)
-
-            for product in odoo_products:
-                try:
-                    line_vals = self._odoo_product_to_line(product)
+            with self.env.cr.savepoint():
+                odoo_products = self.env['product.product'].sudo().search([
+                    '|', '|',
+                    ('name', 'ilike', self.search_query),
+                    ('default_code', 'ilike', self.search_query),
+                    ('barcode', 'ilike', self.search_query),
+                ], limit=50)
+                # Read minimal fields only to avoid triggering broken columns
+                odoo_data = odoo_products.read([
+                    'id', 'name', 'default_code', 'barcode', 'standard_price',
+                    'pm_external_id', 'pm_brand',
+                ])
+                for data in odoo_data:
+                    line_vals = self._odoo_data_to_line(data)
                     lines.append((0, 0, line_vals))
-                except Exception as exc:
-                    _logger.debug('Could not read Odoo product %s: %s', product.id, exc)
         except Exception as exc:
             _logger.warning('Odoo product search failed: %s', exc)
 
@@ -160,45 +163,24 @@ class PmImportWizard(models.TransientModel):
                 })
         return suppliers
 
-    def _odoo_product_to_line(self, product):
-        """Convert an Odoo product.product to wizard line values."""
-        vals = {
+    def _odoo_data_to_line(self, data):
+        """Convert a dict from product.read() to wizard line values.
+
+        Uses dict data instead of record access to avoid triggering
+        broken related fields from other modules.
+        """
+        return {
             'source': 'odoo',
-            'odoo_product_id': product.id,
-            'name': product.name,
-            'brand': '',
-            'barcode': product.barcode or '',
-            'best_price': product.standard_price,
+            'odoo_product_id': data['id'],
+            'name': data.get('name') or '',
+            'brand': data.get('pm_brand') or '',
+            'barcode': data.get('barcode') or '',
+            'best_price': data.get('standard_price') or 0,
             'best_supplier': '',
             'total_stock': 0,
             'supplier_count': 0,
-            'already_imported': bool(product.pm_external_id),
+            'already_imported': bool(data.get('pm_external_id')),
         }
-
-        # Access seller_ids and stock safely (other modules may have
-        # broken columns on product.template)
-        try:
-            sellers = product.sudo().seller_ids
-            vals['best_supplier'] = sellers[0].partner_id.name if sellers else ''
-            vals['supplier_count'] = len(sellers)
-            for i, seller in enumerate(sellers[:3], 1):
-                vals[f'supplier_{i}_name'] = seller.partner_id.name
-                vals[f'supplier_{i}_price'] = seller.price
-                vals[f'supplier_{i}_stock'] = getattr(seller, 'pm_supplier_stock', 0)
-        except Exception:
-            _logger.debug('Could not read seller_ids for product %s', product.id)
-
-        try:
-            vals['total_stock'] = int(product.sudo().qty_available)
-        except Exception:
-            pass
-
-        try:
-            vals['brand'] = product.pm_brand or ''
-        except Exception:
-            pass
-
-        return vals
 
     # ── Import ──────────────────────────────────────────────────────────
 
