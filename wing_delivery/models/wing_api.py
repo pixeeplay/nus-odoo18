@@ -62,34 +62,44 @@ class WingAPI:
 
     def _authenticate(self):
         """Obtain a fresh access token via createAccessToken mutation."""
+        # Use inline mutation as per Wing docs (no variable type declaration)
         query = """
-        mutation CreateAccessToken($input: CreateAccessTokenInput!) {
-            createAccessToken(input: $input) {
+        mutation {
+            createAccessToken(input: {
+                email: "%s"
+                password: "%s"
+            }) {
                 accessToken
                 refreshToken
                 expiresAt
             }
         }
-        """
-        variables = {
-            'input': {
-                'email': self.email,
-                'password': self.password,
-            }
-        }
-        payload = {'query': query, 'variables': variables}
+        """ % (self.email.replace('"', '\\"'),
+               self.password.replace('"', '\\"'))
+        payload = {'query': query}
         _logger.info("Wing: authenticating as %s", self.email)
         try:
             resp = requests.post(WING_API_URL, json=payload, timeout=30)
-            resp.raise_for_status()
         except requests.RequestException as exc:
             raise WingAPIError(f"Wing authentication request failed: {exc}")
 
-        body = resp.json()
+        # GraphQL may return 400 with error details in body — read body first
+        try:
+            body = resp.json()
+        except Exception:
+            raise WingAPIError(
+                f"Wing authentication HTTP {resp.status_code}: "
+                f"{resp.text[:500]}")
+
         if 'errors' in body:
             msgs = '; '.join(e.get('message', '') for e in body['errors'])
             raise WingAPIError(f"Wing authentication failed: {msgs}",
                                body['errors'])
+
+        if resp.status_code >= 400:
+            raise WingAPIError(
+                f"Wing authentication HTTP {resp.status_code}: "
+                f"{resp.text[:500]}")
 
         data = body.get('data', {}).get('createAccessToken', {})
         if not data.get('accessToken'):
@@ -135,14 +145,22 @@ class WingAPI:
                 raise WingAPIError(
                     f"Wing API request failed after re-auth: {exc}")
 
-        if resp.status_code >= 400:
-            raise WingAPIError(
-                f"Wing API HTTP {resp.status_code}: {resp.text[:500]}")
+        # GraphQL APIs may return 400 with useful error info in body
+        try:
+            body = resp.json()
+        except Exception:
+            if resp.status_code >= 400:
+                raise WingAPIError(
+                    f"Wing API HTTP {resp.status_code}: {resp.text[:500]}")
+            raise WingAPIError("Wing API returned non-JSON response")
 
-        body = resp.json()
         if 'errors' in body:
             msgs = '; '.join(e.get('message', '') for e in body['errors'])
             raise WingAPIError(f"Wing GraphQL error: {msgs}", body['errors'])
+
+        if resp.status_code >= 400 and 'data' not in body:
+            raise WingAPIError(
+                f"Wing API HTTP {resp.status_code}: {resp.text[:500]}")
 
         return body.get('data', {})
 
