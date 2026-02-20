@@ -1655,14 +1655,15 @@ class PrestaShopInstance(models.Model):
 
     def _build_ps_language_xml(self, value, tag_name, lang_id=None):
         """Build multi-language XML element for PrestaShop.
-        If lang_id is None, generates nodes for ALL active PS languages."""
-        safe_value = saxutils.escape(str(value or ''))
+        If lang_id is None, generates nodes for ALL active PS languages.
+        Uses CDATA so no escaping needed (CDATA preserves content literally)."""
+        raw_value = str(value or '')
         if lang_id is not None:
             lang_ids = [lang_id]
         else:
             lang_ids = self._get_ps_language_ids()
         inner = ''.join(
-            '<language id="%s"><![CDATA[%s]]></language>' % (lid, safe_value)
+            '<language id="%s"><![CDATA[%s]]></language>' % (lid, raw_value)
             for lid in lang_ids
         )
         return '<%s>%s</%s>' % (tag_name, inner, tag_name)
@@ -1695,25 +1696,79 @@ class PrestaShopInstance(models.Model):
         return product_tmpl.list_price or 0.0
 
     def _get_ps_blank_product(self):
-        """Fetch the blank product schema from PrestaShop API.
-        Used to discover required fields. Cached per instance."""
+        """Fetch the blank product schema from PrestaShop API as raw XML.
+
+        Returns the raw XML string from /api/products?schema=blank.
+        This is the canonical product structure that PS expects.
+        Cached per instance to avoid repeated API calls.
+        """
         self.ensure_one()
         cache_key = 'blank_%s' % self.id
         if cache_key in self._PS_LANG_CACHE:
             return self._PS_LANG_CACHE[cache_key]
         try:
-            data = self._api_get('products', params={'schema': 'blank'})
-            self._PS_LANG_CACHE[cache_key] = data
-            return data
-        except Exception:
-            _logger.warning("Could not fetch PS blank product schema")
+            base_url = self._get_base_url()
+            url = f"{base_url}/products"
+            resp = requests.get(
+                url,
+                auth=(self.api_key, ''),
+                params={'schema': 'blank'},
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                _logger.error("Could not fetch blank product schema: %s", resp.status_code)
+                return None
+            raw_xml = resp.text
+            self._PS_LANG_CACHE[cache_key] = raw_xml
+            return raw_xml
+        except Exception as exc:
+            _logger.warning("Could not fetch PS blank product schema: %s", exc)
             return None
+
+    def _set_xml_field(self, product_node, field_name, value):
+        """Set a simple (non-language) field in the product XML tree.
+
+        If the node exists, set its text. If not, create it.
+        """
+        node = product_node.find(field_name)
+        if node is None:
+            node = ET.SubElement(product_node, field_name)
+        # Clear any children (PS blank schema may have empty sub-elements)
+        for child in list(node):
+            node.remove(child)
+        node.text = str(value) if value is not None else ''
+
+    def _set_xml_lang_field(self, product_node, field_name, value):
+        """Set a multi-language field in the product XML tree.
+
+        Finds the existing <field_name> element, clears it, and adds
+        <language id="X"><![CDATA[value]]></language> for each active PS lang.
+        """
+        node = product_node.find(field_name)
+        if node is None:
+            node = ET.SubElement(product_node, field_name)
+        # Clear existing language children
+        for child in list(node):
+            node.remove(child)
+        node.text = None
+        lang_ids = self._get_ps_language_ids()
+        safe_value = str(value or '')
+        for lid in lang_ids:
+            lang_node = ET.SubElement(node, 'language')
+            lang_node.set('id', str(lid))
+            lang_node.text = safe_value
 
     def _build_product_xml(self, product_tmpl, ps_product_id=None):
         """Build XML payload for creating/updating a product in PrestaShop.
 
-        Uses the PS blank schema approach: fetch the empty product XML from PS,
-        then fill in the values. This ensures all required fields are present.
+        Uses the PS blank schema approach:
+        1. Fetch /api/products?schema=blank to get PS's canonical XML structure
+        2. Parse with ElementTree
+        3. Fill in field values
+        4. Serialize back to XML
+
+        This ensures the XML structure, field ordering, and nesting match
+        exactly what PrestaShop expects, avoiding error 46.
 
         :param product_tmpl: product.template record
         :param ps_product_id: if set, include <id> for PUT update
@@ -1723,49 +1778,93 @@ class PrestaShopInstance(models.Model):
         # Clear cached language IDs for this build session
         self._clear_ps_lang_cache()
 
-        parts = ['<?xml version="1.0" encoding="UTF-8"?>']
-        parts.append('<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">')
-        parts.append('<product>')
+        # --- Step 1: Get blank schema XML from PS ---
+        blank_xml = self._get_ps_blank_product()
+        if not blank_xml:
+            raise UserError(_(
+                "Cannot fetch blank product schema from PrestaShop. "
+                "Check API connection and permissions (GET on 'products' resource)."
+            ))
 
+        # --- Step 2: Parse the XML ---
+        # Register xlink namespace to prevent ET from mangling it (ns0: prefix)
+        ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
+        try:
+            root = ET.fromstring(blank_xml)
+        except ET.ParseError as exc:
+            raise UserError(_("Invalid XML from PrestaShop blank schema: %s") % exc)
+
+        # Find the <product> node inside <prestashop>
+        product_node = root.find('product')
+        if product_node is None:
+            # Maybe root itself is <product>
+            if root.tag == 'product':
+                product_node = root
+            else:
+                raise UserError(_("No <product> element found in blank schema."))
+
+        # --- Step 2b: Clean up read-only / computed fields ---
+        # PS blank schema may include read-only nodes that cause errors on POST
+        _read_only_fields = [
+            'manufacturer_name', 'quantity', 'position_in_category',
+            'date_add', 'date_upd',
+        ]
+        for ro_field in _read_only_fields:
+            ro_node = product_node.find(ro_field)
+            if ro_node is not None:
+                product_node.remove(ro_node)
+
+        # Remove xlink:href attributes from all elements (read-only metadata)
+        xlink_ns = '{http://www.w3.org/1999/xlink}'
+        for elem in product_node.iter():
+            attribs_to_remove = [k for k in elem.attrib if k.startswith(xlink_ns)]
+            for attr in attribs_to_remove:
+                del elem.attrib[attr]
+
+        # --- Step 3: Fill in the values ---
+
+        # ID (only for updates)
         if ps_product_id:
-            parts.append('<id>%s</id>' % ps_product_id)
-
-        # --- REQUIRED PS FIELDS (always sent) ---
-        # id_shop_default: required in PS 1.7+ (multistore)
-        parts.append('<id_shop_default>1</id_shop_default>')
-
-        # Product state: 0=draft, 1=active
-        parts.append('<state>1</state>')
-
-        # Product type: simple/pack/virtual/combinations
-        if len(product_tmpl.product_variant_ids) > 1 and self.export_variants:
-            parts.append('<type>combinations</type>')
+            self._set_xml_field(product_node, 'id', ps_product_id)
         else:
-            parts.append('<type>simple</type>')
+            # Remove <id> node for creation (PS auto-assigns)
+            id_node = product_node.find('id')
+            if id_node is not None:
+                product_node.remove(id_node)
 
-        # name is mandatory
-        parts.append(self._build_ps_language_xml(
-            product_tmpl.name or 'Product', 'name'))
+        # Required fields
+        self._set_xml_field(product_node, 'id_shop_default', '1')
+        self._set_xml_field(product_node, 'state', '1')
 
-        # link_rewrite is mandatory
+        # Product type
+        if len(product_tmpl.product_variant_ids) > 1 and self.export_variants:
+            self._set_xml_field(product_node, 'type', 'combinations')
+        else:
+            self._set_xml_field(product_node, 'type', 'simple')
+
+        # Name (mandatory, multi-language)
+        self._set_xml_lang_field(product_node, 'name',
+                                 product_tmpl.name or 'Product')
+
+        # link_rewrite (mandatory, multi-language)
         slug = self._slugify(product_tmpl.name or 'product')
-        parts.append(self._build_ps_language_xml(slug, 'link_rewrite'))
+        self._set_xml_lang_field(product_node, 'link_rewrite', slug)
 
-        # description (empty allowed, but node must exist for some PS versions)
+        # Description
         desc = ''
         if self._is_export_mapping_active('description'):
-            desc = product_tmpl.prestashop_description_html or product_tmpl.description or ''
-        parts.append(self._build_ps_language_xml(desc, 'description'))
+            desc = (product_tmpl.prestashop_description_html
+                    or product_tmpl.description or '')
+        self._set_xml_lang_field(product_node, 'description', desc)
 
+        # Short description
         desc_short = ''
         if self._is_export_mapping_active('description_short'):
-            desc_short = (
-                product_tmpl.prestashop_description_short_html
-                or product_tmpl.description_sale or ''
-            )
-        parts.append(self._build_ps_language_xml(desc_short, 'description_short'))
+            desc_short = (product_tmpl.prestashop_description_short_html
+                          or product_tmpl.description_sale or '')
+        self._set_xml_lang_field(product_node, 'description_short', desc_short)
 
-        # id_category_default is mandatory — fallback to PS Home (2)
+        # Category
         ps_cat_id = None
         if (self.export_categories
                 and self._is_export_mapping_active('id_category_default')
@@ -1776,67 +1875,81 @@ class PrestaShopInstance(models.Model):
                 _logger.warning("Category export failed, using default category 2")
         if not ps_cat_id:
             ps_cat_id = 2  # PS "Home" category
-        parts.append('<id_category_default>%s</id_category_default>' % ps_cat_id)
+        self._set_xml_field(product_node, 'id_category_default', str(ps_cat_id))
 
-        # id_tax_rules_group is required — fallback to 1
+        # Tax rules group
         tax_group = product_tmpl.prestashop_tax_rules_group_id or 1
-        parts.append('<id_tax_rules_group>%s</id_tax_rules_group>' % tax_group)
+        self._set_xml_field(product_node, 'id_tax_rules_group', str(tax_group))
 
-        # --- PRICE ---
+        # Price
         price = self._get_export_price(product_tmpl)
-        parts.append('<price>%.6f</price>' % price)
+        self._set_xml_field(product_node, 'price', '%.6f' % price)
 
+        # Wholesale price
         if self._is_export_mapping_active('wholesale_price'):
-            parts.append('<wholesale_price>%.6f</wholesale_price>' % (
-                product_tmpl.standard_price or 0.0,
-            ))
+            self._set_xml_field(product_node, 'wholesale_price',
+                                '%.6f' % (product_tmpl.standard_price or 0.0))
 
-        # --- REFERENCE / EAN ---
-        ref = product_tmpl.default_code or ''
-        parts.append('<reference><![CDATA[%s]]></reference>' % ref)
+        # Reference / SKU
+        self._set_xml_field(product_node, 'reference',
+                            product_tmpl.default_code or '')
 
+        # EAN13
         ean = product_tmpl.barcode or product_tmpl.prestashop_ean13 or ''
-        # PS validates EAN13: must be empty or exactly 13 digits
         if ean and (len(ean) != 13 or not ean.isdigit()):
             ean = ''  # skip invalid EAN to avoid PS validation error
-        parts.append('<ean13><![CDATA[%s]]></ean13>' % ean)
+        self._set_xml_field(product_node, 'ean13', ean)
 
-        # --- WEIGHT ---
-        parts.append('<weight>%.6f</weight>' % (product_tmpl.weight or 0.0))
+        # Weight
+        self._set_xml_field(product_node, 'weight',
+                            '%.6f' % (product_tmpl.weight or 0.0))
 
-        # --- ACTIVE ---
+        # Active
         active_val = '1' if self.export_default_active else '0'
-        parts.append('<active>%s</active>' % active_val)
+        self._set_xml_field(product_node, 'active', active_val)
 
-        # --- VISIBILITY / AVAILABILITY ---
-        parts.append('<available_for_order>1</available_for_order>')
-        parts.append('<show_price>1</show_price>')
-        parts.append('<visibility>both</visibility>')
-        parts.append('<minimal_quantity>1</minimal_quantity>')
+        # Visibility / Availability
+        self._set_xml_field(product_node, 'available_for_order', '1')
+        self._set_xml_field(product_node, 'show_price', '1')
+        self._set_xml_field(product_node, 'visibility', 'both')
+        self._set_xml_field(product_node, 'minimal_quantity', '1')
 
-        # --- SEO ---
+        # SEO
         if self._is_export_mapping_active('meta_title'):
             mt = product_tmpl.prestashop_meta_title or product_tmpl.name or ''
-            parts.append(self._build_ps_language_xml(mt, 'meta_title'))
+            self._set_xml_lang_field(product_node, 'meta_title', mt)
 
         if self._is_export_mapping_active('meta_description'):
             md = product_tmpl.prestashop_meta_description or ''
-            parts.append(self._build_ps_language_xml(md, 'meta_description'))
+            self._set_xml_lang_field(product_node, 'meta_description', md)
 
-        # --- ECO-TAX ---
+        # meta_keywords (must exist for some PS versions)
+        self._set_xml_lang_field(product_node, 'meta_keywords', '')
+
+        # Eco-tax
         if self._is_export_mapping_active('ecotax'):
-            parts.append('<ecotax>%.6f</ecotax>' % (product_tmpl.prestashop_ecotax or 0.0))
+            self._set_xml_field(product_node, 'ecotax',
+                                '%.6f' % (product_tmpl.prestashop_ecotax or 0.0))
 
-        # --- CATEGORY ASSOCIATIONS ---
-        parts.append('<associations>')
-        parts.append('<categories>')
-        parts.append('<category><id>%s</id></category>' % ps_cat_id)
-        parts.append('</categories>')
-        parts.append('</associations>')
+        # --- Category associations ---
+        assoc_node = product_node.find('associations')
+        if assoc_node is None:
+            assoc_node = ET.SubElement(product_node, 'associations')
+        # Set categories
+        cats_node = assoc_node.find('categories')
+        if cats_node is None:
+            cats_node = ET.SubElement(assoc_node, 'categories')
+        # Clear existing category entries
+        for child in list(cats_node):
+            cats_node.remove(child)
+        cat_entry = ET.SubElement(cats_node, 'category')
+        cat_id_node = ET.SubElement(cat_entry, 'id')
+        cat_id_node.text = str(ps_cat_id)
 
-        parts.append('</product>')
-        parts.append('</prestashop>')
-        return '\n'.join(parts)
+        # --- Step 4: Serialize back to XML string ---
+        xml_str = ET.tostring(root, encoding='unicode', xml_declaration=True)
+        _logger.debug("Built product XML from blank schema:\n%s", xml_str[:2000])
+        return xml_str
 
     # =============================================
     # EXPORT: Validation
