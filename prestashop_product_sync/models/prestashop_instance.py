@@ -1536,6 +1536,7 @@ class PrestaShopInstance(models.Model):
         url = f"{base_url}/{resource}"
         headers = {'Content-Type': 'application/xml'}
         _logger.info("PS API POST: %s (body length: %d)", url, len(xml_data))
+        _logger.debug("PS API POST body:\n%s", xml_data[:2000])
         resp = requests.post(
             url,
             auth=(self.api_key, ''),
@@ -1544,10 +1545,13 @@ class PrestaShopInstance(models.Model):
             timeout=timeout,
         )
         if resp.status_code not in (200, 201):
-            _logger.error("PS API POST error %s: %s", resp.status_code, resp.text[:500])
+            _logger.error(
+                "PS API POST error %s:\nURL: %s\nResponse: %s\nSent XML:\n%s",
+                resp.status_code, url, resp.text[:500], xml_data[:1000],
+            )
             raise UserError(
                 _("PrestaShop API POST error (status %s).\nURL: %s\nResponse: %s")
-                % (resp.status_code, url, resp.text[:300])
+                % (resp.status_code, url, resp.text[:500])
             )
         return self._parse_ps_xml_response(resp)
 
@@ -1690,8 +1694,26 @@ class PrestaShopInstance(models.Model):
                 return pricelist._get_product_price(variant, 1.0)
         return product_tmpl.list_price or 0.0
 
+    def _get_ps_blank_product(self):
+        """Fetch the blank product schema from PrestaShop API.
+        Used to discover required fields. Cached per instance."""
+        self.ensure_one()
+        cache_key = 'blank_%s' % self.id
+        if cache_key in self._PS_LANG_CACHE:
+            return self._PS_LANG_CACHE[cache_key]
+        try:
+            data = self._api_get('products', params={'schema': 'blank'})
+            self._PS_LANG_CACHE[cache_key] = data
+            return data
+        except Exception:
+            _logger.warning("Could not fetch PS blank product schema")
+            return None
+
     def _build_product_xml(self, product_tmpl, ps_product_id=None):
         """Build XML payload for creating/updating a product in PrestaShop.
+
+        Uses the PS blank schema approach: fetch the empty product XML from PS,
+        then fill in the values. This ensures all required fields are present.
 
         :param product_tmpl: product.template record
         :param ps_product_id: if set, include <id> for PUT update
@@ -1708,14 +1730,40 @@ class PrestaShopInstance(models.Model):
         if ps_product_id:
             parts.append('<id>%s</id>' % ps_product_id)
 
-        # --- REQUIRED FIELDS (always sent) ---
-        # name is mandatory in PrestaShop
+        # --- REQUIRED PS FIELDS (always sent) ---
+        # id_shop_default: required in PS 1.7+ (multistore)
+        parts.append('<id_shop_default>1</id_shop_default>')
+
+        # Product state: 0=draft, 1=active
+        parts.append('<state>1</state>')
+
+        # Product type: simple/pack/virtual/combinations
+        if len(product_tmpl.product_variant_ids) > 1 and self.export_variants:
+            parts.append('<type>combinations</type>')
+        else:
+            parts.append('<type>simple</type>')
+
+        # name is mandatory
         parts.append(self._build_ps_language_xml(
             product_tmpl.name or 'Product', 'name'))
 
-        # link_rewrite is mandatory in PrestaShop
+        # link_rewrite is mandatory
         slug = self._slugify(product_tmpl.name or 'product')
         parts.append(self._build_ps_language_xml(slug, 'link_rewrite'))
+
+        # description (empty allowed, but node must exist for some PS versions)
+        desc = ''
+        if self._is_export_mapping_active('description'):
+            desc = product_tmpl.prestashop_description_html or product_tmpl.description or ''
+        parts.append(self._build_ps_language_xml(desc, 'description'))
+
+        desc_short = ''
+        if self._is_export_mapping_active('description_short'):
+            desc_short = (
+                product_tmpl.prestashop_description_short_html
+                or product_tmpl.description_sale or ''
+            )
+        parts.append(self._build_ps_language_xml(desc_short, 'description_short'))
 
         # id_category_default is mandatory — fallback to PS Home (2)
         ps_cat_id = None
@@ -1730,42 +1778,43 @@ class PrestaShopInstance(models.Model):
             ps_cat_id = 2  # PS "Home" category
         parts.append('<id_category_default>%s</id_category_default>' % ps_cat_id)
 
-        # --- OPTIONAL FIELDS (mapping-controlled) ---
-        if self._is_export_mapping_active('description'):
-            desc = product_tmpl.prestashop_description_html or product_tmpl.description or ''
-            parts.append(self._build_ps_language_xml(desc, 'description'))
+        # id_tax_rules_group is required — fallback to 1
+        tax_group = product_tmpl.prestashop_tax_rules_group_id or 1
+        parts.append('<id_tax_rules_group>%s</id_tax_rules_group>' % tax_group)
 
-        if self._is_export_mapping_active('description_short'):
-            desc_short = (
-                product_tmpl.prestashop_description_short_html
-                or product_tmpl.description_sale or ''
-            )
-            parts.append(self._build_ps_language_xml(desc_short, 'description_short'))
-
-        if self._is_export_mapping_active('price'):
-            price = self._get_export_price(product_tmpl)
-            parts.append('<price>%.6f</price>' % price)
+        # --- PRICE ---
+        price = self._get_export_price(product_tmpl)
+        parts.append('<price>%.6f</price>' % price)
 
         if self._is_export_mapping_active('wholesale_price'):
             parts.append('<wholesale_price>%.6f</wholesale_price>' % (
                 product_tmpl.standard_price or 0.0,
             ))
 
-        if self._is_export_mapping_active('reference'):
-            ref = saxutils.escape(product_tmpl.default_code or '')
-            parts.append('<reference><![CDATA[%s]]></reference>' % ref)
+        # --- REFERENCE / EAN ---
+        ref = product_tmpl.default_code or ''
+        parts.append('<reference><![CDATA[%s]]></reference>' % ref)
 
-        if self._is_export_mapping_active('ean13'):
-            ean = product_tmpl.barcode or product_tmpl.prestashop_ean13 or ''
-            parts.append('<ean13>%s</ean13>' % saxutils.escape(ean))
+        ean = product_tmpl.barcode or product_tmpl.prestashop_ean13 or ''
+        # PS validates EAN13: must be empty or exactly 13 digits
+        if ean and (len(ean) != 13 or not ean.isdigit()):
+            ean = ''  # skip invalid EAN to avoid PS validation error
+        parts.append('<ean13><![CDATA[%s]]></ean13>' % ean)
 
-        if self._is_export_mapping_active('weight'):
-            parts.append('<weight>%.6f</weight>' % (product_tmpl.weight or 0.0))
+        # --- WEIGHT ---
+        parts.append('<weight>%.6f</weight>' % (product_tmpl.weight or 0.0))
 
-        if self._is_export_mapping_active('active'):
-            active_val = '1' if self.export_default_active else '0'
-            parts.append('<active>%s</active>' % active_val)
+        # --- ACTIVE ---
+        active_val = '1' if self.export_default_active else '0'
+        parts.append('<active>%s</active>' % active_val)
 
+        # --- VISIBILITY / AVAILABILITY ---
+        parts.append('<available_for_order>1</available_for_order>')
+        parts.append('<show_price>1</show_price>')
+        parts.append('<visibility>both</visibility>')
+        parts.append('<minimal_quantity>1</minimal_quantity>')
+
+        # --- SEO ---
         if self._is_export_mapping_active('meta_title'):
             mt = product_tmpl.prestashop_meta_title or product_tmpl.name or ''
             parts.append(self._build_ps_language_xml(mt, 'meta_title'))
@@ -1774,16 +1823,11 @@ class PrestaShopInstance(models.Model):
             md = product_tmpl.prestashop_meta_description or ''
             parts.append(self._build_ps_language_xml(md, 'meta_description'))
 
+        # --- ECO-TAX ---
         if self._is_export_mapping_active('ecotax'):
             parts.append('<ecotax>%.6f</ecotax>' % (product_tmpl.prestashop_ecotax or 0.0))
 
-        if (self._is_export_mapping_active('id_tax_rules_group')
-                and product_tmpl.prestashop_tax_rules_group_id):
-            parts.append('<id_tax_rules_group>%s</id_tax_rules_group>' % (
-                product_tmpl.prestashop_tax_rules_group_id,
-            ))
-
-        # Category associations
+        # --- CATEGORY ASSOCIATIONS ---
         parts.append('<associations>')
         parts.append('<categories>')
         parts.append('<category><id>%s</id></category>' % ps_cat_id)
