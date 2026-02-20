@@ -61,16 +61,22 @@ class PmImportWizard(models.TransientModel):
             _logger.warning('PM search failed: %s', exc)
 
         # Search Odoo products
-        odoo_products = self.env['product.product'].search([
-            '|', '|',
-            ('name', 'ilike', self.search_query),
-            ('default_code', 'ilike', self.search_query),
-            ('barcode', 'ilike', self.search_query),
-        ], limit=50)
+        try:
+            odoo_products = self.env['product.product'].sudo().search([
+                '|', '|',
+                ('name', 'ilike', self.search_query),
+                ('default_code', 'ilike', self.search_query),
+                ('barcode', 'ilike', self.search_query),
+            ], limit=50)
 
-        for product in odoo_products:
-            line_vals = self._odoo_product_to_line(product)
-            lines.append((0, 0, line_vals))
+            for product in odoo_products:
+                try:
+                    line_vals = self._odoo_product_to_line(product)
+                    lines.append((0, 0, line_vals))
+                except Exception as exc:
+                    _logger.debug('Could not read Odoo product %s: %s', product.id, exc)
+        except Exception as exc:
+            _logger.warning('Odoo product search failed: %s', exc)
 
         self.write({'line_ids': lines})
 
@@ -156,28 +162,41 @@ class PmImportWizard(models.TransientModel):
 
     def _odoo_product_to_line(self, product):
         """Convert an Odoo product.product to wizard line values."""
-        sellers = product.seller_ids
-        best_price = 0
-        best_supplier = ''
-        total_stock = product.qty_available
-
         vals = {
             'source': 'odoo',
             'odoo_product_id': product.id,
             'name': product.name,
-            'brand': product.pm_brand or '',
+            'brand': '',
             'barcode': product.barcode or '',
             'best_price': product.standard_price,
-            'best_supplier': sellers[0].partner_id.name if sellers else '',
-            'total_stock': int(total_stock),
-            'supplier_count': len(sellers),
+            'best_supplier': '',
+            'total_stock': 0,
+            'supplier_count': 0,
             'already_imported': bool(product.pm_external_id),
         }
 
-        for i, seller in enumerate(sellers[:3], 1):
-            vals[f'supplier_{i}_name'] = seller.partner_id.name
-            vals[f'supplier_{i}_price'] = seller.price
-            vals[f'supplier_{i}_stock'] = seller.pm_supplier_stock
+        # Access seller_ids and stock safely (other modules may have
+        # broken columns on product.template)
+        try:
+            sellers = product.sudo().seller_ids
+            vals['best_supplier'] = sellers[0].partner_id.name if sellers else ''
+            vals['supplier_count'] = len(sellers)
+            for i, seller in enumerate(sellers[:3], 1):
+                vals[f'supplier_{i}_name'] = seller.partner_id.name
+                vals[f'supplier_{i}_price'] = seller.price
+                vals[f'supplier_{i}_stock'] = getattr(seller, 'pm_supplier_stock', 0)
+        except Exception:
+            _logger.debug('Could not read seller_ids for product %s', product.id)
+
+        try:
+            vals['total_stock'] = int(product.sudo().qty_available)
+        except Exception:
+            pass
+
+        try:
+            vals['brand'] = product.pm_brand or ''
+        except Exception:
+            pass
 
         return vals
 
