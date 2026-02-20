@@ -5,7 +5,7 @@
         <!-- Service product for Wing shipping costs -->
         <record id="product_product_delivery_wing" model="product.product">
             <field name="name">Wing Shipping Costs</field>
-            <field name="detailed_type">service</field>
+            <field name="type">service</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="list_price">0.0</field>
             <field name="sale_ok">False</field>
