@@ -11,7 +11,7 @@
     <menuitem id="menu_pm_dashboard"
               name="Dashboard"
               parent="menu_pm_root"
-              action="action_pm_dashboard_config"
+              action="action_pm_open_dashboard"
               sequence="10"/>
 
     <!-- Search & Import -->
