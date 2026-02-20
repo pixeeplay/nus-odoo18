@@ -92,7 +92,7 @@ class ProductTemplate(models.Model):
 
         # Brand
         brand_html = ''
-        if hasattr(self, 'product_brand_id') and self.product_brand_id:
+        if 'product_brand_id' in self._fields and self.product_brand_id:
             if self.product_brand_id.logo:
                 try:
                     brand_uri = image_data_uri(self.product_brand_id.logo)
@@ -186,7 +186,7 @@ class ProductTemplate(models.Model):
         checks.append(('Barcode', bool(self.barcode)))
         checks.append(('Price', self.list_price > 0))
         checks.append(('Features', bool(bullets)))
-        has_ai = hasattr(self, 'chatgpt_enriched') and self.chatgpt_enriched
+        has_ai = 'chatgpt_enriched' in self._fields and self.chatgpt_enriched
         checks.append(('AI Enriched', has_ai))
 
         status_items = ''
@@ -256,11 +256,11 @@ class ProductTemplate(models.Model):
         bullets = []
 
         # Priority 1: chatgpt_content
-        if hasattr(self, 'chatgpt_content') and self.chatgpt_content:
+        if 'chatgpt_content' in self._fields and self.chatgpt_content:
             bullets = self._parse_html_bullets(str(self.chatgpt_content))
 
         # Priority 2: x_tech_specs (JSON)
-        if not bullets and hasattr(self, 'x_tech_specs') and self.x_tech_specs:
+        if not bullets and 'x_tech_specs' in self._fields and self.x_tech_specs:
             try:
                 specs = self.x_tech_specs
                 if isinstance(specs, str):
@@ -342,6 +342,6 @@ class ProductTemplate(models.Model):
     def action_enrich_for_label(self):
         """Enrich the product with AI and refresh the form."""
         self.ensure_one()
-        if hasattr(self, 'action_enrich_with_chatgpt'):
+        if hasattr(type(self), 'action_enrich_with_chatgpt'):
             self.action_enrich_with_chatgpt()
         return True

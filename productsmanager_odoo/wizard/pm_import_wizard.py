@@ -19,6 +19,9 @@ class PmImportWizard(models.TransientModel):
     result_count = fields.Integer(compute='_compute_counts')
     pm_count = fields.Integer(string='PM Results', compute='_compute_counts')
     odoo_count = fields.Integer(string='Odoo Results', compute='_compute_counts')
+    page_offset = fields.Integer(string='Page Offset', default=0)
+    page_size = fields.Integer(string='Page Size', default=20)
+    page_display = fields.Char(string='Page', compute='_compute_page_display')
 
     @api.depends('line_ids', 'line_ids.source')
     def _compute_counts(self):
@@ -26,6 +29,12 @@ class PmImportWizard(models.TransientModel):
             wizard.result_count = len(wizard.line_ids)
             wizard.pm_count = len(wizard.line_ids.filtered(lambda l: l.source == 'pm'))
             wizard.odoo_count = len(wizard.line_ids.filtered(lambda l: l.source == 'odoo'))
+
+    @api.depends('page_offset', 'page_size', 'result_count')
+    def _compute_page_display(self):
+        for wizard in self:
+            page = (wizard.page_offset // wizard.page_size) + 1 if wizard.page_size else 1
+            wizard.page_display = f'Page {page}'
 
     @api.model
     def default_get(self, fields_list):
@@ -41,20 +50,40 @@ class PmImportWizard(models.TransientModel):
     # ── Search ──────────────────────────────────────────────────────────
 
     def action_search(self):
-        """Search products in both PM API and Odoo."""
+        """Search products in both PM API and Odoo. Resets to page 1."""
+        self.ensure_one()
+        self.page_offset = 0
+        return self._do_search()
+
+    def action_next_page(self):
+        """Go to next page of results."""
+        self.ensure_one()
+        self.page_offset += self.page_size
+        return self._do_search()
+
+    def action_prev_page(self):
+        """Go to previous page of results."""
+        self.ensure_one()
+        self.page_offset = max(0, self.page_offset - self.page_size)
+        return self._do_search()
+
+    def _do_search(self):
+        """Execute search with current page_offset."""
         self.ensure_one()
         if not self.search_query:
             raise UserError(_('Please enter a search query.'))
 
         self.line_ids.unlink()
         lines = []
+        limit = self.page_size
+        offset = self.page_offset
 
         # Search Products Manager API
         api = None
         try:
             api = self.config_id._get_api_client()
-            pm_results = api.search_products(self.search_query, limit=50)
-            _logger.info('PM search returned %d results', len(pm_results))
+            pm_results = api.search_products(self.search_query, limit=limit, offset=offset)
+            _logger.info('PM search returned %d results (offset=%d)', len(pm_results), offset)
             if pm_results and isinstance(pm_results[0], dict):
                 _logger.info('PM first result keys: %s', list(pm_results[0].keys()))
                 _logger.info('PM first result data: %s', json.dumps(pm_results[0], default=str)[:2000])
@@ -77,8 +106,8 @@ class PmImportWizard(models.TransientModel):
                 WHERE pt.name::text ILIKE %s
                    OR pp.default_code ILIKE %s
                    OR pp.barcode ILIKE %s
-                LIMIT 50
-            """, (query_param, query_param, query_param))
+                LIMIT %s OFFSET %s
+            """, (query_param, query_param, query_param, limit, offset))
             rows = self.env.cr.dictfetchall()
             for row in rows:
                 # pt.name is stored as jsonb in Odoo 18
@@ -136,26 +165,35 @@ class PmImportWizard(models.TransientModel):
 
         # Extract suppliers from the product data
         suppliers = self._extract_pm_suppliers(pm_prod)
+        has_prices = any(s.get('price', 0) > 0 for s in suppliers)
 
-        # If no suppliers found in search data, try fetching from API
-        if not suppliers and api:
+        # If no suppliers or no prices, try fetching from per-product endpoint
+        if api and (not suppliers or not has_prices):
             try:
                 supplier_data = api.get_product_suppliers(pm_id)
-                _logger.info('PM suppliers for %s: %s', pm_id,
-                             json.dumps(supplier_data, default=str)[:1000])
+                _logger.info('PM suppliers API for %s: %s', pm_id,
+                             json.dumps(supplier_data, default=str)[:2000])
+                enriched = []
                 if isinstance(supplier_data, list):
-                    suppliers = self._extract_pm_suppliers({'suppliers': supplier_data})
+                    enriched = self._extract_pm_suppliers({'suppliers': supplier_data})
                 elif isinstance(supplier_data, dict):
-                    suppliers = self._extract_pm_suppliers(supplier_data)
-            except ProductsManagerAPIError:
-                pass
+                    enriched = self._extract_pm_suppliers(supplier_data)
+                if enriched and any(s.get('price', 0) > 0 for s in enriched):
+                    suppliers = enriched
+            except ProductsManagerAPIError as exc:
+                _logger.info('get_product_suppliers(%s) failed: %s', pm_id, exc)
 
-        # If still no suppliers, try the product detail endpoint
-        if not suppliers and api:
+        # If still no prices, try the product detail endpoint
+        has_prices = any(s.get('price', 0) > 0 for s in suppliers)
+        if api and not has_prices:
             try:
                 detail = api.get_product(pm_id)
+                _logger.info('PM product detail for %s keys: %s', pm_id,
+                             list(detail.keys()) if isinstance(detail, dict) else type(detail))
                 if isinstance(detail, dict):
-                    suppliers = self._extract_pm_suppliers(detail)
+                    enriched = self._extract_pm_suppliers(detail)
+                    if enriched and any(s.get('price', 0) > 0 for s in enriched):
+                        suppliers = enriched
                     # Also try to get more product info
                     if not name or name == 'Unknown':
                         name = detail.get('name') or detail.get('title') or name
@@ -163,8 +201,8 @@ class PmImportWizard(models.TransientModel):
                         ean = detail.get('ean') or detail.get('barcode') or ean
                     if not brand:
                         brand = detail.get('brand') or detail.get('marque') or brand
-            except ProductsManagerAPIError:
-                pass
+            except ProductsManagerAPIError as exc:
+                _logger.info('get_product(%s) failed: %s', pm_id, exc)
 
         # Also extract price directly from the product if available
         best_price = float(pm_prod.get('best_price') or pm_prod.get('price')

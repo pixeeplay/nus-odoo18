@@ -43,6 +43,7 @@ Integrate your external Products Manager web app with Odoo:
     'images': [
         'static/description/icon.png',
     ],
+    'post_init_hook': 'post_init_hook',
     'installable': True,
     'auto_install': False,
     'application': True,

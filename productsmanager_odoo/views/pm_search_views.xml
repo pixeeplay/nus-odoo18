@@ -31,6 +31,18 @@
                             class="btn-secondary"
                             icon="fa-square-o"
                             invisible="not line_ids"/>
+                    <button name="action_prev_page"
+                            string="Previous"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-chevron-left"
+                            invisible="page_offset == 0"/>
+                    <button name="action_next_page"
+                            string="Next"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-chevron-right"
+                            invisible="not line_ids"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -38,6 +50,8 @@
                             <field name="search_query" placeholder="Search products (name, EAN, brand...)"/>
                         </h1>
                     </div>
+                    <field name="page_offset" invisible="1"/>
+                    <field name="page_size" invisible="1"/>
                     <group>
                         <group>
                             <field name="config_id"/>
@@ -55,6 +69,9 @@
                                 <div>
                                     <strong class="text-info">Odoo: </strong>
                                     <field name="odoo_count" class="oe_inline"/>
+                                </div>
+                                <div class="ms-3">
+                                    <field name="page_display" class="oe_inline"/>
                                 </div>
                             </div>
                         </group>
