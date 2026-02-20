@@ -139,4 +139,31 @@
         </field>
     </record>
 
+    <!-- ============================================================
+         Server actions: multi-select from product list view
+         ============================================================ -->
+    <record id="action_export_selected_to_prestashop" model="ir.actions.server">
+        <field name="name">Exporter vers PrestaShop</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_export_to_prestashop()
+        </field>
+    </record>
+
+    <record id="action_mark_selected_for_export" model="ir.actions.server">
+        <field name="name">Marquer pour export PS</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    records.action_mark_for_export()
+        </field>
+    </record>
+
 </odoo>

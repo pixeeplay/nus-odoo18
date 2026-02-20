@@ -43,6 +43,10 @@ class PrestaShopProductDashboard(models.TransientModel):
     last_stock_export = fields.Datetime('Last Stock Export', readonly=True)
     last_price_export = fields.Datetime('Last Price Export', readonly=True)
 
+    # Bidirectional sync summary
+    total_imported_from_ps = fields.Integer('Importés depuis PS', readonly=True)
+    total_exported_to_ps = fields.Integer('Exportés vers PS', readonly=True)
+
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
@@ -122,6 +126,10 @@ class PrestaShopProductDashboard(models.TransientModel):
             res['last_product_export'] = instance.last_product_export_date
             res['last_stock_export'] = instance.last_stock_export_date
             res['last_price_export'] = instance.last_price_export_date
+
+            # Bidirectional summary
+            res['total_imported_from_ps'] = res.get('total_imported', 0)
+            res['total_exported_to_ps'] = res.get('total_exported', 0)
 
         return res
 

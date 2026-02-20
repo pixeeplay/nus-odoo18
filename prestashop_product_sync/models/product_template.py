@@ -102,11 +102,16 @@ class ProductTemplate(models.Model):
         return res
 
     def action_export_to_prestashop(self):
-        """Manual export button from product form."""
+        """Manual export button from product form or list multi-select."""
         products = self.filtered(lambda p: p.ps_export_enabled)
         if not products:
             products = self
-        instance = products[0].prestashop_instance_id
+        # Find instance: prefer one already linked to a selected product
+        instance = False
+        for p in products:
+            if p.prestashop_instance_id:
+                instance = p.prestashop_instance_id
+                break
         if not instance:
             instance = self.env['prestashop.instance'].search([
                 ('active', '=', True),

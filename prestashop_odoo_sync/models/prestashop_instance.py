@@ -138,6 +138,23 @@ class PrestaShopInstance(models.Model):
             siret = customer.get('siret', '')
             note = customer.get('note', '')
 
+            # Anti-doublon multi-clé: recherche par email
+            if email:
+                partner = self.env['res.partner'].search([
+                    ('email', '=ilike', email),
+                    ('customer_rank', '>', 0),
+                ], limit=1)
+                if partner:
+                    existing_comment = partner.comment or ''
+                    if f'PrestaShop ID: {customer_id}' not in existing_comment:
+                        new_comment = f'PrestaShop ID: {customer_id}\n{existing_comment}'.strip()
+                        partner.write({'comment': new_comment})
+                    _logger.info(
+                        "Anti-dup: matched customer %s by email %s to PS ID %s",
+                        partner.name, email, customer_id,
+                    )
+                    return partner
+
             vals = {
                 'name': f"{firstname} {lastname}".strip() or f'Customer {customer_id}',
                 'email': email,
@@ -310,6 +327,21 @@ class PrestaShopInstance(models.Model):
             product = self.env['product.product'].create({
                 'name': 'Frais de port (PrestaShop)',
                 'default_code': 'PS-SHIPPING',
+                'type': 'service',
+                'list_price': 0.0,
+                'taxes_id': [(5, 0, 0)],
+            })
+        return product
+
+    def _get_ecotax_product(self):
+        """Get or create a service product for eco-tax informational line"""
+        product = self.env['product.product'].search([
+            ('default_code', '=', 'PS-ECOTAX')
+        ], limit=1)
+        if not product:
+            product = self.env['product.product'].create({
+                'name': 'Eco-taxe (PrestaShop)',
+                'default_code': 'PS-ECOTAX',
                 'type': 'service',
                 'list_price': 0.0,
                 'taxes_id': [(5, 0, 0)],
@@ -502,6 +534,23 @@ class PrestaShopInstance(models.Model):
                         'name': f'Frais de port - {carrier_name}' if carrier_name else 'Frais de port',
                         'product_uom_qty': 1,
                         'price_unit': total_shipping,
+                    })
+
+                # Add eco-tax informational line if total eco-tax > 0
+                total_ecotax = sum(
+                    float(row.get('product_ean13_ecotax', 0) or row.get('ecotax', 0) or 0)
+                    * int(row.get('product_quantity', 1))
+                    for row in order_rows
+                )
+                if total_ecotax > 0:
+                    ecotax_product = self._get_ecotax_product()
+                    self.env['sale.order.line'].create({
+                        'order_id': sale_order.id,
+                        'product_id': ecotax_product.id,
+                        'name': 'Eco-taxe (incluse dans les prix)',
+                        'product_uom_qty': 1,
+                        'price_unit': total_ecotax,
+                        'tax_id': [(5, 0, 0)],
                     })
 
                 imported_count += 1

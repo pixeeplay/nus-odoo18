@@ -53,8 +53,41 @@
                         <strong>Import en cours...</strong> La liste se rafra&#238;chit automatiquement.
                     </div>
 
+                    <!-- Bidirectional Sync Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-2">
+                            <div class="card border-success">
+                                <div class="card-body text-center py-3">
+                                    <i class="fa fa-arrow-right fa-2x text-success mb-2"/>
+                                    <h2 class="mb-1 text-success">
+                                        <field name="total_imported_from_ps" readonly="1"/>
+                                    </h2>
+                                    <h5 class="text-muted mb-0">
+                                        Import PS &#8594; Odoo
+                                    </h5>
+                                    <small class="text-muted">Produits transf&#233;r&#233;s depuis PrestaShop</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="card border-primary">
+                                <div class="card-body text-center py-3">
+                                    <i class="fa fa-arrow-left fa-2x text-primary mb-2"/>
+                                    <h2 class="mb-1 text-primary">
+                                        <field name="total_exported_to_ps" readonly="1"/>
+                                    </h2>
+                                    <h5 class="text-muted mb-0">
+                                        Export Odoo &#8594; PS
+                                    </h5>
+                                    <small class="text-muted">Produits transf&#233;r&#233;s vers PrestaShop</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <separator/>
+
                     <!-- Product Stats Cards -->
-                    <h3 class="mt-2 mb-3">Produits</h3>
+                    <h3 class="mt-2 mb-3">D&#233;tail Import PS &#8594; Odoo</h3>
                     <div class="row mb-4">
                         <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                             <div class="card text-center border-primary">
@@ -180,7 +213,7 @@
                     <!-- ============================================================
                          EXPORT vers PrestaShop
                          ============================================================ -->
-                    <h3 class="mt-4 mb-3">Export vers PrestaShop</h3>
+                    <h3 class="mt-4 mb-3">D&#233;tail Export Odoo &#8594; PS</h3>
                     <div class="alert alert-info" role="alert" invisible="not export_running">
                         <i class="fa fa-spinner fa-spin me-2"/>
                         <strong>Export en cours...</strong>
