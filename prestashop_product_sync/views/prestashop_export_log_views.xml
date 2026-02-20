@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Export Log – List View
+         ============================================================ -->
+    <record id="view_prestashop_export_log_list" model="ir.ui.view">
+        <field name="name">prestashop.export.log.list</field>
+        <field name="model">prestashop.export.log</field>
+        <field name="arch" type="xml">
+            <list default_order="create_date desc"
+                  decoration-danger="not success"
+                  decoration-success="success and operation in ('create', 'update')"
+                  decoration-info="success and operation in ('price', 'stock')">
+                <field name="create_date" string="Date"/>
+                <field name="product_tmpl_id" string="Product"/>
+                <field name="operation" widget="badge"
+                       decoration-info="operation in ('create', 'variant_create')"
+                       decoration-success="operation in ('update', 'variant_update')"
+                       decoration-warning="operation in ('price', 'stock')"
+                       decoration-danger="operation == 'error'"/>
+                <field name="ps_product_id" string="PS ID"/>
+                <field name="ps_combination_id" string="Combo ID" optional="hide"/>
+                <field name="success" widget="boolean"/>
+                <field name="error_message" optional="show"/>
+                <field name="duration_ms" string="ms" optional="show"/>
+                <field name="user_id" optional="hide"/>
+                <field name="instance_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Export Log – Form View
+         ============================================================ -->
+    <record id="view_prestashop_export_log_form" model="ir.ui.view">
+        <field name="name">prestashop.export.log.form</field>
+        <field name="model">prestashop.export.log</field>
+        <field name="arch" type="xml">
+            <form string="Export Log" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group string="Details">
+                            <field name="instance_id"/>
+                            <field name="product_tmpl_id"/>
+                            <field name="product_product_id"
+                                   invisible="not product_product_id"/>
+                            <field name="operation"/>
+                            <field name="ps_product_id"/>
+                            <field name="ps_combination_id"
+                                   invisible="not ps_combination_id"/>
+                            <field name="success"/>
+                            <field name="duration_ms"/>
+                            <field name="user_id"/>
+                            <field name="create_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="request" string="Request XML"
+                              invisible="not request_xml">
+                            <field name="request_xml" readonly="1" nolabel="1"/>
+                        </page>
+                        <page name="response" string="Response"
+                              invisible="not response_text">
+                            <field name="response_text" readonly="1" nolabel="1"/>
+                        </page>
+                        <page name="error" string="Error"
+                              invisible="not error_message">
+                            <field name="error_message" readonly="1" nolabel="1"/>
+                        </page>
+                        <page name="changes" string="Field Changes"
+                              invisible="not field_changes">
+                            <field name="field_changes" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Export Log – Search View
+         ============================================================ -->
+    <record id="view_prestashop_export_log_search" model="ir.ui.view">
+        <field name="name">prestashop.export.log.search</field>
+        <field name="model">prestashop.export.log</field>
+        <field name="arch" type="xml">
+            <search string="Export Logs">
+                <field name="product_tmpl_id"/>
+                <field name="ps_product_id"/>
+                <field name="instance_id"/>
+                <filter name="filter_success" string="Success"
+                        domain="[('success', '=', True)]"/>
+                <filter name="filter_errors" string="Errors"
+                        domain="[('success', '=', False)]"/>
+                <separator/>
+                <filter name="filter_create" string="Created"
+                        domain="[('operation', '=', 'create')]"/>
+                <filter name="filter_update" string="Updated"
+                        domain="[('operation', '=', 'update')]"/>
+                <filter name="filter_price" string="Price"
+                        domain="[('operation', '=', 'price')]"/>
+                <filter name="filter_stock" string="Stock"
+                        domain="[('operation', '=', 'stock')]"/>
+                <filter name="filter_today" string="Today"
+                        domain="[('create_date', '&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_operation" string="Operation"
+                            context="{'group_by': 'operation'}"/>
+                    <filter name="group_product" string="Product"
+                            context="{'group_by': 'product_tmpl_id'}"/>
+                    <filter name="group_date" string="Date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Export Log – Action & Menu
+         ============================================================ -->
+    <record id="action_prestashop_export_log" model="ir.actions.act_window">
+        <field name="name">Export History</field>
+        <field name="res_model">prestashop.export.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_prestashop_export_log"
+              name="Export History"
+              parent="prestashop_odoo_sync.menu_prestashop_root"
+              action="action_prestashop_export_log"
+              sequence="26"/>
+
+</odoo>

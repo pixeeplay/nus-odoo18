@@ -3,3 +3,5 @@ from . import prestashop_instance
 from . import prestashop_product_preview
 from . import prestashop_field_mapping
 from . import prestashop_product_dashboard
+from . import prestashop_export_queue
+from . import prestashop_export_log

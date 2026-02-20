@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_prestashop_export_wizard_form" model="ir.ui.view">
+        <field name="name">prestashop.export.wizard.form</field>
+        <field name="model">prestashop.export.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Export to PrestaShop">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,validating,preview,running,done"/>
+                </header>
+                <sheet>
+                    <!-- Draft state: configuration -->
+                    <group invisible="state != 'draft'">
+                        <group string="Configuration">
+                            <field name="instance_id"/>
+                            <field name="export_mode"/>
+                            <field name="dry_run"/>
+                            <field name="include_variants"
+                                   invisible="export_mode != 'full'"/>
+                            <field name="include_images"
+                                   invisible="export_mode != 'full'"/>
+                        </group>
+                        <group string="Summary">
+                            <field name="product_count"/>
+                            <field name="create_count"/>
+                            <field name="update_count"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'draft'">
+                        <field name="product_ids" nolabel="1" colspan="2">
+                            <list>
+                                <field name="name"/>
+                                <field name="default_code"/>
+                                <field name="list_price"/>
+                                <field name="prestashop_id" string="PS ID"/>
+                                <field name="ps_export_state" string="Status" widget="badge"
+                                       decoration-success="ps_export_state == 'exported'"
+                                       decoration-warning="ps_export_state == 'modified'"
+                                       decoration-danger="ps_export_state == 'error'"
+                                       decoration-muted="ps_export_state == 'not_exported'"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <!-- Validation state -->
+                    <group invisible="state not in ('validating', 'preview')">
+                        <field name="validation_log" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+
+                    <!-- Done state -->
+                    <group invisible="state != 'done'">
+                        <field name="export_log" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+
+                    <footer>
+                        <button name="action_validate"
+                                string="Validate"
+                                type="object"
+                                class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_start_export"
+                                string="Start Export"
+                                type="object"
+                                class="btn-success"
+                                invisible="state not in ('draft', 'preview')"
+                                confirm="This will send products to PrestaShop. Continue?"/>
+                        <button string="Close" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_prestashop_export_wizard" model="ir.actions.act_window">
+        <field name="name">Export to PrestaShop</field>
+        <field name="res_model">prestashop.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

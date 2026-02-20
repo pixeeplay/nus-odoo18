@@ -11,3 +11,8 @@ access_prestashop_field_mapping_manager,prestashop.field.mapping.manager,model_p
 access_prestashop_product_dashboard_user,prestashop.product.dashboard.user,model_prestashop_product_dashboard,base.group_user,1,1,1,1
 access_prestashop_reimport_wizard_user,prestashop.reimport.wizard.user,model_prestashop_reimport_wizard,base.group_user,1,1,1,1
 access_prestashop_cleanup_wizard_user,prestashop.cleanup.wizard.user,model_prestashop_cleanup_wizard,base.group_user,1,1,1,1
+access_prestashop_export_queue_user,prestashop.export.queue.user,model_prestashop_export_queue,base.group_user,1,1,1,0
+access_prestashop_export_queue_manager,prestashop.export.queue.manager,model_prestashop_export_queue,base.group_system,1,1,1,1
+access_prestashop_export_log_user,prestashop.export.log.user,model_prestashop_export_log,base.group_user,1,0,0,0
+access_prestashop_export_log_manager,prestashop.export.log.manager,model_prestashop_export_log,base.group_system,1,1,1,1
+access_prestashop_export_wizard_user,prestashop.export.wizard.user,model_prestashop_export_wizard,base.group_user,1,1,1,1

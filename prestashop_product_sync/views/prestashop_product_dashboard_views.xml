@@ -177,6 +177,113 @@
                         </div>
                     </div>
 
+                    <!-- ============================================================
+                         EXPORT vers PrestaShop
+                         ============================================================ -->
+                    <h3 class="mt-4 mb-3">Export vers PrestaShop</h3>
+                    <div class="alert alert-info" role="alert" invisible="not export_running">
+                        <i class="fa fa-spinner fa-spin me-2"/>
+                        <strong>Export en cours...</strong>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-primary">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-primary"><field name="total_export_enabled" readonly="1"/></h3>
+                                    <small class="text-muted">Activ&#233;s export</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-success">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-success"><field name="total_exported" readonly="1"/></h3>
+                                    <small class="text-muted">Export&#233;s</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-warning">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-warning"><field name="total_export_modified" readonly="1"/></h3>
+                                    <small class="text-muted">Modifi&#233;s</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-danger">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-danger"><field name="total_export_errors" readonly="1"/></h3>
+                                    <small class="text-muted">Erreurs export</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <div class="card text-center border-info">
+                                <div class="card-body py-2">
+                                    <h3 class="mb-0 text-info"><field name="total_export_queued" readonly="1"/></h3>
+                                    <small class="text-muted">En file d'attente</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2 text-muted small">
+                        <div class="col-md-12">
+                            <span invisible="not last_product_export">
+                                Dernier export produits : <field name="last_product_export" readonly="1" class="d-inline"/>
+                            </span>
+                            <span class="ms-3" invisible="not last_stock_export">
+                                | Dernier push stock : <field name="last_stock_export" readonly="1" class="d-inline"/>
+                            </span>
+                            <span class="ms-3" invisible="not last_price_export">
+                                | Dernier push prix : <field name="last_price_export" readonly="1" class="d-inline"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Export Action Buttons -->
+                    <separator string="Actions Export"/>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button name="action_export_all_flagged"
+                                    string="Exporter tous les activ&#233;s"
+                                    type="object"
+                                    class="btn-primary me-2 mb-2"
+                                    icon="fa-upload"
+                                    confirm="Exporter tous les produits activ&#233;s vers PrestaShop ?"/>
+                            <button name="action_export_modified"
+                                    string="Re-exporter les modifi&#233;s"
+                                    type="object"
+                                    class="btn-warning me-2 mb-2"
+                                    icon="fa-refresh"/>
+                            <button name="action_push_stock"
+                                    string="Push Stock maintenant"
+                                    type="object"
+                                    class="btn-info me-2 mb-2"
+                                    icon="fa-cubes"/>
+                            <button name="action_push_prices"
+                                    string="Push Prix maintenant"
+                                    type="object"
+                                    class="btn-info me-2 mb-2"
+                                    icon="fa-eur"/>
+                            <button name="action_open_export_queue"
+                                    string="File d'attente"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-tasks"/>
+                            <button name="action_open_export_log"
+                                    string="Historique export"
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-history"/>
+                            <button name="action_open_export_wizard"
+                                    string="Export manuel..."
+                                    type="object"
+                                    class="btn-secondary me-2 mb-2"
+                                    icon="fa-hand-o-up"/>
+                        </div>
+                    </div>
+
                     <!-- Cleanup & Repair Actions -->
                     <separator string="Nettoyage &amp; R&#233;paration"/>
                     <div class="row mt-3">
@@ -211,6 +318,7 @@
                     <field name="instance_id" invisible="1"/>
                     <field name="instance_connected" invisible="1"/>
                     <field name="import_running" invisible="1"/>
+                    <field name="export_running" invisible="1"/>
                 </sheet>
             </form>
         </field>

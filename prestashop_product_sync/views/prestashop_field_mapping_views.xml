@@ -10,7 +10,9 @@
         <field name="arch" type="xml">
             <list editable="bottom" default_order="sequence">
                 <field name="sequence" widget="handle"/>
-                <field name="active" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle" string="Import"/>
+                <field name="export_active" widget="boolean_toggle" string="Export"/>
+                <field name="direction" string="Direction"/>
                 <field name="ps_field_label" string="PrestaShop Field"/>
                 <field name="ps_field_name" string="PS Key" optional="hide"/>
                 <field name="field_type" string="Type" widget="badge"
@@ -46,7 +48,9 @@
                     </group>
                     <group>
                         <field name="field_type"/>
-                        <field name="active"/>
+                        <field name="active" string="Import Active"/>
+                        <field name="export_active"/>
+                        <field name="direction"/>
                         <field name="sequence"/>
                         <field name="instance_id"/>
                         <field name="notes"/>

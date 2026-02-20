@@ -1,6 +1,12 @@
 import base64
+import json
 import logging
+import re
 import threading
+import time
+import unicodedata
+import xml.etree.ElementTree as ET
+import xml.sax.saxutils as saxutils
 
 import requests
 
@@ -56,6 +62,58 @@ class PrestaShopInstance(models.Model):
         'prestashop.field.mapping', 'instance_id', string='Field Mappings',
     )
     mapping_count = fields.Integer('Mapping Count', compute='_compute_mapping_count')
+
+    # ------------------------------------
+    # Export configuration fields
+    # ------------------------------------
+    export_enabled = fields.Boolean('Enable Product Export', default=False)
+    export_sync_mode = fields.Selection([
+        ('disabled', 'Disabled'),
+        ('hourly', 'Hourly'),
+        ('daily', 'Daily'),
+    ], string='Export Auto-Sync', default='disabled')
+    export_running = fields.Boolean('Export Running', default=False, readonly=True)
+    last_product_export_date = fields.Datetime('Last Product Export', readonly=True)
+    last_stock_export_date = fields.Datetime('Last Stock Export', readonly=True)
+    last_price_export_date = fields.Datetime('Last Price Export', readonly=True)
+    stock_sync_mode = fields.Selection([
+        ('disabled', 'Disabled'),
+        ('every_15min', 'Every 15 Minutes'),
+        ('hourly', 'Every Hour'),
+    ], string='Stock Push Schedule', default='disabled')
+    price_sync_mode = fields.Selection([
+        ('disabled', 'Disabled'),
+        ('hourly', 'Every Hour'),
+        ('daily', 'Daily'),
+    ], string='Price Push Schedule', default='disabled')
+    export_default_ps_lang_id = fields.Integer(
+        'PS Language ID', default=1,
+        help="PrestaShop language ID for text fields (usually 1).",
+    )
+    export_default_active = fields.Boolean(
+        'Export as Active', default=True,
+        help="New products exported to PS will be active by default.",
+    )
+    export_images = fields.Boolean('Export Images', default=True)
+    export_categories = fields.Boolean('Export Categories', default=True)
+    export_variants = fields.Boolean('Export Variants', default=True)
+    export_queue_ids = fields.One2many(
+        'prestashop.export.queue', 'instance_id', string='Export Queue',
+    )
+    export_queue_count = fields.Integer(
+        'Queue Count', compute='_compute_export_queue_count',
+    )
+    export_log_ids = fields.One2many(
+        'prestashop.export.log', 'instance_id', string='Export Logs',
+    )
+
+    @api.depends('export_queue_ids')
+    def _compute_export_queue_count(self):
+        for rec in self:
+            rec.export_queue_count = self.env['prestashop.export.queue'].search_count([
+                ('instance_id', '=', rec.id),
+                ('state', '=', 'pending'),
+            ])
 
     @api.depends('mapping_ids')
     def _compute_mapping_count(self):
@@ -1460,3 +1518,1177 @@ class PrestaShopInstance(models.Model):
                 _logger.info("Daily product sync OK for %s", instance.name)
             except Exception as exc:
                 _logger.error("Daily product sync FAILED for %s: %s", instance.name, exc)
+
+    # =============================================
+    # EXPORT: API Write Methods
+    # =============================================
+
+    def _api_post(self, resource, xml_data, timeout=60):
+        """Send POST request to PrestaShop API to create a resource.
+
+        :param resource: API resource (e.g., 'products', 'combinations')
+        :param xml_data: XML string body
+        :param timeout: Request timeout in seconds
+        :returns: dict with at least 'id' key from response
+        """
+        self.ensure_one()
+        base_url = self._get_base_url()
+        url = f"{base_url}/{resource}"
+        headers = {'Content-Type': 'application/xml'}
+        _logger.info("PS API POST: %s (body length: %d)", url, len(xml_data))
+        resp = requests.post(
+            url,
+            auth=(self.api_key, ''),
+            data=xml_data.encode('utf-8'),
+            headers=headers,
+            timeout=timeout,
+        )
+        if resp.status_code not in (200, 201):
+            _logger.error("PS API POST error %s: %s", resp.status_code, resp.text[:500])
+            raise UserError(
+                _("PrestaShop API POST error (status %s).\nURL: %s\nResponse: %s")
+                % (resp.status_code, url, resp.text[:300])
+            )
+        return self._parse_ps_xml_response(resp)
+
+    def _api_put(self, resource, resource_id, xml_data, timeout=60):
+        """Send PUT request to PrestaShop API to update a resource."""
+        self.ensure_one()
+        base_url = self._get_base_url()
+        url = f"{base_url}/{resource}/{resource_id}"
+        headers = {'Content-Type': 'application/xml'}
+        _logger.info("PS API PUT: %s (body length: %d)", url, len(xml_data))
+        resp = requests.put(
+            url,
+            auth=(self.api_key, ''),
+            data=xml_data.encode('utf-8'),
+            headers=headers,
+            timeout=timeout,
+        )
+        if resp.status_code != 200:
+            _logger.error("PS API PUT error %s: %s", resp.status_code, resp.text[:500])
+            raise UserError(
+                _("PrestaShop API PUT error (status %s).\nURL: %s\nResponse: %s")
+                % (resp.status_code, url, resp.text[:300])
+            )
+        return self._parse_ps_xml_response(resp)
+
+    def _api_delete(self, resource, resource_id, timeout=30):
+        """Delete a resource from PrestaShop."""
+        self.ensure_one()
+        base_url = self._get_base_url()
+        url = f"{base_url}/{resource}/{resource_id}"
+        _logger.info("PS API DELETE: %s", url)
+        resp = requests.delete(
+            url, auth=(self.api_key, ''), timeout=timeout,
+        )
+        if resp.status_code != 200:
+            _logger.warning("PS API DELETE error %s: %s", resp.status_code, resp.text[:300])
+        return resp.status_code == 200
+
+    def _parse_ps_xml_response(self, response):
+        """Parse PrestaShop XML response, extract resource ID."""
+        result = {}
+        try:
+            content_type = response.headers.get('Content-Type', '')
+            if 'json' in content_type:
+                return response.json()
+            root = ET.fromstring(response.content)
+            for child in root:
+                id_elem = child.find('id')
+                if id_elem is not None and id_elem.text:
+                    result['id'] = id_elem.text
+                result['tag'] = child.tag
+        except Exception as exc:
+            _logger.warning("Failed to parse PS response: %s", exc)
+            # Try to extract ID from text as fallback
+            text = response.text or ''
+            match = re.search(r'<id>\s*(\d+)\s*</id>', text)
+            if match:
+                result['id'] = match.group(1)
+        return result
+
+    # =============================================
+    # EXPORT: XML Builders
+    # =============================================
+
+    @staticmethod
+    def _slugify(text):
+        """Generate URL-safe slug from text (for link_rewrite)."""
+        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+        text = re.sub(r'[^\w\s-]', '', text.lower())
+        text = re.sub(r'[-\s]+', '-', text).strip('-')
+        return text or 'product'
+
+    def _build_ps_language_xml(self, value, tag_name, lang_id=None):
+        """Build multi-language XML element for PrestaShop."""
+        if lang_id is None:
+            lang_id = self.export_default_ps_lang_id or 1
+        safe_value = saxutils.escape(str(value or ''))
+        return '<%s><language id="%s"><![CDATA[%s]]></language></%s>' % (
+            tag_name, lang_id, safe_value, tag_name,
+        )
+
+    def _is_export_mapping_active(self, ps_field, odoo_field=None):
+        """Check if a field mapping is active for export."""
+        if not self.mapping_ids:
+            return True
+        domain = [
+            ('instance_id', '=', self.id),
+            ('ps_field_name', '=', ps_field),
+        ]
+        if odoo_field:
+            domain.append(('odoo_field_name', '=', odoo_field))
+        mapping = self.env['prestashop.field.mapping'].search(domain, limit=1)
+        if not mapping:
+            return True
+        return mapping.export_active and mapping.direction in ('export', 'both')
+
+    def _get_export_price(self, product_tmpl):
+        """Get the price to export based on product's ps_export_price_type."""
+        price_type = product_tmpl.ps_export_price_type or 'list_price'
+        if price_type == 'standard_price':
+            return product_tmpl.standard_price or 0.0
+        if price_type == 'pricelist' and product_tmpl.ps_export_pricelist_id:
+            pricelist = product_tmpl.ps_export_pricelist_id
+            variant = product_tmpl.product_variant_id
+            if variant:
+                return pricelist._get_product_price(variant, 1.0)
+        return product_tmpl.list_price or 0.0
+
+    def _build_product_xml(self, product_tmpl, ps_product_id=None):
+        """Build XML payload for creating/updating a product in PrestaShop.
+
+        :param product_tmpl: product.template record
+        :param ps_product_id: if set, include <id> for PUT update
+        :returns: XML string
+        """
+        self.ensure_one()
+        lang_id = self.export_default_ps_lang_id or 1
+
+        parts = ['<?xml version="1.0" encoding="UTF-8"?>']
+        parts.append('<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">')
+        parts.append('<product>')
+
+        if ps_product_id:
+            parts.append('<id>%s</id>' % ps_product_id)
+
+        if self._is_export_mapping_active('name'):
+            parts.append(self._build_ps_language_xml(product_tmpl.name, 'name', lang_id))
+
+        if self._is_export_mapping_active('description'):
+            desc = product_tmpl.prestashop_description_html or product_tmpl.description or ''
+            parts.append(self._build_ps_language_xml(desc, 'description', lang_id))
+
+        if self._is_export_mapping_active('description_short'):
+            desc_short = (
+                product_tmpl.prestashop_description_short_html
+                or product_tmpl.description_sale or ''
+            )
+            parts.append(self._build_ps_language_xml(desc_short, 'description_short', lang_id))
+
+        if self._is_export_mapping_active('price'):
+            price = self._get_export_price(product_tmpl)
+            parts.append('<price>%.6f</price>' % price)
+
+        if self._is_export_mapping_active('wholesale_price'):
+            parts.append('<wholesale_price>%.6f</wholesale_price>' % (
+                product_tmpl.standard_price or 0.0,
+            ))
+
+        if self._is_export_mapping_active('reference'):
+            ref = saxutils.escape(product_tmpl.default_code or '')
+            parts.append('<reference><![CDATA[%s]]></reference>' % ref)
+
+        if self._is_export_mapping_active('ean13'):
+            ean = product_tmpl.barcode or product_tmpl.prestashop_ean13 or ''
+            parts.append('<ean13>%s</ean13>' % saxutils.escape(ean))
+
+        if self._is_export_mapping_active('weight'):
+            parts.append('<weight>%.6f</weight>' % (product_tmpl.weight or 0.0))
+
+        if self._is_export_mapping_active('active'):
+            active_val = '1' if self.export_default_active else '0'
+            parts.append('<active>%s</active>' % active_val)
+
+        if self._is_export_mapping_active('meta_title'):
+            mt = product_tmpl.prestashop_meta_title or product_tmpl.name or ''
+            parts.append(self._build_ps_language_xml(mt, 'meta_title', lang_id))
+
+        if self._is_export_mapping_active('meta_description'):
+            md = product_tmpl.prestashop_meta_description or ''
+            parts.append(self._build_ps_language_xml(md, 'meta_description', lang_id))
+
+        if self._is_export_mapping_active('link_rewrite'):
+            slug = self._slugify(product_tmpl.name or 'product')
+            parts.append(self._build_ps_language_xml(slug, 'link_rewrite', lang_id))
+
+        if self._is_export_mapping_active('ecotax'):
+            parts.append('<ecotax>%.6f</ecotax>' % (product_tmpl.prestashop_ecotax or 0.0))
+
+        if (self._is_export_mapping_active('id_tax_rules_group')
+                and product_tmpl.prestashop_tax_rules_group_id):
+            parts.append('<id_tax_rules_group>%s</id_tax_rules_group>' % (
+                product_tmpl.prestashop_tax_rules_group_id,
+            ))
+
+        # Category associations
+        ps_cat_id = None
+        if (self.export_categories
+                and self._is_export_mapping_active('id_category_default')
+                and product_tmpl.categ_id):
+            ps_cat_id = self._get_or_create_ps_category(product_tmpl.categ_id)
+
+        if ps_cat_id:
+            parts.append('<id_category_default>%s</id_category_default>' % ps_cat_id)
+            parts.append('<associations>')
+            parts.append('<categories>')
+            parts.append('<category><id>%s</id></category>' % ps_cat_id)
+            parts.append('</categories>')
+            parts.append('</associations>')
+
+        parts.append('</product>')
+        parts.append('</prestashop>')
+        return '\n'.join(parts)
+
+    # =============================================
+    # EXPORT: Validation
+    # =============================================
+
+    def _validate_product_for_export(self, product_tmpl):
+        """Validate a product before export. Returns list of error strings."""
+        errors = []
+        if not product_tmpl.name or not product_tmpl.name.strip():
+            errors.append(_("Product name is empty."))
+        price = self._get_export_price(product_tmpl)
+        if price < 0:
+            errors.append(_("Price cannot be negative: %s") % price)
+        if product_tmpl.weight and product_tmpl.weight < 0:
+            errors.append(_("Weight cannot be negative: %s") % product_tmpl.weight)
+        ean = product_tmpl.barcode or product_tmpl.prestashop_ean13
+        if ean and len(ean) not in (0, 8, 12, 13, 14):
+            errors.append(
+                _("Barcode '%s' has invalid length (%d). Must be 8, 12, 13, or 14 digits.")
+                % (ean, len(ean))
+            )
+        if (product_tmpl.prestashop_instance_id
+                and product_tmpl.prestashop_instance_id != self):
+            errors.append(
+                _("Product is already linked to instance '%s'. Cannot export to '%s'.")
+                % (product_tmpl.prestashop_instance_id.name, self.name)
+            )
+        return errors
+
+    # =============================================
+    # EXPORT: Anti-Duplicate System (Triple Key)
+    # =============================================
+
+    def _find_ps_product_by_keys(self, product_tmpl):
+        """Find an existing PrestaShop product using multi-key matching.
+
+        Priority: 1) prestashop_id → 2) reference → 3) EAN13
+        Returns: PS product ID (string) or None.
+        """
+        self.ensure_one()
+
+        # Key 1: Direct PS ID
+        if product_tmpl.prestashop_id:
+            try:
+                data = self._api_get_long('products', params={
+                    'filter[id]': product_tmpl.prestashop_id,
+                    'display': '[id]',
+                }, timeout=15)
+                products = data.get('products', [])
+                if isinstance(products, dict):
+                    products = [products]
+                if products and str(products[0].get('id', '')) == product_tmpl.prestashop_id:
+                    return product_tmpl.prestashop_id
+            except Exception:
+                pass
+
+        # Key 2: Reference / SKU
+        ref = product_tmpl.default_code
+        if ref:
+            try:
+                data = self._api_get_long('products', params={
+                    'filter[reference]': ref,
+                    'display': '[id,reference]',
+                }, timeout=15)
+                products = data.get('products', [])
+                if isinstance(products, dict):
+                    products = [products]
+                for p in products:
+                    if str(p.get('reference', '')) == ref:
+                        ps_id = str(p.get('id', ''))
+                        _logger.info(
+                            "Anti-dup: matched '%s' by reference '%s' -> PS-%s",
+                            product_tmpl.name, ref, ps_id,
+                        )
+                        return ps_id
+            except Exception as exc:
+                _logger.warning("Anti-dup reference check failed: %s", exc)
+
+        # Key 3: EAN13 / barcode
+        ean = product_tmpl.barcode or product_tmpl.prestashop_ean13
+        if ean and len(ean) in (8, 12, 13, 14):
+            try:
+                data = self._api_get_long('products', params={
+                    'filter[ean13]': ean,
+                    'display': '[id,ean13]',
+                }, timeout=15)
+                products = data.get('products', [])
+                if isinstance(products, dict):
+                    products = [products]
+                for p in products:
+                    if str(p.get('ean13', '')) == ean:
+                        ps_id = str(p.get('id', ''))
+                        _logger.info(
+                            "Anti-dup: matched '%s' by EAN13 '%s' -> PS-%s",
+                            product_tmpl.name, ean, ps_id,
+                        )
+                        return ps_id
+            except Exception as exc:
+                _logger.warning("Anti-dup EAN13 check failed: %s", exc)
+
+        return None
+
+    # =============================================
+    # EXPORT: Single Product Export
+    # =============================================
+
+    def _export_single_product(self, product_tmpl, dry_run=False):
+        """Export a single product to PrestaShop (create or update).
+
+        :param product_tmpl: product.template record
+        :param dry_run: if True, return XML without sending
+        :returns: dict with keys: success, ps_id, operation, xml, error
+        """
+        self.ensure_one()
+        start = time.time()
+        result = {
+            'success': False,
+            'ps_id': None,
+            'operation': None,
+            'xml': None,
+            'error': None,
+        }
+
+        try:
+            # Validate
+            errors = self._validate_product_for_export(product_tmpl)
+            if errors:
+                result['error'] = '\n'.join(errors)
+                product_tmpl.write({
+                    'ps_export_state': 'error',
+                    'ps_export_error': result['error'],
+                })
+                return result
+
+            # Anti-duplicate detection
+            existing_ps_id = self._find_ps_product_by_keys(product_tmpl)
+
+            if existing_ps_id:
+                # UPDATE existing
+                result['operation'] = 'update'
+                xml = self._build_product_xml(product_tmpl, ps_product_id=existing_ps_id)
+                result['xml'] = xml
+                if dry_run:
+                    result['success'] = True
+                    result['ps_id'] = existing_ps_id
+                    return result
+                self._api_put('products', existing_ps_id, xml)
+                result['ps_id'] = existing_ps_id
+                product_tmpl.write({
+                    'prestashop_id': existing_ps_id,
+                    'prestashop_instance_id': self.id,
+                    'ps_last_export': fields.Datetime.now(),
+                    'ps_export_state': 'exported',
+                    'ps_export_error': False,
+                })
+            else:
+                # CREATE new
+                result['operation'] = 'create'
+                xml = self._build_product_xml(product_tmpl)
+                result['xml'] = xml
+                if dry_run:
+                    result['success'] = True
+                    return result
+                resp = self._api_post('products', xml)
+                new_ps_id = resp.get('id') or ''
+                result['ps_id'] = new_ps_id
+                product_tmpl.write({
+                    'prestashop_id': new_ps_id,
+                    'prestashop_instance_id': self.id,
+                    'ps_last_export': fields.Datetime.now(),
+                    'ps_export_state': 'exported',
+                    'ps_export_error': False,
+                })
+
+            # Handle variants
+            if (self.export_variants
+                    and result['ps_id']
+                    and len(product_tmpl.product_variant_ids) > 1):
+                self._export_product_variants(product_tmpl, result['ps_id'])
+
+            # Handle images
+            if self.export_images and product_tmpl.image_1920 and result['ps_id']:
+                self._export_product_images(product_tmpl, result['ps_id'])
+
+            result['success'] = True
+
+            # Log
+            duration = int((time.time() - start) * 1000)
+            self.env['prestashop.export.log'].create({
+                'instance_id': self.id,
+                'product_tmpl_id': product_tmpl.id,
+                'operation': result['operation'],
+                'ps_product_id': result['ps_id'],
+                'success': True,
+                'request_xml': xml,
+                'duration_ms': duration,
+            })
+
+        except Exception as exc:
+            result['error'] = str(exc)
+            product_tmpl.write({
+                'ps_export_state': 'error',
+                'ps_export_error': str(exc)[:500],
+            })
+            self.env['prestashop.export.log'].create({
+                'instance_id': self.id,
+                'product_tmpl_id': product_tmpl.id,
+                'operation': 'error',
+                'ps_product_id': result.get('ps_id') or product_tmpl.prestashop_id or '',
+                'success': False,
+                'error_message': str(exc),
+                'request_xml': result.get('xml') or '',
+            })
+            _logger.error("Export failed for product %s: %s", product_tmpl.name, exc)
+
+        return result
+
+    # =============================================
+    # EXPORT: Batch Export (Background Thread)
+    # =============================================
+
+    def _export_products_background(self, product_ids):
+        """Run product export in a background daemon thread.
+
+        Mirrors the existing _import_previews_background() pattern.
+        """
+        self.ensure_one()
+        db_name = self.env.cr.dbname
+        uid = self.env.uid
+        instance_id = self.id
+
+        self.export_running = True
+        self.env.cr.commit()
+
+        def _run():
+            try:
+                db_registry = odoo.registry(db_name)
+                with db_registry.cursor() as cr:
+                    env = odoo.api.Environment(cr, uid, {})
+                    instance = env['prestashop.instance'].browse(instance_id)
+                    products = env['product.template'].browse(product_ids).exists()
+
+                    total = len(products)
+                    created = updated = errors = 0
+
+                    for idx, product in enumerate(products, 1):
+                        try:
+                            env['bus.bus']._sendone(
+                                env.user.partner_id,
+                                'simple_notification',
+                                {
+                                    'title': 'Export %d/%d' % (idx, total),
+                                    'message': product.name or '',
+                                    'type': 'info',
+                                    'sticky': False,
+                                },
+                            )
+                            cr.commit()
+
+                            result = instance._export_single_product(product)
+
+                            if result['success']:
+                                if result['operation'] == 'create':
+                                    created += 1
+                                else:
+                                    updated += 1
+                                env['bus.bus']._sendone(
+                                    env.user.partner_id,
+                                    'simple_notification',
+                                    {
+                                        'title': '%s %d/%d' % (
+                                            'Created' if result['operation'] == 'create' else 'Updated',
+                                            idx, total,
+                                        ),
+                                        'message': product.name,
+                                        'type': 'success',
+                                        'sticky': False,
+                                    },
+                                )
+                            else:
+                                errors += 1
+
+                            cr.commit()
+
+                        except Exception as exc:
+                            errors += 1
+                            _logger.error("BG export error %s: %s", product.name, exc)
+                            cr.rollback()
+
+                    instance.write({
+                        'last_product_export_date': fields.Datetime.now(),
+                        'export_running': False,
+                    })
+                    cr.commit()
+
+                    env['bus.bus']._sendone(
+                        env.user.partner_id,
+                        'simple_notification',
+                        {
+                            'title': 'Export Complete!',
+                            'message': 'Created: %d | Updated: %d | Errors: %d' % (
+                                created, updated, errors,
+                            ),
+                            'type': 'success' if not errors else 'warning',
+                            'sticky': True,
+                        },
+                    )
+                    cr.commit()
+
+            except Exception as exc:
+                _logger.error("Background export thread failed: %s", exc)
+                try:
+                    db_registry = odoo.registry(db_name)
+                    with db_registry.cursor() as cr:
+                        env = odoo.api.Environment(cr, uid, {})
+                        env['prestashop.instance'].browse(instance_id).export_running = False
+                        cr.commit()
+                except Exception:
+                    pass
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+
+    # =============================================
+    # EXPORT: Variant / Combination Support
+    # =============================================
+
+    def _export_product_variants(self, product_tmpl, ps_product_id):
+        """Export Odoo variants as PrestaShop combinations."""
+        existing_map = {}
+        if product_tmpl.ps_combination_ids_json:
+            try:
+                existing_map = json.loads(product_tmpl.ps_combination_ids_json)
+            except (ValueError, TypeError):
+                pass
+
+        variants = product_tmpl.product_variant_ids
+        if len(variants) <= 1:
+            return
+
+        for variant in variants:
+            variant_id_str = str(variant.id)
+            ps_combo_id = existing_map.get(variant_id_str)
+
+            xml = self._build_combination_xml(variant, ps_product_id, ps_combo_id)
+
+            try:
+                if ps_combo_id:
+                    self._api_put('combinations', ps_combo_id, xml)
+                    op = 'variant_update'
+                else:
+                    resp = self._api_post('combinations', xml)
+                    new_combo_id = resp.get('id', '')
+                    existing_map[variant_id_str] = new_combo_id
+                    ps_combo_id = new_combo_id
+                    op = 'variant_create'
+
+                self.env['prestashop.export.log'].create({
+                    'instance_id': self.id,
+                    'product_tmpl_id': product_tmpl.id,
+                    'product_product_id': variant.id,
+                    'operation': op,
+                    'ps_product_id': ps_product_id,
+                    'ps_combination_id': ps_combo_id,
+                    'success': True,
+                })
+            except Exception as exc:
+                _logger.error(
+                    "Variant export failed for %s (variant %s): %s",
+                    product_tmpl.name, variant.display_name, exc,
+                )
+
+        product_tmpl.ps_combination_ids_json = json.dumps(existing_map)
+
+    def _build_combination_xml(self, variant, ps_product_id, ps_combo_id=None):
+        """Build XML for a PrestaShop combination."""
+        parts = ['<?xml version="1.0" encoding="UTF-8"?>']
+        parts.append('<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">')
+        parts.append('<combination>')
+
+        if ps_combo_id:
+            parts.append('<id>%s</id>' % ps_combo_id)
+
+        parts.append('<id_product>%s</id_product>' % ps_product_id)
+
+        # Price impact (variant - template)
+        price_impact = (variant.lst_price or 0.0) - (variant.product_tmpl_id.list_price or 0.0)
+        parts.append('<price>%.6f</price>' % price_impact)
+
+        # Weight impact
+        weight_impact = (variant.weight or 0.0) - (variant.product_tmpl_id.weight or 0.0)
+        parts.append('<weight>%.6f</weight>' % weight_impact)
+
+        ref = saxutils.escape(variant.default_code or '')
+        parts.append('<reference><![CDATA[%s]]></reference>' % ref)
+
+        ean = variant.barcode or ''
+        parts.append('<ean13>%s</ean13>' % saxutils.escape(ean))
+
+        # Minimal quantity
+        parts.append('<minimal_quantity>1</minimal_quantity>')
+
+        # Attribute values (associations)
+        attr_values = variant.product_template_attribute_value_ids
+        if attr_values:
+            parts.append('<associations>')
+            parts.append('<product_option_values>')
+            for ptav in attr_values:
+                ps_option_value_id = self._ensure_ps_option_value(ptav)
+                if ps_option_value_id:
+                    parts.append(
+                        '<product_option_value><id>%s</id></product_option_value>'
+                        % ps_option_value_id
+                    )
+            parts.append('</product_option_values>')
+            parts.append('</associations>')
+
+        parts.append('</combination>')
+        parts.append('</prestashop>')
+        return '\n'.join(parts)
+
+    def _ensure_ps_option_value(self, ptav):
+        """Ensure a product.template.attribute.value exists in PrestaShop.
+
+        Returns PS product_option_value ID or None.
+        """
+        attr_value = ptav.product_attribute_value_id
+        attribute = attr_value.attribute_id
+
+        ps_option_id = self._find_or_create_ps_option(attribute)
+        if not ps_option_id:
+            return None
+
+        ps_option_value_id = self._find_or_create_ps_option_value(
+            attr_value, ps_option_id,
+        )
+        return ps_option_value_id
+
+    def _find_or_create_ps_option(self, attribute):
+        """Find or create a product_option (attribute) in PrestaShop."""
+        name = attribute.name
+        try:
+            data = self._api_get_long('product_options', params={
+                'filter[name]': name,
+                'display': '[id,name]',
+            }, timeout=15)
+            options = data.get('product_options', [])
+            if isinstance(options, dict):
+                options = [options]
+            for opt in options:
+                opt_name = self._get_ps_text(opt.get('name', ''))
+                if opt_name == name:
+                    return str(opt.get('id', ''))
+        except Exception:
+            pass
+
+        # Create new
+        lang_id = self.export_default_ps_lang_id or 1
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+            '<product_option>\n'
+            '%s\n'
+            '%s\n'
+            '<group_type>select</group_type>\n'
+            '</product_option>\n'
+            '</prestashop>'
+        ) % (
+            self._build_ps_language_xml(name, 'name', lang_id),
+            self._build_ps_language_xml(name, 'public_name', lang_id),
+        )
+        try:
+            resp = self._api_post('product_options', xml)
+            return resp.get('id', '')
+        except Exception as exc:
+            _logger.error("Failed to create PS option '%s': %s", name, exc)
+            return None
+
+    def _find_or_create_ps_option_value(self, attr_value, ps_option_id):
+        """Find or create a product_option_value in PrestaShop."""
+        name = attr_value.name
+        try:
+            data = self._api_get_long('product_option_values', params={
+                'filter[id_attribute_group]': ps_option_id,
+                'display': '[id,name]',
+            }, timeout=15)
+            values = data.get('product_option_values', [])
+            if isinstance(values, dict):
+                values = [values]
+            for val in values:
+                val_name = self._get_ps_text(val.get('name', ''))
+                if val_name == name:
+                    return str(val.get('id', ''))
+        except Exception:
+            pass
+
+        # Create new
+        lang_id = self.export_default_ps_lang_id or 1
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+            '<product_option_value>\n'
+            '<id_attribute_group>%s</id_attribute_group>\n'
+            '%s\n'
+            '</product_option_value>\n'
+            '</prestashop>'
+        ) % (
+            ps_option_id,
+            self._build_ps_language_xml(name, 'name', lang_id),
+        )
+        try:
+            resp = self._api_post('product_option_values', xml)
+            return resp.get('id', '')
+        except Exception as exc:
+            _logger.error("Failed to create PS option value '%s': %s", name, exc)
+            return None
+
+    # =============================================
+    # EXPORT: Stock Sync
+    # =============================================
+
+    def _compute_ps_stock_qty(self, product_tmpl, variant=None):
+        """Compute stock quantity to push to PrestaShop.
+
+        Uses per-product stock location if set, else instance warehouse.
+        """
+        product = variant or product_tmpl.product_variant_id
+        if not product:
+            return 0
+
+        location = product_tmpl.ps_stock_location_id
+        if not location:
+            warehouse = self.warehouse_id
+            location = warehouse.lot_stock_id if warehouse else None
+
+        if not location:
+            return 0
+
+        quants = self.env['stock.quant'].search([
+            ('product_id', '=', product.id),
+            ('location_id', 'child_of', location.id),
+        ])
+        qty = sum(q.quantity - q.reserved_quantity for q in quants)
+        return max(int(qty), 0)
+
+    def _push_stock_to_ps(self, product_tmpl):
+        """Push stock quantity for a product (and its variants) to PrestaShop."""
+        self.ensure_one()
+        ps_id = product_tmpl.prestashop_id
+        if not ps_id:
+            return
+
+        variants = product_tmpl.product_variant_ids
+        combo_map = {}
+        if product_tmpl.ps_combination_ids_json:
+            try:
+                combo_map = json.loads(product_tmpl.ps_combination_ids_json)
+            except (ValueError, TypeError):
+                pass
+
+        if len(variants) <= 1 or not combo_map:
+            qty = self._compute_ps_stock_qty(product_tmpl)
+            self._update_ps_stock_available(ps_id, '0', qty, product_tmpl)
+        else:
+            for variant in variants:
+                ps_combo_id = combo_map.get(str(variant.id))
+                if ps_combo_id:
+                    qty = self._compute_ps_stock_qty(product_tmpl, variant)
+                    self._update_ps_stock_available(ps_id, ps_combo_id, qty, product_tmpl)
+
+    def _update_ps_stock_available(self, ps_product_id, ps_attribute_id, quantity,
+                                   product_tmpl=None):
+        """Update a stock_available record in PrestaShop."""
+        # Find the stock_available ID
+        try:
+            data = self._api_get_long(
+                'stock_availables', params={
+                    'filter[id_product]': str(ps_product_id),
+                    'filter[id_product_attribute]': str(ps_attribute_id),
+                    'display': '[id,quantity]',
+                }, timeout=30,
+            )
+        except Exception as exc:
+            _logger.warning("Stock available lookup failed for PS-%s: %s", ps_product_id, exc)
+            return
+
+        stocks = data.get('stock_availables', [])
+        if isinstance(stocks, dict):
+            stocks = [stocks]
+
+        if not stocks:
+            _logger.warning(
+                "No stock_available found for PS product %s, attribute %s",
+                ps_product_id, ps_attribute_id,
+            )
+            return
+
+        stock_id = stocks[0].get('id')
+        if not stock_id:
+            return
+
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+            '<stock_available>\n'
+            '<id>%s</id>\n'
+            '<id_product>%s</id_product>\n'
+            '<id_product_attribute>%s</id_product_attribute>\n'
+            '<quantity>%d</quantity>\n'
+            '</stock_available>\n'
+            '</prestashop>'
+        ) % (stock_id, ps_product_id, ps_attribute_id, int(quantity))
+
+        self._api_put('stock_availables', stock_id, xml)
+
+        self.env['prestashop.export.log'].create({
+            'instance_id': self.id,
+            'product_tmpl_id': product_tmpl.id if product_tmpl else False,
+            'operation': 'stock',
+            'ps_product_id': ps_product_id,
+            'ps_combination_id': ps_attribute_id if ps_attribute_id != '0' else False,
+            'success': True,
+            'request_xml': xml,
+        })
+
+        _logger.info(
+            "Stock updated in PS: product %s, attribute %s, qty %d",
+            ps_product_id, ps_attribute_id, quantity,
+        )
+
+    # =============================================
+    # EXPORT: Price Sync
+    # =============================================
+
+    def _push_price_to_ps(self, product_tmpl):
+        """Push price update to PrestaShop for a single product."""
+        self.ensure_one()
+        ps_id = product_tmpl.prestashop_id
+        if not ps_id:
+            return
+
+        price = self._get_export_price(product_tmpl)
+        lang_id = self.export_default_ps_lang_id or 1
+
+        # PS requires name and link_rewrite for PUT even when only updating price
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+            '<product>\n'
+            '<id>%s</id>\n'
+            '<price>%.6f</price>\n'
+            '<wholesale_price>%.6f</wholesale_price>\n'
+            '%s\n'
+            '%s\n'
+            '</product>\n'
+            '</prestashop>'
+        ) % (
+            ps_id,
+            price,
+            product_tmpl.standard_price or 0.0,
+            self._build_ps_language_xml(product_tmpl.name or '', 'name', lang_id),
+            self._build_ps_language_xml(
+                self._slugify(product_tmpl.name or 'product'), 'link_rewrite', lang_id,
+            ),
+        )
+
+        self._api_put('products', ps_id, xml)
+
+        self.env['prestashop.export.log'].create({
+            'instance_id': self.id,
+            'product_tmpl_id': product_tmpl.id,
+            'operation': 'price',
+            'ps_product_id': ps_id,
+            'success': True,
+            'request_xml': xml,
+            'field_changes': json.dumps({'price': price}),
+        })
+
+    # =============================================
+    # EXPORT: Category Export
+    # =============================================
+
+    def _get_or_create_ps_category(self, odoo_category):
+        """Ensure an Odoo product.category exists in PrestaShop.
+
+        Returns PS category ID string, or None.
+        """
+        if not odoo_category:
+            return None
+
+        # Already mapped?
+        if odoo_category.prestashop_id and odoo_category.prestashop_instance_id == self:
+            return odoo_category.prestashop_id
+
+        # Search PS by name
+        name = odoo_category.name
+        try:
+            data = self._api_get_long('categories', params={
+                'filter[name]': name,
+                'display': '[id,name]',
+            }, timeout=15)
+            cats = data.get('categories', [])
+            if isinstance(cats, dict):
+                cats = [cats]
+            for cat in cats:
+                cat_name = self._get_ps_text(cat.get('name', ''))
+                if cat_name == name:
+                    ps_cat_id = str(cat.get('id', ''))
+                    odoo_category.write({
+                        'prestashop_id': ps_cat_id,
+                        'prestashop_instance_id': self.id,
+                    })
+                    return ps_cat_id
+        except Exception:
+            pass
+
+        # Create new category in PS
+        lang_id = self.export_default_ps_lang_id or 1
+        parent_ps_id = '2'  # PS "Home" category
+        if odoo_category.parent_id:
+            parent_ps_id = self._get_or_create_ps_category(odoo_category.parent_id) or '2'
+
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+            '<category>\n'
+            '%s\n'
+            '<id_parent>%s</id_parent>\n'
+            '<active>1</active>\n'
+            '%s\n'
+            '</category>\n'
+            '</prestashop>'
+        ) % (
+            self._build_ps_language_xml(name, 'name', lang_id),
+            parent_ps_id,
+            self._build_ps_language_xml(self._slugify(name), 'link_rewrite', lang_id),
+        )
+
+        try:
+            resp = self._api_post('categories', xml)
+            new_id = resp.get('id', '')
+            odoo_category.write({
+                'prestashop_id': new_id,
+                'prestashop_instance_id': self.id,
+            })
+            self.env['prestashop.export.log'].create({
+                'instance_id': self.id,
+                'operation': 'category',
+                'ps_product_id': new_id,
+                'success': True,
+                'request_xml': xml,
+            })
+            return new_id
+        except Exception as exc:
+            _logger.error("Failed to create PS category '%s': %s", name, exc)
+            return None
+
+    # =============================================
+    # EXPORT: Image Export
+    # =============================================
+
+    def _export_product_images(self, product_tmpl, ps_product_id):
+        """Export product images to PrestaShop via multipart upload."""
+        if not product_tmpl.image_1920:
+            return
+
+        base_url = self._get_base_url()
+        url = f"{base_url}/images/products/{ps_product_id}"
+
+        image_data = base64.b64decode(product_tmpl.image_1920)
+
+        files = {
+            'image': ('product.jpg', image_data, 'image/jpeg'),
+        }
+
+        try:
+            resp = requests.post(
+                url,
+                auth=(self.api_key, ''),
+                files=files,
+                timeout=60,
+            )
+            if resp.status_code in (200, 201):
+                _logger.info("Image exported for PS product %s", ps_product_id)
+                self.env['prestashop.export.log'].create({
+                    'instance_id': self.id,
+                    'product_tmpl_id': product_tmpl.id,
+                    'operation': 'image',
+                    'ps_product_id': ps_product_id,
+                    'success': True,
+                })
+            else:
+                _logger.warning(
+                    "Image export failed for PS-%s: status %s",
+                    ps_product_id, resp.status_code,
+                )
+        except Exception as exc:
+            _logger.error("Image export error for PS-%s: %s", ps_product_id, exc)
+
+    # =============================================
+    # EXPORT: Conflict Detection
+    # =============================================
+
+    def _detect_export_conflicts(self, product_tmpl):
+        """Detect if a product was modified on both Odoo and PrestaShop.
+
+        Returns: 'no_conflict', 'ps_newer', 'odoo_newer', 'both_modified'
+        """
+        if not product_tmpl.prestashop_id:
+            return 'no_conflict'
+        try:
+            ps_data = self._fetch_single_product_full(product_tmpl.prestashop_id)
+            ps_date_upd = ps_data.get('date_upd', '')
+            if ps_date_upd:
+                from datetime import datetime as dt
+                ps_modified = dt.strptime(ps_date_upd, '%Y-%m-%d %H:%M:%S')
+                last_export = product_tmpl.ps_last_export
+                if last_export and ps_modified > last_export.replace(tzinfo=None):
+                    if product_tmpl.ps_export_state == 'modified':
+                        return 'both_modified'
+                    return 'ps_newer'
+                if product_tmpl.ps_export_state == 'modified':
+                    return 'odoo_newer'
+        except Exception:
+            pass
+        return 'no_conflict'
+
+    # =============================================
+    # EXPORT: Cron Jobs
+    # =============================================
+
+    @api.model
+    def _cron_export_products(self):
+        """Cron: export new/modified products for instances with export enabled."""
+        for instance in self.search([
+            ('active', '=', True),
+            ('export_sync_mode', '!=', 'disabled'),
+        ]):
+            products = self.env['product.template'].search([
+                ('ps_export_enabled', '=', True),
+                ('ps_export_state', 'in', ('not_exported', 'modified')),
+                '|',
+                ('prestashop_instance_id', '=', instance.id),
+                ('prestashop_instance_id', '=', False),
+            ])
+            if products:
+                instance._export_products_background(products.ids)
+
+    @api.model
+    def _cron_push_stock(self):
+        """Cron: push stock for all export-enabled products."""
+        for instance in self.search([
+            ('active', '=', True),
+            ('stock_sync_mode', '!=', 'disabled'),
+        ]):
+            products = self.env['product.template'].search([
+                ('prestashop_instance_id', '=', instance.id),
+                ('ps_export_enabled', '=', True),
+                ('prestashop_id', '!=', False),
+            ])
+            for product in products:
+                try:
+                    instance._push_stock_to_ps(product)
+                except Exception as exc:
+                    _logger.error("Stock push failed for %s: %s", product.name, exc)
+            instance.last_stock_export_date = fields.Datetime.now()
+
+    @api.model
+    def _cron_push_prices(self):
+        """Cron: push prices for export-enabled products."""
+        for instance in self.search([
+            ('active', '=', True),
+            ('price_sync_mode', '!=', 'disabled'),
+        ]):
+            products = self.env['product.template'].search([
+                ('prestashop_instance_id', '=', instance.id),
+                ('ps_export_enabled', '=', True),
+                ('prestashop_id', '!=', False),
+            ])
+            for product in products:
+                try:
+                    instance._push_price_to_ps(product)
+                except Exception as exc:
+                    _logger.error("Price push failed for %s: %s", product.name, exc)
+            instance.last_price_export_date = fields.Datetime.now()
+
+    @api.model
+    def _cron_process_export_queue(self):
+        """Process pending items in the export queue with retry logic."""
+        queued = self.env['prestashop.export.queue'].search([
+            ('state', '=', 'pending'),
+            ('retry_count', '<', 3),
+            '|',
+            ('scheduled_date', '=', False),
+            ('scheduled_date', '<=', fields.Datetime.now()),
+        ], limit=50, order='priority desc, create_date asc')
+
+        for item in queued:
+            try:
+                item.state = 'processing'
+                item.env.cr.commit()
+
+                instance = item.instance_id
+                product = item.product_tmpl_id
+
+                if item.operation in ('create', 'update'):
+                    result = instance._export_single_product(product)
+                elif item.operation == 'price':
+                    instance._push_price_to_ps(product)
+                    result = {'success': True}
+                elif item.operation == 'stock':
+                    instance._push_stock_to_ps(product)
+                    result = {'success': True}
+                elif item.operation == 'variant':
+                    if product.prestashop_id:
+                        instance._export_product_variants(product, product.prestashop_id)
+                    result = {'success': True}
+                else:
+                    result = {'success': False, 'error': 'Unknown operation'}
+
+                if result.get('success'):
+                    item.write({
+                        'state': 'done',
+                        'executed_date': fields.Datetime.now(),
+                        'result_ps_id': result.get('ps_id', ''),
+                    })
+                else:
+                    item.write({
+                        'state': 'error',
+                        'error_message': result.get('error', 'Unknown error'),
+                        'retry_count': item.retry_count + 1,
+                    })
+
+                item.env.cr.commit()
+
+            except Exception as exc:
+                item.write({
+                    'state': 'error' if item.retry_count >= 2 else 'pending',
+                    'error_message': str(exc)[:500],
+                    'retry_count': item.retry_count + 1,
+                })
+                item.env.cr.commit()

@@ -128,11 +128,12 @@
                                 confirm="Delete all preview records for this instance?"/>
                     </div>
                 </page>
-                <page name="field_mapping" string="Field Mapping (PS → Odoo)">
+                <page name="field_mapping" string="Field Mapping">
                     <div class="alert alert-info" role="alert">
-                        <strong>Mapping PrestaShop → Odoo:</strong>
-                        This table shows how each PrestaShop field maps to an Odoo field.
-                        Toggle <em>Active</em> to enable/disable specific fields during import.
+                        <strong>Mapping PrestaShop &#8596; Odoo:</strong>
+                        This table shows how each field maps between PrestaShop and Odoo.
+                        Toggle <em>Active</em> for import, <em>Export</em> for export,
+                        and set the <em>Direction</em> to control sync behavior.
                     </div>
                     <div class="mb-2">
                         <button name="action_generate_mappings"
@@ -144,7 +145,9 @@
                     <field name="mapping_ids">
                         <list editable="bottom" default_order="sequence">
                             <field name="sequence" widget="handle"/>
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle" string="Import"/>
+                            <field name="export_active" widget="boolean_toggle" string="Export"/>
+                            <field name="direction" string="Direction"/>
                             <field name="ps_field_label" string="PrestaShop Field"/>
                             <field name="ps_field_name" string="PS Key (technical)"
                                    column_invisible="1"/>
@@ -159,6 +162,45 @@
                             <field name="notes" string="Notes" optional="show"/>
                         </list>
                     </field>
+                </page>
+                <page name="export_config" string="Export Configuration">
+                    <group>
+                        <group string="Export Settings">
+                            <field name="export_enabled"/>
+                            <field name="export_sync_mode"/>
+                            <field name="export_default_ps_lang_id"/>
+                            <field name="export_default_active"/>
+                            <field name="export_images"/>
+                            <field name="export_categories"/>
+                            <field name="export_variants"/>
+                        </group>
+                        <group string="Automated Push">
+                            <field name="stock_sync_mode"/>
+                            <field name="price_sync_mode"/>
+                            <field name="last_product_export_date" readonly="1"/>
+                            <field name="last_stock_export_date" readonly="1"/>
+                            <field name="last_price_export_date" readonly="1"/>
+                            <field name="export_running" readonly="1" widget="boolean"/>
+                        </group>
+                    </group>
+                    <group string="Export Queue" invisible="export_queue_count == 0">
+                        <field name="export_queue_count" readonly="1"/>
+                        <field name="export_queue_ids" readonly="1" nolabel="1" colspan="2">
+                            <list create="false" edit="false"
+                                  default_order="priority desc, create_date asc"
+                                  decoration-danger="state == 'error'"
+                                  decoration-success="state == 'done'"
+                                  decoration-info="state == 'processing'"
+                                  decoration-warning="state == 'pending'">
+                                <field name="product_tmpl_id"/>
+                                <field name="operation" widget="badge"/>
+                                <field name="state" widget="badge"/>
+                                <field name="priority"/>
+                                <field name="retry_count"/>
+                                <field name="create_date"/>
+                            </list>
+                        </field>
+                    </group>
                 </page>
                 <page name="products" string="Synced Products">
                     <field name="product_ids" readonly="1">

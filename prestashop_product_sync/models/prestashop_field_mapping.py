@@ -51,6 +51,16 @@ class PrestaShopFieldMapping(models.Model):
         ('stock', 'Stock'),
     ], string='Type', default='text')
     active = fields.Boolean('Active', default=True)
+    direction = fields.Selection([
+        ('import', 'Import Only (PS → Odoo)'),
+        ('export', 'Export Only (Odoo → PS)'),
+        ('both', 'Bidirectional'),
+    ], default='both', string='Direction',
+        help="Controls whether this mapping is used during import, export, or both.",
+    )
+    export_active = fields.Boolean('Export Active', default=True,
+        help="Whether this field is included in exports to PrestaShop.",
+    )
     notes = fields.Char('Notes')
 
     def name_get(self):

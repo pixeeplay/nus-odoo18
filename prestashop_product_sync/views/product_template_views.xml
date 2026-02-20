@@ -10,14 +10,41 @@
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page name="prestashop" string="PrestaShop" invisible="not prestashop_id">
-                    <div class="mb-3" invisible="not prestashop_id">
+                <page name="prestashop" string="PrestaShop">
+                    <div class="mb-3">
                         <button name="action_open_reimport_wizard"
                                 string="Re-sync from PrestaShop"
                                 type="object"
-                                class="btn-primary"
-                                icon="fa-refresh"/>
+                                class="btn-primary me-2"
+                                icon="fa-refresh"
+                                invisible="not prestashop_id"/>
+                        <button name="action_export_to_prestashop"
+                                string="Export to PrestaShop"
+                                type="object"
+                                class="btn-success me-2"
+                                icon="fa-upload"/>
                     </div>
+                    <!-- Export Configuration -->
+                    <group string="Export to PrestaShop">
+                        <group>
+                            <field name="ps_export_enabled"/>
+                            <field name="ps_export_state" readonly="1" widget="badge"
+                                   decoration-success="ps_export_state == 'exported'"
+                                   decoration-warning="ps_export_state == 'modified'"
+                                   decoration-danger="ps_export_state == 'error'"
+                                   decoration-muted="ps_export_state == 'not_exported'"/>
+                            <field name="ps_last_export" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="ps_stock_location_id"/>
+                            <field name="ps_export_price_type"/>
+                            <field name="ps_export_pricelist_id"
+                                   invisible="ps_export_price_type != 'pricelist'"/>
+                        </group>
+                    </group>
+                    <group string="Export Error" invisible="not ps_export_error">
+                        <field name="ps_export_error" readonly="1" nolabel="1" colspan="2"/>
+                    </group>
                     <group>
                         <group string="PrestaShop Info">
                             <field name="prestashop_id" readonly="1"/>
@@ -62,6 +89,12 @@
                 <field name="prestashop_id" string="PS ID" optional="hide"/>
                 <field name="prestashop_active" string="Active PS" optional="hide"/>
                 <field name="prestashop_manufacturer" string="PS Manufacturer" optional="hide"/>
+                <field name="ps_export_enabled" string="PS Export" widget="boolean" optional="hide"/>
+                <field name="ps_export_state" string="Export Status" widget="badge" optional="hide"
+                       decoration-success="ps_export_state == 'exported'"
+                       decoration-warning="ps_export_state == 'modified'"
+                       decoration-danger="ps_export_state == 'error'"
+                       decoration-muted="ps_export_state == 'not_exported'"/>
             </xpath>
         </field>
     </record>
@@ -84,6 +117,16 @@
                 <filter name="filter_prestashop_inactive"
                         string="Inactive in PS"
                         domain="[('prestashop_active', '=', False), ('prestashop_instance_id', '!=', False)]"/>
+                <separator/>
+                <filter name="filter_export_enabled"
+                        string="Export Enabled"
+                        domain="[('ps_export_enabled', '=', True)]"/>
+                <filter name="filter_export_modified"
+                        string="Modified (needs re-export)"
+                        domain="[('ps_export_state', '=', 'modified')]"/>
+                <filter name="filter_export_errors"
+                        string="Export Errors"
+                        domain="[('ps_export_state', '=', 'error')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_by_instance"
                             string="PS Instance"
