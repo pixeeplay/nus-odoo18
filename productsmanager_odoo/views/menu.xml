@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Top-level menu -->
+    <menuitem id="menu_pm_root"
+              name="Products Manager"
+              web_icon="productsmanager_odoo,static/description/icon.png"
+              sequence="45"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_pm_dashboard"
+              name="Dashboard"
+              parent="menu_pm_root"
+              action="action_pm_dashboard_config"
+              sequence="10"/>
+
+    <!-- Search & Import -->
+    <menuitem id="menu_pm_search"
+              name="Search &amp; Import"
+              parent="menu_pm_root"
+              action="action_pm_import_wizard"
+              sequence="20"/>
+
+    <!-- Imported Products -->
+    <record id="action_pm_imported_products" model="ir.actions.act_window">
+        <field name="name">Imported Products</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('pm_external_id', '!=', False)]</field>
+        <field name="context">{'search_default_pm_imported': 1}</field>
+    </record>
+
+    <menuitem id="menu_pm_imported_products"
+              name="Imported Products"
+              parent="menu_pm_root"
+              action="action_pm_imported_products"
+              sequence="30"/>
+
+    <!-- Configuration submenu -->
+    <menuitem id="menu_pm_config_parent"
+              name="Configuration"
+              parent="menu_pm_root"
+              sequence="90"/>
+
+    <menuitem id="menu_pm_config"
+              name="API Configuration"
+              parent="menu_pm_config_parent"
+              action="action_pm_config"
+              sequence="10"/>
+
+    <menuitem id="menu_pm_field_mapping"
+              name="Field Mapping"
+              parent="menu_pm_config_parent"
+              action="action_pm_field_mapping"
+              sequence="20"/>
+
+    <!-- Logs -->
+    <menuitem id="menu_pm_logs"
+              name="Sync Logs"
+              parent="menu_pm_root"
+              action="action_pm_sync_log"
+              sequence="80"/>
+
+</odoo>

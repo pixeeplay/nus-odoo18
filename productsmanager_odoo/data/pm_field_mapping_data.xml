@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Default field mappings will be created when a config is first set up -->
+        <!-- Users can customize via Products Manager > Field Mapping -->
+
+    </data>
+</odoo>

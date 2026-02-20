@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Import Wizard Form View -->
+    <record id="pm_import_wizard_view_form" model="ir.ui.view">
+        <field name="name">pm.import.wizard.form</field>
+        <field name="model">pm.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Search &amp; Import Products">
+                <header>
+                    <button name="action_search"
+                            string="Search"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-search"/>
+                    <button name="action_import_selected"
+                            string="Import Selected"
+                            type="object"
+                            class="btn-success"
+                            icon="fa-download"
+                            invisible="not line_ids"/>
+                    <button name="action_select_all"
+                            string="Select All"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-check-square-o"
+                            invisible="not line_ids"/>
+                    <button name="action_deselect_all"
+                            string="Deselect All"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-square-o"
+                            invisible="not line_ids"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="search_query" placeholder="Search products (name, EAN, brand...)"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="config_id"/>
+                        </group>
+                        <group>
+                            <div class="d-flex gap-4" invisible="not line_ids">
+                                <div>
+                                    <strong>Total: </strong>
+                                    <field name="result_count" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <strong class="text-primary">PM: </strong>
+                                    <field name="pm_count" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <strong class="text-info">Odoo: </strong>
+                                    <field name="odoo_count" class="oe_inline"/>
+                                </div>
+                            </div>
+                        </group>
+                    </group>
+                    <field name="line_ids" nolabel="1"
+                           invisible="not line_ids">
+                        <list decoration-info="source == 'odoo'"
+                              decoration-bf="source == 'pm' and not already_imported"
+                              decoration-muted="already_imported"
+                              editable="bottom"
+                              create="0" delete="0">
+                            <field name="selected" readonly="source == 'odoo' or already_imported"
+                                   optional="show"/>
+                            <field name="source" widget="badge"
+                                   decoration-info="source == 'odoo'"
+                                   decoration-success="source == 'pm'"/>
+                            <field name="name" readonly="True"/>
+                            <field name="brand" readonly="True" optional="show"/>
+                            <field name="barcode" readonly="True"/>
+                            <field name="best_price" readonly="True" string="Best Price"
+                                   widget="monetary"/>
+                            <field name="best_supplier" readonly="True"/>
+                            <field name="supplier_1_name" readonly="True" string="Supplier 1"/>
+                            <field name="supplier_1_price" readonly="True" string="Price 1"
+                                   widget="monetary"/>
+                            <field name="supplier_1_stock" readonly="True" string="Stock 1"/>
+                            <field name="supplier_2_name" readonly="True" string="Supplier 2"
+                                   optional="show"/>
+                            <field name="supplier_2_price" readonly="True" string="Price 2"
+                                   widget="monetary" optional="show"/>
+                            <field name="supplier_2_stock" readonly="True" string="Stock 2"
+                                   optional="show"/>
+                            <field name="supplier_3_name" readonly="True" string="Supplier 3"
+                                   optional="hide"/>
+                            <field name="supplier_3_price" readonly="True" string="Price 3"
+                                   widget="monetary" optional="hide"/>
+                            <field name="supplier_3_stock" readonly="True" string="Stock 3"
+                                   optional="hide"/>
+                            <field name="total_stock" readonly="True" string="Total Stock"/>
+                            <field name="already_imported" readonly="True" widget="boolean"
+                                   string="Imported"/>
+                            <field name="pm_id" column_invisible="True"/>
+                            <field name="odoo_product_id" column_invisible="True"/>
+                            <field name="supplier_data_json" column_invisible="True"/>
+                        </list>
+                    </field>
+                    <div invisible="line_ids" class="text-center text-muted py-5">
+                        <h3>Search for products</h3>
+                        <p>Enter a search query above and click "Search" to find products from both Odoo and Products Manager.</p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Import Wizard Action -->
+    <record id="action_pm_import_wizard" model="ir.actions.act_window">
+        <field name="name">Search &amp; Import</field>
+        <field name="res_model">pm.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

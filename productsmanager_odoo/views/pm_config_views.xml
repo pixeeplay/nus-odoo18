@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Config Form View -->
+    <record id="pm_config_view_form" model="ir.ui.view">
+        <field name="name">pm.config.form</field>
+        <field name="model">pm.config</field>
+        <field name="arch" type="xml">
+            <form string="Products Manager Configuration">
+                <header>
+                    <button name="action_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-plug"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,connected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Configuration Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="API Connection">
+                            <field name="base_url"/>
+                            <field name="email"/>
+                            <field name="password" password="True"/>
+                        </group>
+                        <group string="Sync Settings">
+                            <field name="auto_sync"/>
+                            <field name="sync_interval"
+                                   invisible="not auto_sync"/>
+                            <field name="last_sync_date"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Token Info" invisible="not access_token">
+                        <field name="access_token" readonly="True"/>
+                        <field name="token_expiry"/>
+                    </group>
+                    <group string="Error" invisible="not last_error">
+                        <field name="last_error" readonly="True"/>
+                    </group>
+                    <notebook>
+                        <page string="Field Mapping" name="mapping">
+                            <field name="id" invisible="True"/>
+                            <button name="%(productsmanager_odoo.action_pm_field_mapping)d"
+                                    string="Configure Field Mapping"
+                                    type="action"
+                                    class="btn-link"
+                                    icon="fa-cogs"
+                                    context="{'default_config_id': id, 'search_default_config_id': id}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Config List View -->
+    <record id="pm_config_view_list" model="ir.ui.view">
+        <field name="name">pm.config.list</field>
+        <field name="model">pm.config</field>
+        <field name="arch" type="xml">
+            <list string="Products Manager Configurations">
+                <field name="name"/>
+                <field name="base_url"/>
+                <field name="email"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'connected'"
+                       decoration-danger="state == 'error'"
+                       decoration-info="state == 'draft'"/>
+                <field name="last_sync_date"/>
+                <field name="auto_sync"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Config Action -->
+    <record id="action_pm_config" model="ir.actions.act_window">
+        <field name="name">Configuration</field>
+        <field name="res_model">pm.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

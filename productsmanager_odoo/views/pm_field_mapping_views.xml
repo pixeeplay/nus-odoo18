@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Field Mapping List View -->
+    <record id="pm_field_mapping_view_list" model="ir.ui.view">
+        <field name="name">pm.field.mapping.list</field>
+        <field name="model">pm.field.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Field Mappings" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="config_id"/>
+                <field name="pm_field"/>
+                <field name="odoo_field"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Field Mapping Form View -->
+    <record id="pm_field_mapping_view_form" model="ir.ui.view">
+        <field name="name">pm.field.mapping.form</field>
+        <field name="model">pm.field.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Field Mapping">
+                <group>
+                    <field name="config_id"/>
+                    <field name="sequence"/>
+                    <field name="pm_field"/>
+                    <field name="odoo_field"/>
+                    <field name="is_active"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Field Mapping Action -->
+    <record id="action_pm_field_mapping" model="ir.actions.act_window">
+        <field name="name">Field Mapping</field>
+        <field name="res_model">pm.field.mapping</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

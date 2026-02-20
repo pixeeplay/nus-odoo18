@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed"/>
+      <stop offset="100%" style="stop-color:#4f46e5"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="20" fill="url(#bg)"/>
+  <!-- Search icon -->
+  <circle cx="42" cy="40" r="16" fill="none" stroke="white" stroke-width="4"/>
+  <line x1="53" y1="51" x2="65" y2="63" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Arrow down (import) -->
+  <line x1="62" y1="30" x2="62" y2="50" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <polyline points="55,44 62,51 69,44" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bars (products) -->
+  <rect x="20" y="70" width="18" height="4" rx="2" fill="rgba(255,255,255,0.7)"/>
+  <rect x="20" y="78" width="12" height="4" rx="2" fill="rgba(255,255,255,0.5)"/>
+  <rect x="42" y="70" width="18" height="4" rx="2" fill="rgba(255,255,255,0.7)"/>
+  <rect x="42" y="78" width="12" height="4" rx="2" fill="rgba(255,255,255,0.5)"/>
+  <rect x="64" y="70" width="18" height="4" rx="2" fill="rgba(255,255,255,0.7)"/>
+  <rect x="64" y="78" width="12" height="4" rx="2" fill="rgba(255,255,255,0.5)"/>
+</svg>

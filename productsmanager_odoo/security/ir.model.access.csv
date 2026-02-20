@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pm_config_manager,pm.config.manager,model_pm_config,base.group_system,1,1,1,1
+access_pm_config_user,pm.config.user,model_pm_config,base.group_user,1,0,0,0
+access_pm_field_mapping_manager,pm.field.mapping.manager,model_pm_field_mapping,base.group_system,1,1,1,1
+access_pm_field_mapping_user,pm.field.mapping.user,model_pm_field_mapping,base.group_user,1,0,0,0
+access_pm_sync_log_manager,pm.sync.log.manager,model_pm_sync_log,base.group_system,1,1,1,1
+access_pm_sync_log_user,pm.sync.log.user,model_pm_sync_log,base.group_user,1,0,0,0
+access_pm_import_wizard,pm.import.wizard,model_pm_import_wizard,base.group_user,1,1,1,1
+access_pm_import_wizard_line,pm.import.wizard.line,model_pm_import_wizard_line,base.group_user,1,1,1,1
