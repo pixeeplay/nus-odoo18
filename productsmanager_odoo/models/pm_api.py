@@ -65,11 +65,26 @@ class ProductsManagerAPI:
     # ── Authentication ──────────────────────────────────────────────────
 
     def login(self, email, password):
-        """POST /auth/login → returns access_token string."""
-        data = self._request('POST', '/auth/login', data={
-            'username': email,
-            'password': password,
-        })
+        """POST /auth/login → returns access_token string.
+
+        Uses form-encoded data (OAuth2PasswordRequestForm pattern).
+        """
+        url = f'{self.base_url}/auth/login'
+        try:
+            resp = self._session.post(url, data={
+                'username': email,
+                'password': password,
+            }, headers={'Content-Type': 'application/x-www-form-urlencoded'}, timeout=30)
+            if resp.status_code >= 400:
+                raise ProductsManagerAPIError(
+                    f'API error {resp.status_code}: {resp.text[:500]}', resp.status_code)
+            data = resp.json()
+        except requests.ConnectionError:
+            raise ProductsManagerAPIError(f'Connection failed: cannot reach {self.base_url}')
+        except requests.Timeout:
+            raise ProductsManagerAPIError('Login request timed out')
+        except requests.RequestException as exc:
+            raise ProductsManagerAPIError(f'Login request error: {exc}')
         token = data.get('access_token') or data.get('token')
         if not token:
             raise ProductsManagerAPIError('Login succeeded but no token in response')
