@@ -45,13 +45,11 @@
                     </group>
                     <notebook>
                         <page string="Field Mapping" name="mapping">
-                            <field name="id" invisible="True"/>
-                            <button name="%(productsmanager_odoo.action_pm_field_mapping)d"
+                            <button name="action_open_field_mapping"
                                     string="Configure Field Mapping"
-                                    type="action"
+                                    type="object"
                                     class="btn-link"
-                                    icon="fa-cogs"
-                                    context="{'default_config_id': id, 'search_default_config_id': id}"/>
+                                    icon="fa-cogs"/>
                         </page>
                     </notebook>
                 </sheet>

@@ -130,6 +130,17 @@ class PmConfig(models.Model):
             },
         }
 
+    def action_open_field_mapping(self):
+        """Open field mapping list filtered for this config."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Field Mapping'),
+            'res_model': 'pm.field.mapping',
+            'view_mode': 'list,form',
+            'context': {'default_config_id': self.id, 'search_default_config_id': self.id},
+        }
+
     def action_open_search_wizard(self):
         """Open the search & import wizard."""
         return {
