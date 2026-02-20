@@ -1620,12 +1620,17 @@ class PrestaShopInstance(models.Model):
         text = re.sub(r'[-\s]+', '-', text).strip('-')
         return text or 'product'
 
+    # Module-level cache for PS language IDs per instance
+    _PS_LANG_CACHE = {}
+
     def _get_ps_language_ids(self):
         """Fetch all active language IDs from PrestaShop.
-        Falls back to export_default_ps_lang_id or [1] on error."""
+        Falls back to export_default_ps_lang_id or [1] on error.
+        Cached per instance ID (cleared via _clear_ps_lang_cache)."""
         self.ensure_one()
-        if hasattr(self, '_ps_lang_ids_cache') and self._ps_lang_ids_cache:
-            return self._ps_lang_ids_cache
+        cache_key = self.id
+        if cache_key in self._PS_LANG_CACHE:
+            return self._PS_LANG_CACHE[cache_key]
         try:
             data = self._api_get('languages', params={'display': '[id]', 'filter[active]': '1'})
             langs = data.get('languages', {}).get('language', [])
@@ -1633,12 +1638,16 @@ class PrestaShopInstance(models.Model):
                 langs = [langs]
             ids = [int(l['id']) for l in langs if l.get('id')]
             if ids:
-                self._ps_lang_ids_cache = ids
+                self._PS_LANG_CACHE[cache_key] = ids
                 return ids
         except Exception:
             _logger.warning("Could not fetch PS languages, using default")
         default = self.export_default_ps_lang_id or 1
         return [default]
+
+    def _clear_ps_lang_cache(self):
+        """Clear the language cache for this instance."""
+        self._PS_LANG_CACHE.pop(self.id, None)
 
     def _build_ps_language_xml(self, value, tag_name, lang_id=None):
         """Build multi-language XML element for PrestaShop.
@@ -1690,7 +1699,7 @@ class PrestaShopInstance(models.Model):
         """
         self.ensure_one()
         # Clear cached language IDs for this build session
-        self._ps_lang_ids_cache = None
+        self._clear_ps_lang_cache()
 
         parts = ['<?xml version="1.0" encoding="UTF-8"?>']
         parts.append('<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">')
@@ -2425,7 +2434,7 @@ class PrestaShopInstance(models.Model):
 
         price = self._get_export_price(product_tmpl)
         # PS requires name and link_rewrite for PUT even when only updating price
-        self._ps_lang_ids_cache = None
+        self._clear_ps_lang_cache()
         xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
