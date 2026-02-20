@@ -16,6 +16,52 @@
     </record>
 
     <!-- =================================================================
+         Shop page: Category Pills above products grid
+         ================================================================= -->
+    <record id="nova_category_pills" model="theme.ir.ui.view">
+        <field name="name">Nova Category Pills</field>
+        <field name="key">theme_nova.nova_category_pills</field>
+        <field name="inherit_id" ref="website_sale.products"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='products_grid']" position="before">
+                <div class="nova-category-pills mb-3">
+                    <div class="nova-pills-scroll d-flex align-items-center gap-2 overflow-auto pb-2">
+                        <a href="/shop"
+                           t-attf-class="nova-pill btn btn-sm #{not category and 'active' or ''}">
+                            All
+                        </a>
+                        <t t-foreach="categories" t-as="categ">
+                            <a t-att-href="keep('/shop/category/%s' % slug(categ), category=0)"
+                               t-attf-class="nova-pill btn btn-sm #{categ.id == (category.id if category else 0) and 'active' or ''}">
+                                <t t-out="categ.name"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Shop page: Quick View button on product cards
+         ================================================================= -->
+    <record id="nova_quick_view_btn" model="theme.ir.ui.view">
+        <field name="name">Nova Quick View Button</field>
+        <field name="key">theme_nova.nova_quick_view_btn</field>
+        <field name="inherit_id" ref="website_sale.products_item"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_product_image')]" position="inside">
+                <button type="button"
+                        class="nova-quick-view-btn"
+                        t-att-data-product-id="product.id"
+                        title="Quick View">
+                    <i class="fa fa-eye"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
          Product page: Add Nova class wrapper
          ================================================================= -->
     <record id="nova_product_wrapper" model="theme.ir.ui.view">
@@ -25,6 +71,70 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@id='wrap']" position="attributes">
                 <attribute name="class" add="nova-product-page" separator=" "/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Product page: Prev/Next navigation
+         ================================================================= -->
+    <record id="nova_product_navigation" model="theme.ir.ui.view">
+        <field name="name">Nova Product Navigation</field>
+        <field name="key">theme_nova.nova_product_navigation</field>
+        <field name="inherit_id" ref="website_sale.product"/>
+        <field name="arch" type="xml">
+            <xpath expr="//section[@id='product_detail']" position="before">
+                <div class="nova-product-nav container d-flex justify-content-between align-items-center py-2 mb-2">
+                    <a href="#" class="nova-nav-btn nova-nav-prev btn btn-sm btn-outline-secondary disabled"
+                       title="Previous product">
+                        <i class="fa fa-angle-left me-1"/> Previous
+                    </a>
+                    <a href="/shop" class="btn btn-sm btn-link text-muted">
+                        <i class="fa fa-th me-1"/> Back to shop
+                    </a>
+                    <a href="#" class="nova-nav-btn nova-nav-next btn btn-sm btn-outline-secondary disabled"
+                       title="Next product">
+                        Next <i class="fa fa-angle-right ms-1"/>
+                    </a>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================
+         Product page: Sticky Add-to-Cart bar
+         ================================================================= -->
+    <record id="nova_sticky_cart" model="theme.ir.ui.view">
+        <field name="name">Nova Sticky Add to Cart</field>
+        <field name="key">theme_nova.nova_sticky_cart</field>
+        <field name="inherit_id" ref="website_sale.product"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='product_full_description']" position="after">
+                <div class="nova-sticky-cart d-none" id="nova_sticky_cart">
+                    <div class="container">
+                        <div class="d-flex align-items-center justify-content-between py-2">
+                            <div class="d-flex align-items-center">
+                                <img t-attf-src="/web/image/product.template/#{product.id}/image_128"
+                                     class="nova-sticky-img rounded-circle me-3"
+                                     t-att-alt="product.name"
+                                     width="40" height="40"/>
+                                <div>
+                                    <h6 class="mb-0 text-truncate nova-sticky-name"
+                                        t-out="product.name"
+                                        style="max-width: 300px;"/>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="nova-sticky-price fw-bold fs-5" id="nova_sticky_price"/>
+                                <a href="#add_to_cart"
+                                   class="btn btn-primary nova-sticky-add-btn"
+                                   onclick="document.getElementById('add_to_cart').click(); return false;">
+                                    <i class="fa fa-shopping-cart me-1"/> Add to Cart
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>

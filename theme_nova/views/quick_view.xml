@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Quick View modal content (rendered server-side, injected via AJAX) -->
+    <template id="quick_view_content" name="Nova: Quick View Content">
+        <div class="nova-quick-view">
+            <div class="row g-4">
+                <!-- Product Image -->
+                <div class="col-lg-6">
+                    <div class="nova-qv-image rounded overflow-hidden">
+                        <img t-attf-src="/web/image/product.template/#{product.id}/image_512"
+                             class="img-fluid w-100"
+                             t-att-alt="product.name"/>
+                    </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="col-lg-6">
+                    <!-- Name -->
+                    <h3 class="nova-qv-name mb-2">
+                        <a t-att-href="product.website_url" t-out="product.name"/>
+                    </h3>
+
+                    <!-- Price -->
+                    <div class="nova-qv-price mb-3">
+                        <t t-if="combination_info.get('has_discounted_price')">
+                            <span class="text-danger fw-bold fs-4"
+                                  t-out="combination_info['price']"
+                                  t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                            <del class="text-muted ms-2"
+                                 t-out="combination_info['list_price']"
+                                 t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                        </t>
+                        <t t-else="">
+                            <span class="fw-bold fs-4"
+                                  t-out="combination_info['price']"
+                                  t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                        </t>
+                    </div>
+
+                    <!-- Description -->
+                    <div t-if="product.description_sale" class="nova-qv-desc text-muted mb-3">
+                        <t t-out="product.description_sale"/>
+                    </div>
+
+                    <!-- Add to Cart button -->
+                    <div class="nova-qv-actions">
+                        <a t-att-href="product.website_url"
+                           class="btn btn-primary btn-lg w-100">
+                            <i class="fa fa-shopping-cart me-2"/>View Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</odoo>

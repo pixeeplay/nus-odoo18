@@ -90,6 +90,41 @@
     }
 }
 
+// ── Category Pills ────────────────────────────────────────────────────────────
+.nova-category-pills {
+    .nova-pills-scroll {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .nova-pill {
+        white-space: nowrap;
+        border-radius: 10rem;
+        padding: 0.4rem 1.25rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: rgba(0, 0, 0, 0.04);
+        color: var(--o-color-5);
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: var(--o-color-1);
+        }
+
+        &.active {
+            background: var(--o-color-1);
+            color: #fff;
+            border-color: var(--o-color-1);
+        }
+    }
+}
+
 // ── Empty shop state ────────────────────────────────────────────────────────
 .oe_website_sale .o_wsale_products_grid_table_wrapper:empty + .text-center {
     padding: 3rem;
