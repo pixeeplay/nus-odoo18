@@ -1620,14 +1620,39 @@ class PrestaShopInstance(models.Model):
         text = re.sub(r'[-\s]+', '-', text).strip('-')
         return text or 'product'
 
+    def _get_ps_language_ids(self):
+        """Fetch all active language IDs from PrestaShop.
+        Falls back to export_default_ps_lang_id or [1] on error."""
+        self.ensure_one()
+        if hasattr(self, '_ps_lang_ids_cache') and self._ps_lang_ids_cache:
+            return self._ps_lang_ids_cache
+        try:
+            data = self._api_get('languages', params={'display': '[id]', 'filter[active]': '1'})
+            langs = data.get('languages', {}).get('language', [])
+            if isinstance(langs, dict):
+                langs = [langs]
+            ids = [int(l['id']) for l in langs if l.get('id')]
+            if ids:
+                self._ps_lang_ids_cache = ids
+                return ids
+        except Exception:
+            _logger.warning("Could not fetch PS languages, using default")
+        default = self.export_default_ps_lang_id or 1
+        return [default]
+
     def _build_ps_language_xml(self, value, tag_name, lang_id=None):
-        """Build multi-language XML element for PrestaShop."""
-        if lang_id is None:
-            lang_id = self.export_default_ps_lang_id or 1
+        """Build multi-language XML element for PrestaShop.
+        If lang_id is None, generates nodes for ALL active PS languages."""
         safe_value = saxutils.escape(str(value or ''))
-        return '<%s><language id="%s"><![CDATA[%s]]></language></%s>' % (
-            tag_name, lang_id, safe_value, tag_name,
+        if lang_id is not None:
+            lang_ids = [lang_id]
+        else:
+            lang_ids = self._get_ps_language_ids()
+        inner = ''.join(
+            '<language id="%s"><![CDATA[%s]]></language>' % (lid, safe_value)
+            for lid in lang_ids
         )
+        return '<%s>%s</%s>' % (tag_name, inner, tag_name)
 
     def _is_export_mapping_active(self, ps_field, odoo_field=None):
         """Check if a field mapping is active for export."""
@@ -1664,7 +1689,8 @@ class PrestaShopInstance(models.Model):
         :returns: XML string
         """
         self.ensure_one()
-        lang_id = self.export_default_ps_lang_id or 1
+        # Clear cached language IDs for this build session
+        self._ps_lang_ids_cache = None
 
         parts = ['<?xml version="1.0" encoding="UTF-8"?>']
         parts.append('<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">')
@@ -1673,19 +1699,39 @@ class PrestaShopInstance(models.Model):
         if ps_product_id:
             parts.append('<id>%s</id>' % ps_product_id)
 
-        if self._is_export_mapping_active('name'):
-            parts.append(self._build_ps_language_xml(product_tmpl.name, 'name', lang_id))
+        # --- REQUIRED FIELDS (always sent) ---
+        # name is mandatory in PrestaShop
+        parts.append(self._build_ps_language_xml(
+            product_tmpl.name or 'Product', 'name'))
 
+        # link_rewrite is mandatory in PrestaShop
+        slug = self._slugify(product_tmpl.name or 'product')
+        parts.append(self._build_ps_language_xml(slug, 'link_rewrite'))
+
+        # id_category_default is mandatory — fallback to PS Home (2)
+        ps_cat_id = None
+        if (self.export_categories
+                and self._is_export_mapping_active('id_category_default')
+                and product_tmpl.categ_id):
+            try:
+                ps_cat_id = self._get_or_create_ps_category(product_tmpl.categ_id)
+            except Exception:
+                _logger.warning("Category export failed, using default category 2")
+        if not ps_cat_id:
+            ps_cat_id = 2  # PS "Home" category
+        parts.append('<id_category_default>%s</id_category_default>' % ps_cat_id)
+
+        # --- OPTIONAL FIELDS (mapping-controlled) ---
         if self._is_export_mapping_active('description'):
             desc = product_tmpl.prestashop_description_html or product_tmpl.description or ''
-            parts.append(self._build_ps_language_xml(desc, 'description', lang_id))
+            parts.append(self._build_ps_language_xml(desc, 'description'))
 
         if self._is_export_mapping_active('description_short'):
             desc_short = (
                 product_tmpl.prestashop_description_short_html
                 or product_tmpl.description_sale or ''
             )
-            parts.append(self._build_ps_language_xml(desc_short, 'description_short', lang_id))
+            parts.append(self._build_ps_language_xml(desc_short, 'description_short'))
 
         if self._is_export_mapping_active('price'):
             price = self._get_export_price(product_tmpl)
@@ -1713,15 +1759,11 @@ class PrestaShopInstance(models.Model):
 
         if self._is_export_mapping_active('meta_title'):
             mt = product_tmpl.prestashop_meta_title or product_tmpl.name or ''
-            parts.append(self._build_ps_language_xml(mt, 'meta_title', lang_id))
+            parts.append(self._build_ps_language_xml(mt, 'meta_title'))
 
         if self._is_export_mapping_active('meta_description'):
             md = product_tmpl.prestashop_meta_description or ''
-            parts.append(self._build_ps_language_xml(md, 'meta_description', lang_id))
-
-        if self._is_export_mapping_active('link_rewrite'):
-            slug = self._slugify(product_tmpl.name or 'product')
-            parts.append(self._build_ps_language_xml(slug, 'link_rewrite', lang_id))
+            parts.append(self._build_ps_language_xml(md, 'meta_description'))
 
         if self._is_export_mapping_active('ecotax'):
             parts.append('<ecotax>%.6f</ecotax>' % (product_tmpl.prestashop_ecotax or 0.0))
@@ -1733,19 +1775,11 @@ class PrestaShopInstance(models.Model):
             ))
 
         # Category associations
-        ps_cat_id = None
-        if (self.export_categories
-                and self._is_export_mapping_active('id_category_default')
-                and product_tmpl.categ_id):
-            ps_cat_id = self._get_or_create_ps_category(product_tmpl.categ_id)
-
-        if ps_cat_id:
-            parts.append('<id_category_default>%s</id_category_default>' % ps_cat_id)
-            parts.append('<associations>')
-            parts.append('<categories>')
-            parts.append('<category><id>%s</id></category>' % ps_cat_id)
-            parts.append('</categories>')
-            parts.append('</associations>')
+        parts.append('<associations>')
+        parts.append('<categories>')
+        parts.append('<category><id>%s</id></category>' % ps_cat_id)
+        parts.append('</categories>')
+        parts.append('</associations>')
 
         parts.append('</product>')
         parts.append('</prestashop>')
@@ -2207,7 +2241,6 @@ class PrestaShopInstance(models.Model):
             pass
 
         # Create new
-        lang_id = self.export_default_ps_lang_id or 1
         xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
@@ -2218,8 +2251,8 @@ class PrestaShopInstance(models.Model):
             '</product_option>\n'
             '</prestashop>'
         ) % (
-            self._build_ps_language_xml(name, 'name', lang_id),
-            self._build_ps_language_xml(name, 'public_name', lang_id),
+            self._build_ps_language_xml(name, 'name'),
+            self._build_ps_language_xml(name, 'public_name'),
         )
         try:
             resp = self._api_post('product_options', xml)
@@ -2247,7 +2280,6 @@ class PrestaShopInstance(models.Model):
             pass
 
         # Create new
-        lang_id = self.export_default_ps_lang_id or 1
         xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
@@ -2258,7 +2290,7 @@ class PrestaShopInstance(models.Model):
             '</prestashop>'
         ) % (
             ps_option_id,
-            self._build_ps_language_xml(name, 'name', lang_id),
+            self._build_ps_language_xml(name, 'name'),
         )
         try:
             resp = self._api_post('product_option_values', xml)
@@ -2392,9 +2424,8 @@ class PrestaShopInstance(models.Model):
             return
 
         price = self._get_export_price(product_tmpl)
-        lang_id = self.export_default_ps_lang_id or 1
-
         # PS requires name and link_rewrite for PUT even when only updating price
+        self._ps_lang_ids_cache = None
         xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<prestashop xmlns:xlink="http://www.w3.org/1999/xlink">\n'
@@ -2410,9 +2441,9 @@ class PrestaShopInstance(models.Model):
             ps_id,
             price,
             product_tmpl.standard_price or 0.0,
-            self._build_ps_language_xml(product_tmpl.name or '', 'name', lang_id),
+            self._build_ps_language_xml(product_tmpl.name or '', 'name'),
             self._build_ps_language_xml(
-                self._slugify(product_tmpl.name or 'product'), 'link_rewrite', lang_id,
+                self._slugify(product_tmpl.name or 'product'), 'link_rewrite',
             ),
         )
 
@@ -2467,7 +2498,6 @@ class PrestaShopInstance(models.Model):
             pass
 
         # Create new category in PS
-        lang_id = self.export_default_ps_lang_id or 1
         parent_ps_id = '2'  # PS "Home" category
         if odoo_category.parent_id:
             parent_ps_id = self._get_or_create_ps_category(odoo_category.parent_id) or '2'
@@ -2483,9 +2513,9 @@ class PrestaShopInstance(models.Model):
             '</category>\n'
             '</prestashop>'
         ) % (
-            self._build_ps_language_xml(name, 'name', lang_id),
+            self._build_ps_language_xml(name, 'name'),
             parent_ps_id,
-            self._build_ps_language_xml(self._slugify(name), 'link_rewrite', lang_id),
+            self._build_ps_language_xml(self._slugify(name), 'link_rewrite'),
         )
 
         try:
