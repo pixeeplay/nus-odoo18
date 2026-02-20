@@ -61,7 +61,7 @@ Built for Odoo 18 Apps Store.
         ],
     },
     'images': [
-        'static/description/icon.svg',
+        'static/description/icon.png',
     ],
     'installable': True,
     'auto_install': False,
