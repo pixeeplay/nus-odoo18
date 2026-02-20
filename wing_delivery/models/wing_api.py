@@ -1,12 +1,11 @@
 """Wing GraphQL API v3 client.
 
 Pure Python helper — no Odoo ORM dependency.
-Handles authentication, token refresh, and all GraphQL operations.
+Supports two authentication modes:
+  1. Static API token (recommended) — obtained from my.wing.eu portal
+  2. Email/password — attempts createAccessToken mutation (if available)
 """
-import json
 import logging
-import time
-from datetime import datetime, timedelta
 
 import requests
 
@@ -26,43 +25,38 @@ class WingAPIError(Exception):
 class WingAPI:
     """GraphQL client for Wing logistics API v3."""
 
-    def __init__(self, email, password, access_token=None, refresh_token=None,
-                 token_expires_at=None):
+    def __init__(self, token=None, email=None, password=None):
+        """Initialize with either a static token or email/password.
+
+        Args:
+            token: Static Bearer API token from Wing portal (recommended)
+            email: Wing account email (fallback auth)
+            password: Wing account password (fallback auth)
+        """
+        self.token = token
         self.email = email
         self.password = password
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        self.token_expires_at = token_expires_at
-        self._token_changed = False
-
-    @property
-    def token_changed(self):
-        """True if tokens were refreshed during this session."""
-        return self._token_changed
 
     # ------------------------------------------------------------------
-    # Authentication
+    # GraphQL execution
     # ------------------------------------------------------------------
 
-    def _ensure_token(self):
-        """Authenticate or refresh token if needed."""
-        if self.access_token and self.token_expires_at:
-            # Refresh 5 minutes before expiry
-            if isinstance(self.token_expires_at, str):
-                try:
-                    expires = datetime.fromisoformat(
-                        self.token_expires_at.replace('Z', '+00:00'))
-                except (ValueError, AttributeError):
-                    expires = datetime.min
-            else:
-                expires = self.token_expires_at
-            if expires > datetime.now(expires.tzinfo) + timedelta(minutes=5):
-                return  # Token still valid
-        self._authenticate()
+    def _get_headers(self):
+        """Build request headers with authentication."""
+        if not self.token and self.email and self.password:
+            self._authenticate_email()
+        if not self.token:
+            raise WingAPIError(
+                "No Wing API token available. "
+                "Please set a token in the carrier configuration.")
+        return {
+            'Authorization': f'Bearer {self.token}',
+            'Content-Type': 'application/json',
+        }
 
-    def _authenticate(self):
-        """Obtain a fresh access token via createAccessToken mutation."""
-        # Use inline mutation as per Wing docs (no variable type declaration)
+    def _authenticate_email(self):
+        """Try to authenticate via email/password (mutation or REST)."""
+        # Attempt 1: GraphQL mutation (as documented)
         query = """
         mutation {
             createAccessToken(input: {
@@ -76,53 +70,32 @@ class WingAPI:
         }
         """ % (self.email.replace('"', '\\"'),
                self.password.replace('"', '\\"'))
-        payload = {'query': query}
-        _logger.info("Wing: authenticating as %s", self.email)
         try:
-            resp = requests.post(WING_API_URL, json=payload, timeout=30)
-        except requests.RequestException as exc:
-            raise WingAPIError(f"Wing authentication request failed: {exc}")
-
-        # GraphQL may return 400 with error details in body — read body first
-        try:
+            resp = requests.post(
+                WING_API_URL, json={'query': query}, timeout=30)
             body = resp.json()
-        except Exception:
-            raise WingAPIError(
-                f"Wing authentication HTTP {resp.status_code}: "
-                f"{resp.text[:500]}")
+            data = (body.get('data') or {}).get('createAccessToken') or {}
+            if data.get('accessToken'):
+                self.token = data['accessToken']
+                _logger.info("Wing: authenticated via GraphQL mutation")
+                return
+        except Exception as exc:
+            _logger.debug("Wing: GraphQL auth failed: %s", exc)
 
-        if 'errors' in body:
-            msgs = '; '.join(e.get('message', '') for e in body['errors'])
-            raise WingAPIError(f"Wing authentication failed: {msgs}",
-                               body['errors'])
-
-        if resp.status_code >= 400:
-            raise WingAPIError(
-                f"Wing authentication HTTP {resp.status_code}: "
-                f"{resp.text[:500]}")
-
-        data = body.get('data', {}).get('createAccessToken', {})
-        if not data.get('accessToken'):
-            raise WingAPIError("Wing authentication returned no token")
-
-        self.access_token = data['accessToken']
-        self.refresh_token = data.get('refreshToken', self.refresh_token)
-        self.token_expires_at = data.get('expiresAt', '')
-        self._token_changed = True
-        _logger.info("Wing: authenticated OK, token expires %s",
-                      self.token_expires_at)
-
-    # ------------------------------------------------------------------
-    # GraphQL execution
-    # ------------------------------------------------------------------
+        # Attempt 2: try as a plain Bearer token (email field might be token)
+        _logger.warning(
+            "Wing: createAccessToken mutation not available. "
+            "The email/password might be incorrect, or you may need "
+            "a static API token from my.wing.eu.")
+        raise WingAPIError(
+            "Wing authentication failed. The createAccessToken mutation "
+            "is not available on this API version.\n\n"
+            "Please obtain a static API token from your Wing portal "
+            "(my.wing.eu) and paste it in the 'Wing API Token' field.")
 
     def _execute(self, query, variables=None):
-        """Execute a GraphQL query/mutation with automatic token handling."""
-        self._ensure_token()
-        headers = {
-            'Authorization': f'Bearer {self.access_token}',
-            'Content-Type': 'application/json',
-        }
+        """Execute a GraphQL query/mutation."""
+        headers = self._get_headers()
         payload = {'query': query}
         if variables:
             payload['variables'] = variables
@@ -133,19 +106,7 @@ class WingAPI:
         except requests.RequestException as exc:
             raise WingAPIError(f"Wing API request failed: {exc}")
 
-        if resp.status_code == 401:
-            # Token expired — re-auth and retry once
-            _logger.warning("Wing: 401 received, re-authenticating")
-            self._authenticate()
-            headers['Authorization'] = f'Bearer {self.access_token}'
-            try:
-                resp = requests.post(WING_API_URL, json=payload,
-                                     headers=headers, timeout=60)
-            except requests.RequestException as exc:
-                raise WingAPIError(
-                    f"Wing API request failed after re-auth: {exc}")
-
-        # GraphQL APIs may return 400 with useful error info in body
+        # Read body first — GraphQL may return 400 with useful errors
         try:
             body = resp.json()
         except Exception:
@@ -157,6 +118,11 @@ class WingAPI:
         if 'errors' in body:
             msgs = '; '.join(e.get('message', '') for e in body['errors'])
             raise WingAPIError(f"Wing GraphQL error: {msgs}", body['errors'])
+
+        if resp.status_code == 401:
+            raise WingAPIError(
+                "Wing API: Unauthorized (401). "
+                "Your API token may be invalid or expired.")
 
         if resp.status_code >= 400 and 'data' not in body:
             raise WingAPIError(
@@ -171,8 +137,8 @@ class WingAPI:
     def get_expeditors(self, limit=50):
         """List available carriers for the organization."""
         query = """
-        query GetExpeditors($input: ExpeditorFilterInput, $limit: Int) {
-            organizationExpeditors(input: $input, limit: $limit) {
+        query GetExpeditors($limit: Int) {
+            organizationExpeditors(limit: $limit) {
                 id
                 name
                 code
@@ -190,8 +156,8 @@ class WingAPI:
     def get_pickups(self, limit=50):
         """List configured pickup locations."""
         query = """
-        query GetPickups($input: PickupFilterInput, $limit: Int) {
-            organizationPickups(input: $input, limit: $limit) {
+        query GetPickups($limit: Int) {
+            organizationPickups(limit: $limit) {
                 id
                 name
                 address {
@@ -267,8 +233,8 @@ class WingAPI:
     def get_orders(self, limit=25, offset=0):
         """List orders with pagination."""
         query = """
-        query GetOrders($input: OrdersInput, $limit: Int, $offset: Int) {
-            orders(input: $input, limit: $limit, offset: $offset) {
+        query GetOrders($limit: Int, $offset: Int) {
+            orders(limit: $limit, offset: $offset) {
                 id
                 ref
                 status
@@ -365,14 +331,7 @@ class WingAPI:
         return data.get('createFulfillmentParcel', {})
 
     def cancel_parcels(self, fulfillment_order_ids):
-        """Cancel parcel labels for given fulfillment orders.
-
-        Args:
-            fulfillment_order_ids: list of fulfillment order IDs
-
-        Returns:
-            Cancellation result
-        """
+        """Cancel parcel labels for given fulfillment orders."""
         query = """
         mutation CancelParcels($input: CancelFulfillmentOrderParcelsInput!) {
             cancelFulfillmentOrderParcels(input: $input) {

@@ -18,11 +18,16 @@ class DeliveryCarrier(models.Model):
     )
 
     # ── Wing credentials ──────────────────────────────────────────────
-    wing_email = fields.Char('Wing Email')
-    wing_password = fields.Char('Wing Password')
-    wing_access_token = fields.Char('Access Token', copy=False)
-    wing_refresh_token = fields.Char('Refresh Token', copy=False)
-    wing_token_expires = fields.Char('Token Expires At', copy=False)
+    wing_api_token = fields.Char(
+        'Wing API Token',
+        help="Bearer token from your Wing developer portal (my.wing.eu). "
+             "This is the recommended authentication method.")
+    wing_email = fields.Char(
+        'Wing Email',
+        help="Email for email/password auth (fallback if API token is empty).")
+    wing_password = fields.Char(
+        'Wing Password',
+        help="Password for email/password auth (fallback).")
 
     # ── Wing configuration ────────────────────────────────────────────
     wing_pickup_id = fields.Char('Pickup Point ID')
@@ -38,29 +43,20 @@ class DeliveryCarrier(models.Model):
     # ==================================================================
 
     def _get_wing_api(self):
-        """Return an authenticated WingAPI instance, saving refreshed tokens."""
+        """Return an authenticated WingAPI instance."""
         self.ensure_one()
-        if not self.wing_email or not self.wing_password:
-            raise UserError(_(
-                "Please configure Wing credentials (email + password) "
-                "on the delivery carrier."))
-        api = WingAPI(
-            email=self.wing_email,
-            password=self.wing_password,
-            access_token=self.wing_access_token or None,
-            refresh_token=self.wing_refresh_token or None,
-            token_expires_at=self.wing_token_expires or None,
-        )
-        return api
+        if self.wing_api_token:
+            return WingAPI(token=self.wing_api_token)
+        if self.wing_email and self.wing_password:
+            return WingAPI(email=self.wing_email, password=self.wing_password)
+        raise UserError(_(
+            "Please configure Wing credentials:\n"
+            "- Either set the API Token (recommended)\n"
+            "- Or set Email + Password"))
 
     def _save_wing_tokens(self, api):
-        """Persist refreshed tokens back to the carrier record."""
-        if api.token_changed:
-            self.sudo().write({
-                'wing_access_token': api.access_token,
-                'wing_refresh_token': api.refresh_token,
-                'wing_token_expires': api.token_expires_at or '',
-            })
+        """No-op — static token mode does not need saving."""
+        pass
 
     # ==================================================================
     #  Action buttons (carrier form)

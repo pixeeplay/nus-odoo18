@@ -15,12 +15,14 @@
                 <group string="Wing Configuration"
                        invisible="delivery_type != 'wing'"
                        name="wing_config">
-                    <group string="Credentials">
+                    <group string="API Token (recommended)">
+                        <field name="wing_api_token" password="True"
+                               placeholder="Bearer token from my.wing.eu"/>
+                    </group>
+                    <group string="Email/Password (fallback)">
                         <field name="wing_email"
-                               placeholder="your@email.com"
-                               required="delivery_type == 'wing'"/>
-                        <field name="wing_password" password="True"
-                               required="delivery_type == 'wing'"/>
+                               placeholder="your@email.com"/>
+                        <field name="wing_password" password="True"/>
                     </group>
                     <group string="Settings">
                         <field name="wing_pickup_id" readonly="1"/>
