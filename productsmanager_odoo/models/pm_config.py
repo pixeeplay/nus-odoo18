@@ -130,6 +130,27 @@ class PmConfig(models.Model):
             },
         }
 
+    @api.model
+    def action_open_dashboard(self):
+        """Open the dashboard: show existing config or create form."""
+        config = self.search([('active', '=', True)], limit=1)
+        if config:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Products Manager'),
+                'res_model': 'pm.config',
+                'res_id': config.id,
+                'view_mode': 'form',
+                'view_id': self.env.ref('productsmanager_odoo.pm_dashboard_view_form').id,
+            }
+        # No config yet — open config creation form
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Create Configuration'),
+            'res_model': 'pm.config',
+            'view_mode': 'form',
+        }
+
     def action_open_field_mapping(self):
         """Open field mapping list filtered for this config."""
         self.ensure_one()

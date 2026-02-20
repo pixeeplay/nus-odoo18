@@ -83,13 +83,12 @@
         </field>
     </record>
 
-    <record id="action_pm_dashboard_config" model="ir.actions.act_window">
-        <field name="name">Products Manager</field>
-        <field name="res_model">pm.config</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="pm_dashboard_view_form"/>
-        <field name="domain">[('active', '=', True)]</field>
-        <field name="context">{'form_view_ref': 'productsmanager_odoo.pm_dashboard_view_form'}</field>
+    <!-- Server action: opens dashboard if config exists, otherwise config form -->
+    <record id="action_pm_dashboard_config" model="ir.actions.server">
+        <field name="name">Products Manager Dashboard</field>
+        <field name="model_id" ref="model_pm_config"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_dashboard()</field>
     </record>
 
 </odoo>
