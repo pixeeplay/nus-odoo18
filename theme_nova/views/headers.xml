@@ -10,7 +10,7 @@
         <field name="inherit_id" ref="website.layout"/>
         <field name="active" eval="True"/>
         <field name="arch" type="xml">
-            <xpath expr="//header//nav" position="before">
+            <xpath expr="//header[@id='top']" position="before">
                 <div class="nova-topbar d-none d-lg-block py-2 small"
                      style="background-color: var(--o-color-5); color: var(--o-color-3);">
                     <div class="container d-flex justify-content-between align-items-center">
