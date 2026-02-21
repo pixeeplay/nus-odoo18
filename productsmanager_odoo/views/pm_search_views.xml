@@ -19,6 +19,12 @@
                             class="btn-success"
                             icon="fa-download"
                             invisible="not line_ids"/>
+                    <button name="action_open_product"
+                            string="Open Product"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-external-link"
+                            invisible="not line_ids"/>
                     <button name="action_select_all"
                             string="Select All"
                             type="object"
@@ -36,13 +42,13 @@
                             type="object"
                             class="btn-secondary"
                             icon="fa-chevron-left"
-                            invisible="page_offset == 0"/>
+                            invisible="not has_previous"/>
                     <button name="action_next_page"
                             string="Next"
                             type="object"
                             class="btn-secondary"
                             icon="fa-chevron-right"
-                            invisible="not line_ids"/>
+                            invisible="not has_next"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -50,8 +56,11 @@
                             <field name="search_query" placeholder="Search products (name, EAN, brand...)"/>
                         </h1>
                     </div>
-                    <field name="page_offset" invisible="1"/>
-                    <field name="page_size" invisible="1"/>
+                    <field name="current_page" invisible="1"/>
+                    <field name="per_page" invisible="1"/>
+                    <field name="total_pm" invisible="1"/>
+                    <field name="has_next" invisible="1"/>
+                    <field name="has_previous" invisible="1"/>
                     <group>
                         <group>
                             <field name="config_id"/>
@@ -88,6 +97,9 @@
                             <field name="source" widget="badge"
                                    decoration-info="source == 'odoo'"
                                    decoration-success="source == 'pm'"/>
+                            <button name="action_open_line_product" type="object"
+                                    icon="fa-external-link" title="Open product"
+                                    class="btn-link"/>
                             <field name="name" readonly="True"/>
                             <field name="brand" readonly="True" optional="show"/>
                             <field name="barcode" readonly="True"/>

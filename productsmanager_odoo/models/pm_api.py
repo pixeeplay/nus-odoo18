@@ -94,21 +94,37 @@ class ProductsManagerAPI:
 
     # ── Products ────────────────────────────────────────────────────────
 
-    def search_products(self, query, limit=50, offset=0):
-        """GET /products?search=&limit=&offset= → list of products."""
-        params = {'search': query, 'limit': limit, 'offset': offset}
+    def search_products(self, query, page=1, per_page=20):
+        """GET /products?search=&page=&per_page= → (items, meta).
+
+        Returns a tuple of (list of products, pagination meta dict).
+        Meta contains: total, page, per_page, total_pages, has_next, has_previous.
+        """
+        params = {'search': query, 'page': page, 'per_page': per_page}
         result = self._request('GET', '/products', params=params)
         if isinstance(result, list):
-            return result
-        return result.get('items') or result.get('data') or result.get('results') or []
+            return result, {}
+        items = result.get('items') or result.get('data') or result.get('results') or []
+        meta = result.get('meta') or {}
+        return items, meta
 
     def get_product(self, product_id):
-        """GET /products/{id} → product detail."""
+        """GET /products/{id} → ProductDetailResponse."""
         return self._request('GET', f'/products/{product_id}')
 
     def get_product_suppliers(self, product_id):
-        """GET /products/{id}/suppliers → list of supplier offers with prices."""
+        """GET /products/{id}/suppliers → list of supplier objects."""
         return self._request('GET', f'/products/{product_id}/suppliers')
+
+    def get_price_comparison(self, product_id):
+        """GET /products/{id}/price-comparison → PriceComparisonResponse.
+
+        Returns dict with keys: product_id, product_name, prices (list),
+        min_price, max_price, avg_price, price_trend, trend_percentage.
+        Each price entry: supplier_name, supplier_code, supplier_id,
+        current_price, stock_quantity, currency, is_available.
+        """
+        return self._request('GET', f'/products/{product_id}/price-comparison')
 
     # ── Suppliers ───────────────────────────────────────────────────────
 
@@ -149,9 +165,9 @@ class ProductsManagerAPI:
     # ── Utility ─────────────────────────────────────────────────────────
 
     def test_connection(self):
-        """Quick connectivity check — tries to list products with limit=1."""
+        """Quick connectivity check — tries to list products with per_page=1."""
         try:
-            result = self._request('GET', '/products', params={'limit': 1})
+            self._request('GET', '/products', params={'per_page': 1})
             return True, 'Connection successful'
         except ProductsManagerAPIError as exc:
             return False, str(exc)
