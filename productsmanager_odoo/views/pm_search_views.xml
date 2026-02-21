@@ -8,17 +8,55 @@
         <field name="arch" type="xml">
             <form string="Search &amp; Import Products">
                 <header>
+                    <!-- Text search buttons -->
                     <button name="action_search"
                             string="Search"
                             type="object"
                             class="btn-primary"
-                            icon="fa-search"/>
+                            icon="fa-search"
+                            invisible="search_mode == 'supplier'"/>
+                    <!-- Supplier search buttons -->
+                    <button name="action_search_suppliers"
+                            string="Search Suppliers"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-truck"
+                            invisible="search_mode != 'supplier'"/>
+                    <button name="action_load_supplier_products"
+                            string="Load Products"
+                            type="object"
+                            class="btn-info"
+                            icon="fa-list"
+                            invisible="search_mode != 'supplier' or not supplier_line_ids"/>
+                    <button name="action_import_all_supplier"
+                            string="Import All from Supplier"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-cloud-download"
+                            invisible="search_mode != 'supplier' or not pm_supplier_id"
+                            confirm="This will import ALL products from this supplier. Continue?"/>
+                    <!-- Common buttons -->
                     <button name="action_import_selected"
                             string="Import Selected"
                             type="object"
                             class="btn-success"
                             icon="fa-download"
                             invisible="not line_ids"/>
+                    <button name="action_merge_selected"
+                            string="Merge (Prices Only)"
+                            type="object"
+                            class="btn-info"
+                            icon="fa-link"
+                            invisible="not line_ids"
+                            title="Link PM products to matching Odoo products. Only updates prices, stock and supplier info. Enables auto-update via cron."/>
+                    <button name="action_merge_overwrite"
+                            string="Merge (Full Overwrite)"
+                            type="object"
+                            class="btn-warning"
+                            icon="fa-exchange"
+                            invisible="not line_ids"
+                            confirm="This will overwrite description, images, compliance data and all PM fields on the matching Odoo products. Continue?"
+                            title="Link PM products and overwrite ALL fields: description, images, compliance, dimensions, AI enrichment, etc."/>
                     <button name="action_open_product"
                             string="Open Product"
                             type="object"
@@ -51,18 +89,20 @@
                             invisible="not has_next"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="search_query" placeholder="Search products (name, EAN, brand...)"/>
-                        </h1>
-                    </div>
+                    <!-- Hidden fields -->
                     <field name="current_page" invisible="1"/>
                     <field name="per_page" invisible="1"/>
                     <field name="total_pm" invisible="1"/>
                     <field name="has_next" invisible="1"/>
                     <field name="has_previous" invisible="1"/>
+                    <field name="pm_supplier_id" invisible="1"/>
+                    <field name="pm_supplier_code" invisible="1"/>
+
+                    <!-- Search mode selector -->
                     <group>
                         <group>
+                            <field name="search_mode" widget="radio"
+                                   options="{'horizontal': true}"/>
                             <field name="config_id"/>
                         </group>
                         <group>
@@ -85,6 +125,47 @@
                             </div>
                         </group>
                     </group>
+
+                    <!-- Text search mode -->
+                    <div class="oe_title" invisible="search_mode != 'text'">
+                        <h1>
+                            <field name="search_query"
+                                   placeholder="Search products (name, EAN, brand...)"/>
+                        </h1>
+                    </div>
+
+                    <!-- Supplier search mode -->
+                    <div invisible="search_mode != 'supplier'">
+                        <group>
+                            <group>
+                                <field name="supplier_search_query"
+                                       placeholder="Filter suppliers by name..."/>
+                            </group>
+                            <group>
+                                <div invisible="not pm_supplier_name">
+                                    <strong>Selected supplier: </strong>
+                                    <field name="pm_supplier_name" class="oe_inline"/>
+                                </div>
+                            </group>
+                        </group>
+
+                        <!-- Supplier list -->
+                        <field name="supplier_line_ids" nolabel="1"
+                               invisible="not supplier_line_ids">
+                            <list editable="bottom" create="0" delete="0">
+                                <field name="selected"/>
+                                <field name="name" readonly="True"/>
+                                <field name="pm_supplier_code" readonly="True"
+                                       string="Code"/>
+                                <field name="is_active" readonly="True"
+                                       widget="boolean"/>
+                                <field name="product_count" readonly="True"
+                                       string="# Products"/>
+                            </list>
+                        </field>
+                    </div>
+
+                    <!-- Product results (shared for both modes) -->
                     <field name="line_ids" nolabel="1"
                            invisible="not line_ids">
                         <list decoration-info="source == 'odoo'"
@@ -92,7 +173,8 @@
                               decoration-muted="already_imported"
                               editable="bottom"
                               create="0" delete="0">
-                            <field name="selected" readonly="source == 'odoo' or already_imported"
+                            <field name="selected"
+                                   readonly="source == 'odoo' or already_imported"
                                    optional="show"/>
                             <field name="source" widget="badge"
                                    decoration-info="source == 'odoo'"
@@ -106,33 +188,44 @@
                             <field name="best_price" readonly="True" string="Best Price"
                                    widget="monetary"/>
                             <field name="best_supplier" readonly="True"/>
-                            <field name="supplier_1_name" readonly="True" string="Supplier 1"/>
-                            <field name="supplier_1_price" readonly="True" string="Price 1"
-                                   widget="monetary"/>
-                            <field name="supplier_1_stock" readonly="True" string="Stock 1"/>
-                            <field name="supplier_2_name" readonly="True" string="Supplier 2"
+                            <field name="supplier_1_name" readonly="True"
+                                   string="Supplier 1"/>
+                            <field name="supplier_1_price" readonly="True"
+                                   string="Price 1" widget="monetary"/>
+                            <field name="supplier_1_stock" readonly="True"
+                                   string="Stock 1"/>
+                            <field name="supplier_2_name" readonly="True"
+                                   string="Supplier 2" optional="show"/>
+                            <field name="supplier_2_price" readonly="True"
+                                   string="Price 2" widget="monetary"
                                    optional="show"/>
-                            <field name="supplier_2_price" readonly="True" string="Price 2"
-                                   widget="monetary" optional="show"/>
-                            <field name="supplier_2_stock" readonly="True" string="Stock 2"
-                                   optional="show"/>
-                            <field name="supplier_3_name" readonly="True" string="Supplier 3"
+                            <field name="supplier_2_stock" readonly="True"
+                                   string="Stock 2" optional="show"/>
+                            <field name="supplier_3_name" readonly="True"
+                                   string="Supplier 3" optional="hide"/>
+                            <field name="supplier_3_price" readonly="True"
+                                   string="Price 3" widget="monetary"
                                    optional="hide"/>
-                            <field name="supplier_3_price" readonly="True" string="Price 3"
-                                   widget="monetary" optional="hide"/>
-                            <field name="supplier_3_stock" readonly="True" string="Stock 3"
-                                   optional="hide"/>
-                            <field name="total_stock" readonly="True" string="Total Stock"/>
-                            <field name="already_imported" readonly="True" widget="boolean"
-                                   string="Imported"/>
+                            <field name="supplier_3_stock" readonly="True"
+                                   string="Stock 3" optional="hide"/>
+                            <field name="total_stock" readonly="True"
+                                   string="Total Stock"/>
+                            <field name="already_imported" readonly="True"
+                                   widget="boolean" string="Imported"/>
+                            <field name="match_odoo_id" readonly="True"
+                                   string="Match Odoo" optional="show"/>
                             <field name="pm_id" column_invisible="True"/>
                             <field name="odoo_product_id" column_invisible="True"/>
-                            <field name="supplier_data_json" column_invisible="True"/>
+                            <field name="supplier_data_json"
+                                   column_invisible="True"/>
                         </list>
                     </field>
-                    <div invisible="line_ids" class="text-center text-muted py-5">
+                    <div invisible="line_ids or supplier_line_ids"
+                         class="text-center text-muted py-5">
                         <h3>Search for products</h3>
-                        <p>Enter a search query above and click "Search" to find products from both Odoo and Products Manager.</p>
+                        <p>Enter a search query above and click "Search" to find
+                           products from both Odoo and Products Manager, or
+                           switch to "By Supplier" mode to browse by supplier.</p>
                     </div>
                 </sheet>
             </form>

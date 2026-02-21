@@ -14,6 +14,10 @@ class PmImportWizard(models.TransientModel):
     _description = 'Products Manager Search & Import'
 
     config_id = fields.Many2one('pm.config', string='Configuration', required=True)
+    search_mode = fields.Selection([
+        ('text', 'Text Search'),
+        ('supplier', 'By Supplier'),
+    ], string='Search Mode', default='text', required=True)
     search_query = fields.Char(string='Search')
     line_ids = fields.One2many('pm.import.wizard.line', 'wizard_id', string='Results')
     result_count = fields.Integer(compute='_compute_counts')
@@ -25,6 +29,15 @@ class PmImportWizard(models.TransientModel):
     has_next = fields.Boolean(string='Has Next')
     has_previous = fields.Boolean(string='Has Previous')
     page_display = fields.Char(string='Page', compute='_compute_page_display')
+
+    # Supplier search mode fields
+    supplier_search_query = fields.Char(string='Filter Suppliers')
+    supplier_line_ids = fields.One2many(
+        'pm.supplier.wizard.line', 'wizard_id', string='Suppliers',
+    )
+    pm_supplier_id = fields.Char(string='Selected Supplier ID')
+    pm_supplier_name = fields.Char(string='Selected Supplier')
+    pm_supplier_code = fields.Char(string='Selected Supplier Code')
 
     @api.depends('line_ids', 'line_ids.source')
     def _compute_counts(self):
@@ -56,32 +69,39 @@ class PmImportWizard(models.TransientModel):
         """Search products in both PM API and Odoo. Resets to page 1."""
         self.ensure_one()
         self.current_page = 1
+        if self.search_mode == 'supplier' and self.pm_supplier_id:
+            return self._do_supplier_search()
         return self._do_search()
 
     def action_next_page(self):
         """Go to next page of results."""
         self.ensure_one()
         self.current_page += 1
+        if self.search_mode == 'supplier' and self.pm_supplier_id:
+            return self._do_supplier_search()
         return self._do_search()
 
     def action_prev_page(self):
         """Go to previous page of results."""
         self.ensure_one()
         self.current_page = max(1, self.current_page - 1)
+        if self.search_mode == 'supplier' and self.pm_supplier_id:
+            return self._do_supplier_search()
         return self._do_search()
 
     def _do_search(self):
-        """Execute search with current page."""
+        """Execute search: PM API + Odoo, then group matching products."""
         self.ensure_one()
         if not self.search_query:
             raise UserError(_('Please enter a search query.'))
 
         self.line_ids.unlink()
-        lines = []
+        pm_lines = []
+        odoo_lines = []
         page = self.current_page
         per_page = self.per_page
 
-        # Search Products Manager API
+        # ── 1. Search Products Manager API ──
         api = None
         try:
             api = self.config_id._get_api_client()
@@ -90,7 +110,6 @@ class PmImportWizard(models.TransientModel):
             )
             _logger.info('PM search p%d: %d results, meta=%s', page, len(pm_results), meta)
 
-            # Update pagination info
             self.total_pm = meta.get('total', len(pm_results))
             self.has_next = meta.get('has_next', len(pm_results) >= per_page)
             self.has_previous = meta.get('has_previous', page > 1)
@@ -98,12 +117,11 @@ class PmImportWizard(models.TransientModel):
             for pm_prod in pm_results:
                 line_vals = self._pm_product_to_line(pm_prod, api)
                 if line_vals:
-                    lines.append((0, 0, line_vals))
+                    pm_lines.append(line_vals)
         except ProductsManagerAPIError as exc:
             _logger.warning('PM search failed: %s', exc)
 
-        # Search Odoo products using raw SQL to bypass ORM field issues.
-        # Use savepoint so SQL errors don't corrupt the transaction.
+        # ── 2. Search Odoo products ──
         try:
             with self.env.cr.savepoint():
                 query_param = f'%{self.search_query}%'
@@ -121,18 +139,22 @@ class PmImportWizard(models.TransientModel):
                     LIMIT %s OFFSET %s
                 """, (query_param, query_param, query_param, per_page, offset))
                 rows = self.env.cr.dictfetchall()
+                _logger.info('Odoo search: %d results', len(rows))
                 for row in rows:
                     line_vals = self._odoo_row_to_line(row)
-                    lines.append((0, 0, line_vals))
+                    odoo_lines.append(line_vals)
         except Exception as exc:
-            _logger.warning('Odoo product search failed: %s', exc)
+            _logger.warning('Odoo product search failed: %s', exc, exc_info=True)
 
-        self.write({'line_ids': lines})
+        # ── 3. Smart matching: group PM + Odoo by barcode ──
+        lines = self._group_results(pm_lines, odoo_lines)
+
+        self.write({'line_ids': [(0, 0, lv) for lv in lines]})
 
         self.env['pm.sync.log'].log(
             config_id=self.config_id.id,
             operation='search',
-            message=f'Search "{self.search_query}" p{page}: {len(lines)} results',
+            message=f'Search "{self.search_query}" p{page}: {len(pm_lines)} PM + {len(odoo_lines)} Odoo',
             product_count=len(lines),
         )
 
@@ -143,6 +165,58 @@ class PmImportWizard(models.TransientModel):
             'view_mode': 'form',
             'target': 'current',
         }
+
+    def _group_results(self, pm_lines, odoo_lines):
+        """Group PM and Odoo results by barcode so similar products appear together.
+
+        For each PM product, if a matching Odoo product exists (same barcode),
+        set match_odoo_id on the PM line and place them consecutively.
+        """
+        # Build barcode → Odoo line index
+        odoo_by_barcode = {}
+        for lv in odoo_lines:
+            bc = (lv.get('barcode') or '').strip()
+            if bc:
+                odoo_by_barcode.setdefault(bc, []).append(lv)
+
+        used_odoo_barcodes = set()
+        result = []
+
+        for pm_lv in pm_lines:
+            pm_bc = (pm_lv.get('barcode') or '').strip()
+            # Find matching Odoo product
+            if pm_bc and pm_bc in odoo_by_barcode:
+                matching_odoo = odoo_by_barcode[pm_bc]
+                if matching_odoo:
+                    # Mark PM line as having a match
+                    odoo_match = matching_odoo[0]
+                    pm_lv['match_odoo_id'] = odoo_match.get('odoo_product_id')
+                    # If already imported by pm_external_id, mark it
+                    if not pm_lv.get('already_imported') and odoo_match.get('odoo_product_id'):
+                        pm_lv['already_imported'] = bool(
+                            odoo_match.get('barcode') == pm_bc
+                            and self.env['product.product'].browse(
+                                odoo_match['odoo_product_id']
+                            ).pm_external_id
+                        )
+                    used_odoo_barcodes.add(pm_bc)
+
+            result.append(pm_lv)
+
+            # Place matching Odoo product right after the PM product
+            if pm_bc and pm_bc in odoo_by_barcode:
+                for odoo_lv in odoo_by_barcode[pm_bc]:
+                    result.append(odoo_lv)
+
+        # Add remaining Odoo products that didn't match any PM product
+        for lv in odoo_lines:
+            bc = (lv.get('barcode') or '').strip()
+            if bc not in used_odoo_barcodes:
+                result.append(lv)
+            elif bc in used_odoo_barcodes:
+                pass  # Already added above
+
+        return result
 
     # ── PM product parsing ───────────────────────────────────────────────
 
@@ -158,15 +232,19 @@ class PmImportWizard(models.TransientModel):
 
         # Check if already imported (use savepoint to protect transaction)
         already = False
+        match_odoo_id = False
         try:
             with self.env.cr.savepoint():
-                already = bool(self.env['product.product'].search([
+                existing = self.env['product.product'].search([
                     ('pm_external_id', '=', pm_id),
-                ], limit=1))
+                ], limit=1)
+                if existing:
+                    already = True
+                    match_odoo_id = existing.id
         except Exception:
             pass
 
-        # Extract suppliers from the product's "prices" array (PriceComparisonEntry format)
+        # Extract suppliers from the product's "prices" array
         suppliers = self._extract_pm_suppliers(pm_prod)
 
         # If no suppliers with prices, try the price-comparison endpoint
@@ -191,7 +269,7 @@ class PmImportWizard(models.TransientModel):
             except ProductsManagerAPIError:
                 pass
 
-        # Product-level price fields from ProductResponse
+        # Product-level price fields
         best_price = _safe_float(pm_prod.get('best_price') or pm_prod.get('cost_price')
                                  or pm_prod.get('price') or 0)
         best_supplier = pm_prod.get('supplier_name') or ''
@@ -216,10 +294,10 @@ class PmImportWizard(models.TransientModel):
             'total_stock': total_stock,
             'supplier_count': len(suppliers),
             'already_imported': already,
+            'match_odoo_id': match_odoo_id,
             'supplier_data_json': json.dumps(suppliers),
         }
 
-        # Fill supplier columns (up to 3)
         for i, s in enumerate(suppliers[:3], 1):
             vals[f'supplier_{i}_name'] = s.get('name', '')
             vals[f'supplier_{i}_price'] = s.get('price', 0)
@@ -228,18 +306,11 @@ class PmImportWizard(models.TransientModel):
         return vals
 
     def _extract_pm_suppliers(self, pm_prod):
-        """Extract supplier info from PM product data.
-
-        The PM API ProductResponse has a ``prices`` field that is an array
-        of PriceComparisonEntry objects with: supplier_name, current_price,
-        stock_quantity, supplier_code, is_available.
-        """
-        # Primary: "prices" field (PriceComparisonEntry format)
+        """Extract supplier info from PM product data."""
         raw = pm_prod.get('prices') or []
         if raw and isinstance(raw, list):
             return self._parse_price_entries(raw)
 
-        # Fallback: supplier_names + cost_price (single supplier from product level)
         supplier_name = pm_prod.get('supplier_name') or ''
         cost_price = _safe_float(pm_prod.get('cost_price') or pm_prod.get('price') or 0)
         stock = _safe_int(pm_prod.get('stock_quantity') or 0)
@@ -283,7 +354,6 @@ class PmImportWizard(models.TransientModel):
 
     def _odoo_row_to_line(self, row):
         """Convert a raw SQL row to wizard line values, including Odoo supplier info."""
-        # pt.name is jsonb in Odoo 18
         name = row.get('name') or ''
         if isinstance(name, dict):
             name = name.get('en_US') or name.get('fr_FR') or next(iter(name.values()), '')
@@ -294,8 +364,6 @@ class PmImportWizard(models.TransientModel):
         total_stock = 0
         suppliers = []
 
-        # Fetch Odoo supplier info via raw SQL (avoid ORM field issues)
-        # Use savepoint so SQL errors don't corrupt the main transaction
         try:
             with self.env.cr.savepoint():
                 self.env.cr.execute("""
@@ -324,7 +392,7 @@ class PmImportWizard(models.TransientModel):
                         best_price = sup_price
                         best_supplier = partner_name
         except Exception:
-            pass
+            _logger.debug('Odoo supplier info fetch failed for pp.id=%s', product_id, exc_info=True)
 
         line_vals = {
             'source': 'odoo',
@@ -346,6 +414,163 @@ class PmImportWizard(models.TransientModel):
             line_vals[f'supplier_{i}_stock'] = s.get('stock', 0)
 
         return line_vals
+
+    # ── Supplier search mode ─────────────────────────────────────────────
+
+    def action_search_suppliers(self):
+        """Fetch suppliers from PM API and display in supplier_line_ids."""
+        self.ensure_one()
+        api = self.config_id._get_api_client()
+        try:
+            suppliers, _meta = api.search_suppliers(
+                search=self.supplier_search_query or '',
+                page=1,
+                per_page=50,
+            )
+        except ProductsManagerAPIError as exc:
+            raise UserError(_('Failed to fetch suppliers: %s') % exc)
+
+        self.supplier_line_ids.unlink()
+        lines = []
+        for s in suppliers:
+            lines.append((0, 0, {
+                'pm_supplier_id': str(s.get('id') or ''),
+                'pm_supplier_code': s.get('code') or s.get('supplier_code') or '',
+                'name': s.get('name') or s.get('supplier_name') or 'Unknown',
+                'is_active': s.get('is_active', True),
+                'product_count': s.get('products_count') or s.get('product_count') or 0,
+            }))
+        self.write({'supplier_line_ids': lines})
+        return self._return_wizard()
+
+    def action_load_supplier_products(self):
+        """Load products for the selected supplier."""
+        self.ensure_one()
+        selected = self.supplier_line_ids.filtered('selected')[:1]
+        if not selected:
+            raise UserError(_('Please select a supplier.'))
+        self.pm_supplier_id = selected.pm_supplier_id
+        self.pm_supplier_name = selected.name
+        self.pm_supplier_code = selected.pm_supplier_code
+        self.current_page = 1
+        return self._do_supplier_search()
+
+    def _do_supplier_search(self):
+        """Search products for the selected supplier (paginated)."""
+        self.ensure_one()
+        if not self.pm_supplier_id:
+            raise UserError(_('No supplier selected.'))
+
+        self.line_ids.unlink()
+        lines = []
+        api = self.config_id._get_api_client()
+
+        try:
+            pm_results, meta = api.get_supplier_products(
+                self.pm_supplier_id,
+                page=self.current_page,
+                per_page=self.per_page,
+            )
+            self.total_pm = meta.get('total', len(pm_results))
+            self.has_next = meta.get('has_next', len(pm_results) >= self.per_page)
+            self.has_previous = meta.get('has_previous', self.current_page > 1)
+
+            for pm_prod in pm_results:
+                line_vals = self._pm_product_to_line(pm_prod, api)
+                if line_vals:
+                    lines.append((0, 0, line_vals))
+        except ProductsManagerAPIError as exc:
+            _logger.warning('Supplier product search failed: %s', exc)
+
+        self.write({'line_ids': lines})
+        return self._return_wizard()
+
+    def action_import_all_supplier(self):
+        """Import ALL products from the selected supplier (all pages)."""
+        self.ensure_one()
+        if not self.pm_supplier_id:
+            raise UserError(_('No supplier selected.'))
+
+        api = self.config_id._get_api_client()
+        mappings = self.env['pm.field.mapping'].search([
+            ('config_id', '=', self.config_id.id),
+            ('is_active', '=', True),
+        ])
+
+        imported = 0
+        errors = 0
+        page = 1
+        has_next = True
+
+        while has_next:
+            try:
+                pm_results, meta = api.get_supplier_products(
+                    self.pm_supplier_id, page=page, per_page=50,
+                )
+            except ProductsManagerAPIError:
+                break
+
+            for pm_prod in pm_results:
+                pm_id = str(pm_prod.get('id') or '')
+                if not pm_id:
+                    continue
+                try:
+                    with self.env.cr.savepoint():
+                        if self.env['product.product'].search(
+                            [('pm_external_id', '=', pm_id)], limit=1,
+                        ):
+                            continue
+                except Exception:
+                    pass
+
+                try:
+                    line_vals = self._pm_product_to_line(pm_prod, api)
+                    if line_vals:
+                        line = self.env['pm.import.wizard.line'].create({
+                            'wizard_id': self.id,
+                            **line_vals,
+                        })
+                        self._import_single_product(line, mappings)
+                        imported += 1
+                except Exception as exc:
+                    _logger.error(
+                        'Supplier import error for PM %s: %s', pm_id, exc,
+                    )
+                    errors += 1
+
+            has_next = meta.get('has_next', len(pm_results) >= 50)
+            page += 1
+
+        self.env['pm.sync.log'].log(
+            config_id=self.config_id.id,
+            operation='import',
+            message=(
+                f'Supplier "{self.pm_supplier_name}" full import: '
+                f'{imported} imported, {errors} errors'
+            ),
+            product_count=imported,
+        )
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Supplier Import Complete'),
+                'message': _('%d products imported, %d errors') % (imported, errors),
+                'type': 'success' if not errors else 'warning',
+                'sticky': bool(errors),
+            },
+        }
+
+    def _return_wizard(self):
+        """Return action to refresh the wizard form."""
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'pm.import.wizard',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     # ── Import ──────────────────────────────────────────────────────────
 
@@ -426,7 +651,6 @@ class PmImportWizard(models.TransientModel):
 
         product = self.env['product.product'].create(vals)
 
-        # Create supplier info records
         suppliers_data = []
         if line.supplier_data_json:
             try:
@@ -466,12 +690,215 @@ class PmImportWizard(models.TransientModel):
                 })
         return suppliers
 
+    # ── Merge ────────────────────────────────────────────────────────────
+
+    def action_merge_selected(self):
+        """Merge selected PM products with their matching Odoo products.
+
+        Only updates prices, stock, and supplier info. Sets pm_external_id
+        so the cron auto-updates them going forward.
+        """
+        self.ensure_one()
+        selected = self.line_ids.filtered(
+            lambda l: l.selected and l.source == 'pm' and l.match_odoo_id
+        )
+        if not selected:
+            raise UserError(_(
+                'No PM products selected that match an existing Odoo product. '
+                'Select PM products that have a matching Odoo product (same barcode).'
+            ))
+
+        merged = 0
+        errors = []
+        config = self.config_id
+
+        for line in selected:
+            try:
+                product = self.env['product.product'].browse(line.match_odoo_id.id)
+                if not product.exists():
+                    errors.append(f'{line.name}: Odoo product not found')
+                    continue
+
+                # Link to PM for auto-update
+                product.write({
+                    'pm_external_id': line.pm_id,
+                    'pm_brand': line.brand or product.pm_brand,
+                    'pm_last_sync': fields.Datetime.now(),
+                })
+
+                # Update supplier info (prices + stock)
+                suppliers_data = []
+                if line.supplier_data_json:
+                    try:
+                        suppliers_data = json.loads(line.supplier_data_json)
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+                if not suppliers_data:
+                    suppliers_data = self._rebuild_suppliers_from_line(line)
+
+                config._update_supplier_info(product, suppliers_data)
+
+                # Update standard_price with best price
+                if line.best_price > 0:
+                    product.standard_price = line.best_price
+
+                merged += 1
+            except Exception as exc:
+                errors.append(f'{line.name}: {exc}')
+                _logger.error('Merge failed for %s: %s', line.name, exc)
+
+        self.env['pm.sync.log'].log(
+            config_id=config.id,
+            operation='sync',
+            message=(
+                f'Merged {merged} PM products with Odoo'
+                + (f', {len(errors)} errors' if errors else '')
+            ),
+            product_count=merged,
+        )
+
+        if errors:
+            msg = _('%d products merged, %d errors:\n%s') % (merged, len(errors), '\n'.join(errors))
+        else:
+            msg = _(
+                '%d products merged successfully.\n'
+                'Updated: prices, stock, supplier info.\n'
+                'These products will now auto-update via the cron.'
+            ) % merged
+
+        self.action_search()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Merge Complete'),
+                'message': msg,
+                'type': 'success' if not errors else 'warning',
+                'sticky': True,
+            },
+        }
+
+    def action_merge_overwrite(self):
+        """Merge with full overwrite — update ALL fields from PM.
+
+        Updates: prices, stock, supplier info, description, images, brand,
+        dimensions, compliance, etc. Shows what was updated.
+        """
+        self.ensure_one()
+        selected = self.line_ids.filtered(
+            lambda l: l.selected and l.source == 'pm' and l.match_odoo_id
+        )
+        if not selected:
+            raise UserError(_(
+                'No PM products selected that match an existing Odoo product.'
+            ))
+
+        merged = 0
+        errors = []
+        config = self.config_id
+        api = config._get_api_client()
+        updated_fields_summary = []
+
+        for line in selected:
+            try:
+                product = self.env['product.product'].browse(line.match_odoo_id.id)
+                if not product.exists():
+                    errors.append(f'{line.name}: Odoo product not found')
+                    continue
+
+                # Link to PM
+                product.write({
+                    'pm_external_id': line.pm_id,
+                    'pm_last_sync': fields.Datetime.now(),
+                })
+
+                # Fetch full data from PM
+                try:
+                    pm_data = api.get_product(line.pm_id)
+                except ProductsManagerAPIError:
+                    pm_data = {}
+
+                if pm_data:
+                    # Update all PM fields
+                    full_vals = product._map_full_pm_data(pm_data)
+                    full_vals['pm_last_full_fetch'] = fields.Datetime.now()
+
+                    # Track which fields changed
+                    changed = []
+                    for key, new_val in full_vals.items():
+                        if new_val and new_val != getattr(product, key, None):
+                            changed.append(key)
+                    if changed:
+                        updated_fields_summary.append(
+                            f'{line.name}: {", ".join(changed[:10])}'
+                            + (f' +{len(changed)-10} more' if len(changed) > 10 else '')
+                        )
+
+                    product.write(full_vals)
+
+                    # Update prices & stock
+                    config._update_product_from_pm(product, pm_data, api)
+
+                    # Download images
+                    product._download_pm_images(pm_data)
+
+                    # Try enrichment
+                    try:
+                        enrichment = api.get_enrichment(line.pm_id)
+                        if isinstance(enrichment, dict):
+                            product.write(product._map_enrichment_data(enrichment))
+                    except ProductsManagerAPIError:
+                        pass
+
+                merged += 1
+            except Exception as exc:
+                errors.append(f'{line.name}: {exc}')
+                _logger.error('Merge overwrite failed for %s: %s', line.name, exc)
+
+        self.env['pm.sync.log'].log(
+            config_id=config.id,
+            operation='sync',
+            message=(
+                f'Full merge (overwrite) {merged} products'
+                + (f', {len(errors)} errors' if errors else '')
+            ),
+            product_count=merged,
+        )
+
+        details = '\n'.join(updated_fields_summary[:5])
+        if len(updated_fields_summary) > 5:
+            details += f'\n... and {len(updated_fields_summary) - 5} more'
+
+        if errors:
+            msg = _('%d products merged (full overwrite), %d errors:\n%s') % (
+                merged, len(errors), '\n'.join(errors),
+            )
+        else:
+            msg = _(
+                '%d products merged with full overwrite.\n'
+                'Updated: prices, stock, suppliers, description, images, '
+                'compliance, dimensions, AI enrichment, categories.\n\n%s'
+            ) % (merged, details)
+
+        self.action_search()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Full Merge Complete'),
+                'message': msg,
+                'type': 'success' if not errors else 'warning',
+                'sticky': True,
+            },
+        }
+
     # ── Navigation ───────────────────────────────────────────────────────
 
     def action_open_product(self):
         """Open the product form for the selected line."""
         self.ensure_one()
-        # Find the first selected line or the line that triggered this
         line = self.line_ids.filtered('selected')[:1]
         if not line:
             raise UserError(_('Please select a product first.'))
@@ -485,7 +912,6 @@ class PmImportWizard(models.TransientModel):
                 'target': 'current',
             }
         elif line.source == 'pm' and line.pm_id:
-            # Check if already imported
             product = self.env['product.product'].search([
                 ('pm_external_id', '=', line.pm_id),
             ], limit=1)
@@ -544,6 +970,10 @@ class PmImportWizardLine(models.TransientModel):
     ], required=True)
     pm_id = fields.Char(string='PM ID')
     odoo_product_id = fields.Many2one('product.product', string='Odoo Product')
+    match_odoo_id = fields.Many2one(
+        'product.product', string='Matching Odoo Product',
+        help='Existing Odoo product with the same barcode (for merge)',
+    )
     name = fields.Char(string='Name')
     brand = fields.Char(string='Brand')
     barcode = fields.Char(string='EAN / Barcode')
@@ -594,6 +1024,19 @@ class PmImportWizardLine(models.TransientModel):
                     'target': 'current',
                 }
         return False
+
+
+class PmSupplierWizardLine(models.TransientModel):
+    _name = 'pm.supplier.wizard.line'
+    _description = 'PM Supplier Selection Line'
+
+    wizard_id = fields.Many2one('pm.import.wizard', ondelete='cascade')
+    pm_supplier_id = fields.Char(string='Supplier ID')
+    pm_supplier_code = fields.Char(string='Code')
+    name = fields.Char(string='Supplier Name')
+    is_active = fields.Boolean(string='Active')
+    product_count = fields.Integer(string='# Products')
+    selected = fields.Boolean(string=' ')
 
 
 def _safe_float(val):

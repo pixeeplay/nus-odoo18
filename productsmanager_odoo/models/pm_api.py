@@ -135,13 +135,31 @@ class ProductsManagerAPI:
             return result
         return result.get('items') or result.get('data') or []
 
-    def get_supplier_products(self, supplier_id, limit=50, offset=0):
-        """GET /suppliers/{id}/products → products for a supplier."""
-        params = {'limit': limit, 'offset': offset}
-        result = self._request('GET', f'/suppliers/{supplier_id}/products', params=params)
+    def search_suppliers(self, search='', page=1, per_page=50, is_active=True):
+        """GET /suppliers?search=&page=&per_page=&is_active= → (items, meta)."""
+        params = {'page': page, 'per_page': per_page, 'is_active': is_active}
+        if search:
+            params['search'] = search
+        result = self._request('GET', '/suppliers', params=params)
         if isinstance(result, list):
-            return result
-        return result.get('items') or result.get('data') or []
+            return result, {}
+        items = result.get('items') or result.get('data') or []
+        meta = result.get('meta') or {}
+        return items, meta
+
+    def get_supplier_products(self, supplier_id, page=1, per_page=20):
+        """GET /products?supplier_ids={id}&page=&per_page= → (items, meta)."""
+        params = {
+            'supplier_ids': str(supplier_id),
+            'page': page,
+            'per_page': per_page,
+        }
+        result = self._request('GET', '/products', params=params)
+        if isinstance(result, list):
+            return result, {}
+        items = result.get('items') or result.get('data') or result.get('results') or []
+        meta = result.get('meta') or {}
+        return items, meta
 
     # ── Categories ──────────────────────────────────────────────────────
 
@@ -161,6 +179,12 @@ class ProductsManagerAPI:
         if isinstance(result, list):
             return result
         return result.get('items') or result.get('hits') or result.get('data') or []
+
+    # ── Enrichment ─────────────────────────────────────────────────────
+
+    def get_enrichment(self, product_id):
+        """GET /enrichment/products/{id} → enrichment data."""
+        return self._request('GET', f'/enrichment/products/{product_id}')
 
     # ── Utility ─────────────────────────────────────────────────────────
 

@@ -8,6 +8,20 @@
         <field name="priority">50</field>
         <field name="arch" type="xml">
             <form string="Product (PM)">
+                <header>
+                    <button name="action_update_pm_prices"
+                            string="Update Prices &amp; Stock"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-refresh"
+                            invisible="not pm_external_id"/>
+                    <button name="action_fetch_full_pm_data"
+                            string="Fetch Full PM Data"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-cloud-download"
+                            invisible="not pm_external_id"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name" readonly="True"/></h1>
@@ -25,6 +39,7 @@
                             <field name="pm_brand"/>
                             <field name="pm_completeness" widget="progressbar"/>
                             <field name="pm_last_sync"/>
+                            <field name="pm_last_full_fetch"/>
                         </group>
                     </group>
                     <group string="Supplier Prices">
@@ -43,9 +58,288 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="PM Full Info" name="pm_full_info"
+                              invisible="not pm_external_id">
+                            <group string="Identity">
+                                <group>
+                                    <field name="pm_ean"/>
+                                    <field name="pm_asin"/>
+                                    <field name="pm_upc"/>
+                                    <field name="pm_gtin"/>
+                                </group>
+                                <group>
+                                    <field name="pm_manufacturer"/>
+                                    <field name="pm_manufacturer_ref"/>
+                                    <field name="pm_category_name"/>
+                                    <field name="pm_status"/>
+                                    <field name="pm_is_active_pm"/>
+                                </group>
+                            </group>
+                            <group string="Pricing">
+                                <group>
+                                    <field name="pm_cost_price"/>
+                                    <field name="pm_recommended_price"/>
+                                    <field name="pm_margin"/>
+                                </group>
+                            </group>
+                            <group string="Competitor Prices">
+                                <field name="pm_competitor_prices_html" nolabel="True" colspan="2"/>
+                            </group>
+                            <group string="Stock &amp; Availability">
+                                <group>
+                                    <field name="pm_stock_quantity"/>
+                                    <field name="pm_is_low_stock"/>
+                                    <field name="pm_min_order_qty"/>
+                                    <field name="pm_max_order_qty"/>
+                                </group>
+                                <group>
+                                    <field name="pm_lead_time_days"/>
+                                    <field name="pm_availability_date"/>
+                                </group>
+                            </group>
+                            <group string="Compliance">
+                                <group>
+                                    <field name="pm_hs_code"/>
+                                    <field name="pm_country_of_origin"/>
+                                    <field name="pm_weee_category"/>
+                                </group>
+                                <group>
+                                    <field name="pm_reach_compliant"/>
+                                    <field name="pm_rohs_compliant"/>
+                                    <field name="pm_ce_marked"/>
+                                </group>
+                            </group>
+                            <group string="Environmental">
+                                <group>
+                                    <field name="pm_energy_class"/>
+                                    <field name="pm_power_consumption"/>
+                                    <field name="pm_carbon_footprint"/>
+                                </group>
+                                <group>
+                                    <field name="pm_recyclable"/>
+                                    <field name="pm_eco_friendly"/>
+                                </group>
+                            </group>
+                            <group string="Dimensions &amp; Weight">
+                                <group>
+                                    <field name="pm_weight"/>
+                                    <field name="pm_width"/>
+                                    <field name="pm_height"/>
+                                    <field name="pm_depth"/>
+                                </group>
+                                <group>
+                                    <field name="pm_package_length"/>
+                                    <field name="pm_package_width"/>
+                                    <field name="pm_package_height"/>
+                                    <field name="pm_package_weight"/>
+                                </group>
+                            </group>
+                            <group string="Descriptions">
+                                <field name="pm_short_description" nolabel="True" colspan="2"/>
+                                <field name="pm_description" nolabel="True" colspan="2"/>
+                            </group>
+                            <group string="Technical Specifications">
+                                <field name="pm_technical_specs_html" nolabel="True" colspan="2"/>
+                            </group>
+                            <group string="AI Enrichment">
+                                <group>
+                                    <field name="pm_ai_category"/>
+                                    <field name="pm_ai_quality_score" widget="progressbar"/>
+                                    <field name="pm_ai_seo_title"/>
+                                </group>
+                                <group>
+                                    <field name="pm_ai_seo_meta"/>
+                                </group>
+                                <field name="pm_ai_short_desc" nolabel="True" colspan="2"/>
+                                <field name="pm_ai_long_desc" nolabel="True" colspan="2"/>
+                            </group>
+                            <group string="Images">
+                                <group>
+                                    <field name="pm_image_main" widget="image" class="oe_avatar"/>
+                                </group>
+                                <group>
+                                    <field name="pm_image_2" widget="image" class="oe_avatar"/>
+                                    <field name="pm_image_3" widget="image" class="oe_avatar"/>
+                                </group>
+                            </group>
+                            <group string="Lifecycle &amp; Analytics">
+                                <group>
+                                    <field name="pm_lifecycle_status"/>
+                                    <field name="pm_discontinued"/>
+                                    <field name="pm_end_of_life_date"/>
+                                </group>
+                                <group>
+                                    <field name="pm_popularity_score"/>
+                                    <field name="pm_sales_count"/>
+                                    <field name="pm_view_count"/>
+                                </group>
+                            </group>
+                            <group string="Categories">
+                                <group>
+                                    <field name="pm_google_category"/>
+                                    <field name="pm_amazon_category"/>
+                                </group>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <!-- Inherit standard Odoo product.product form: add PM buttons + tab -->
+    <record id="pm_product_form_inherit" model="ir.ui.view">
+        <field name="name">product.product.form.pm.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Buttons in header -->
+            <xpath expr="//form/header" position="inside">
+                <button name="action_update_pm_prices"
+                        string="Update Prices &amp; Stock"
+                        type="object"
+                        class="btn-primary"
+                        icon="fa-refresh"
+                        invisible="not pm_external_id"/>
+                <button name="action_fetch_full_pm_data"
+                        string="Fetch Full PM Data"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-cloud-download"
+                        invisible="not pm_external_id"/>
+            </xpath>
+            <!-- PM Full Info tab in notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Products Manager" name="pm_full_info"
+                      invisible="not pm_external_id">
+                    <div class="mb-3">
+                        <strong>Last Full Fetch: </strong>
+                        <field name="pm_last_full_fetch" class="oe_inline" readonly="True"/>
+                    </div>
+                    <group string="Identity">
+                        <group>
+                            <field name="pm_external_id" readonly="True"/>
+                            <field name="pm_brand"/>
+                            <field name="pm_ean"/>
+                            <field name="pm_asin"/>
+                        </group>
+                        <group>
+                            <field name="pm_manufacturer"/>
+                            <field name="pm_manufacturer_ref"/>
+                            <field name="pm_category_name"/>
+                            <field name="pm_completeness" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <group string="Pricing">
+                        <group>
+                            <field name="pm_cost_price"/>
+                            <field name="pm_recommended_price"/>
+                            <field name="pm_margin"/>
+                        </group>
+                    </group>
+                    <group string="Supplier Prices">
+                        <field name="pm_supplier_prices_html" nolabel="True" colspan="2"/>
+                    </group>
+                    <group string="Competitor Prices">
+                        <field name="pm_competitor_prices_html" nolabel="True" colspan="2"/>
+                    </group>
+                    <group string="Stock &amp; Availability">
+                        <group>
+                            <field name="pm_stock_quantity"/>
+                            <field name="pm_is_low_stock"/>
+                            <field name="pm_min_order_qty"/>
+                            <field name="pm_max_order_qty"/>
+                        </group>
+                        <group>
+                            <field name="pm_lead_time_days"/>
+                            <field name="pm_availability_date"/>
+                        </group>
+                    </group>
+                    <group string="Compliance">
+                        <group>
+                            <field name="pm_hs_code"/>
+                            <field name="pm_country_of_origin"/>
+                            <field name="pm_weee_category"/>
+                        </group>
+                        <group>
+                            <field name="pm_reach_compliant"/>
+                            <field name="pm_rohs_compliant"/>
+                            <field name="pm_ce_marked"/>
+                        </group>
+                    </group>
+                    <group string="Environmental">
+                        <group>
+                            <field name="pm_energy_class"/>
+                            <field name="pm_power_consumption"/>
+                            <field name="pm_carbon_footprint"/>
+                        </group>
+                        <group>
+                            <field name="pm_recyclable"/>
+                            <field name="pm_eco_friendly"/>
+                        </group>
+                    </group>
+                    <group string="Dimensions &amp; Weight">
+                        <group>
+                            <field name="pm_weight"/>
+                            <field name="pm_width"/>
+                            <field name="pm_height"/>
+                            <field name="pm_depth"/>
+                        </group>
+                        <group>
+                            <field name="pm_package_length"/>
+                            <field name="pm_package_width"/>
+                            <field name="pm_package_height"/>
+                            <field name="pm_package_weight"/>
+                        </group>
+                    </group>
+                    <group string="Descriptions">
+                        <field name="pm_short_description" nolabel="True" colspan="2"/>
+                        <field name="pm_description" nolabel="True" colspan="2"/>
+                    </group>
+                    <group string="Technical Specifications">
+                        <field name="pm_technical_specs_html" nolabel="True" colspan="2"/>
+                    </group>
+                    <group string="AI Enrichment">
+                        <group>
+                            <field name="pm_ai_category"/>
+                            <field name="pm_ai_quality_score" widget="progressbar"/>
+                            <field name="pm_ai_seo_title"/>
+                        </group>
+                        <group>
+                            <field name="pm_ai_seo_meta"/>
+                        </group>
+                        <field name="pm_ai_short_desc" nolabel="True" colspan="2"/>
+                        <field name="pm_ai_long_desc" nolabel="True" colspan="2"/>
+                    </group>
+                    <group string="Images">
+                        <group>
+                            <field name="pm_image_main" widget="image" class="oe_avatar"/>
+                        </group>
+                        <group>
+                            <field name="pm_image_2" widget="image" class="oe_avatar"/>
+                            <field name="pm_image_3" widget="image" class="oe_avatar"/>
+                        </group>
+                    </group>
+                    <group string="Lifecycle &amp; Analytics">
+                        <group>
+                            <field name="pm_lifecycle_status"/>
+                            <field name="pm_discontinued"/>
+                            <field name="pm_end_of_life_date"/>
+                        </group>
+                        <group>
+                            <field name="pm_popularity_score"/>
+                            <field name="pm_sales_count"/>
+                            <field name="pm_view_count"/>
+                        </group>
+                    </group>
+                    <group string="Categories">
+                        <group>
+                            <field name="pm_google_category"/>
+                            <field name="pm_amazon_category"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
         </field>
     </record>
 

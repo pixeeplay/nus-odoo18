@@ -269,8 +269,10 @@ class PmConfig(models.Model):
 
             vals = {
                 'price': s_data['price'],
-                'min_qty': s_data['moq'],
+                'min_qty': s_data.get('moq', 1),
                 'delay': 1,
+                'pm_supplier_stock': s_data.get('stock', 0),
+                'pm_is_best': s_data.get('is_best', False),
             }
 
             if existing:
