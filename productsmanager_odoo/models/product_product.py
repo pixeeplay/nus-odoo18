@@ -4,6 +4,18 @@ from odoo import api, fields, models
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
+    def init(self):
+        """Runs on every server start — create missing columns.
+
+        theme_nova registers nova_label_id on product.template in Python,
+        but if the DB column doesn't exist, ANY read of product.template
+        crashes the entire application. This ensures the column exists.
+        """
+        self.env.cr.execute(
+            "ALTER TABLE product_template "
+            "ADD COLUMN IF NOT EXISTS nova_label_id integer"
+        )
+
     pm_external_id = fields.Char(string='PM External ID', index=True, copy=False)
     pm_last_sync = fields.Datetime(string='PM Last Sync', readonly=True, copy=False)
     pm_brand = fields.Char(string='PM Brand')
