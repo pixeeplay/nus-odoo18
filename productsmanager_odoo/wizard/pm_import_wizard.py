@@ -105,7 +105,8 @@ class PmImportWizard(models.TransientModel):
         api = None
         try:
             api = self.config_id._get_api_client()
-            pm_results, meta = api.search_products(
+            pm_results, meta = self.config_id._api_call(
+                'search_products',
                 self.search_query, page=page, per_page=per_page,
             )
             _logger.info('PM search p%d: %d results, meta=%s', page, len(pm_results), meta)
@@ -420,9 +421,9 @@ class PmImportWizard(models.TransientModel):
     def action_search_suppliers(self):
         """Fetch suppliers from PM API and display in supplier_line_ids."""
         self.ensure_one()
-        api = self.config_id._get_api_client()
         try:
-            suppliers, _meta = api.search_suppliers(
+            suppliers, _meta = self.config_id._api_call(
+                'search_suppliers',
                 search=self.supplier_search_query or '',
                 page=1,
                 per_page=50,
@@ -466,7 +467,8 @@ class PmImportWizard(models.TransientModel):
         api = self.config_id._get_api_client()
 
         try:
-            pm_results, meta = api.get_supplier_products(
+            pm_results, meta = self.config_id._api_call(
+                'get_supplier_products',
                 self.pm_supplier_id,
                 page=self.current_page,
                 per_page=self.per_page,
@@ -491,7 +493,6 @@ class PmImportWizard(models.TransientModel):
         if not self.pm_supplier_id:
             raise UserError(_('No supplier selected.'))
 
-        api = self.config_id._get_api_client()
         mappings = self.env['pm.field.mapping'].search([
             ('config_id', '=', self.config_id.id),
             ('is_active', '=', True),
@@ -504,7 +505,8 @@ class PmImportWizard(models.TransientModel):
 
         while has_next:
             try:
-                pm_results, meta = api.get_supplier_products(
+                pm_results, meta = self.config_id._api_call(
+                    'get_supplier_products',
                     self.pm_supplier_id, page=page, per_page=50,
                 )
             except ProductsManagerAPIError:
@@ -594,6 +596,7 @@ class PmImportWizard(models.TransientModel):
         for line in selected:
             try:
                 self._import_single_product(line, mappings)
+                line.write({'already_imported': True, 'selected': False})
                 imported += 1
             except Exception as exc:
                 errors.append(f'{line.name}: {exc}')
@@ -610,9 +613,6 @@ class PmImportWizard(models.TransientModel):
             msg = _('%d products imported, %d errors:\n%s') % (imported, len(errors), '\n'.join(errors))
         else:
             msg = _('%d products imported successfully.') % imported
-
-        # Refresh search to update already_imported flags
-        self.action_search()
 
         return {
             'type': 'ir.actions.client',
@@ -742,6 +742,7 @@ class PmImportWizard(models.TransientModel):
                 if line.best_price > 0:
                     product.standard_price = line.best_price
 
+                line.write({'already_imported': True, 'selected': False})
                 merged += 1
             except Exception as exc:
                 errors.append(f'{line.name}: {exc}')
@@ -765,8 +766,6 @@ class PmImportWizard(models.TransientModel):
                 'Updated: prices, stock, supplier info.\n'
                 'These products will now auto-update via the cron.'
             ) % merged
-
-        self.action_search()
 
         return {
             'type': 'ir.actions.client',
@@ -851,6 +850,7 @@ class PmImportWizard(models.TransientModel):
                     except ProductsManagerAPIError:
                         pass
 
+                line.write({'already_imported': True, 'selected': False})
                 merged += 1
             except Exception as exc:
                 errors.append(f'{line.name}: {exc}')
@@ -880,8 +880,6 @@ class PmImportWizard(models.TransientModel):
                 'Updated: prices, stock, suppliers, description, images, '
                 'compliance, dimensions, AI enrichment, categories.\n\n%s'
             ) % (merged, details)
-
-        self.action_search()
 
         return {
             'type': 'ir.actions.client',

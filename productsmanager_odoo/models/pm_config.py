@@ -78,9 +78,27 @@ class PmConfig(models.Model):
     def _get_api_client(self):
         """Return a ProductsManagerAPI instance with a valid token."""
         self.ensure_one()
-        if not self.access_token or (self.token_expiry and self.token_expiry < fields.Datetime.now()):
+        # Refresh if no token, no expiry date, or within 5 min of expiry
+        if (not self.access_token
+                or not self.token_expiry
+                or self.token_expiry < fields.Datetime.now() + timedelta(minutes=5)):
             self._refresh_token()
         return ProductsManagerAPI(self.base_url, self.access_token)
+
+    def _api_call(self, method, *args, **kwargs):
+        """Execute an API method with auto-retry on 401 (expired token)."""
+        api = self._get_api_client()
+        fn = getattr(api, method)
+        try:
+            return fn(*args, **kwargs)
+        except ProductsManagerAPIError as exc:
+            if exc.status_code == 401:
+                _logger.info('Token rejected (401), refreshing and retrying %s', method)
+                self._refresh_token()
+                api = ProductsManagerAPI(self.base_url, self.access_token)
+                fn = getattr(api, method)
+                return fn(*args, **kwargs)
+            raise
 
     # ── Actions ─────────────────────────────────────────────────────────
 

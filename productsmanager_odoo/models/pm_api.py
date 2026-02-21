@@ -137,7 +137,9 @@ class ProductsManagerAPI:
 
     def search_suppliers(self, search='', page=1, per_page=50, is_active=True):
         """GET /suppliers?search=&page=&per_page=&is_active= → (items, meta)."""
-        params = {'page': page, 'per_page': per_page, 'is_active': is_active}
+        params = {'page': page, 'per_page': per_page}
+        if is_active is not None:
+            params['is_active'] = 'true' if is_active else 'false'
         if search:
             params['search'] = search
         result = self._request('GET', '/suppliers', params=params)
