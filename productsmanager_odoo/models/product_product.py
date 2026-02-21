@@ -231,6 +231,14 @@ class ProductProduct(models.Model):
                     f'<pre>{json.dumps(specs, indent=2)}</pre>'
                 )
 
+    # ── Stubs for parent view compatibility ─────────────────────────────
+    # product.product_normal_form_view may reference actions defined only on
+    # product.template; adding stubs prevents validation errors when we
+    # inherit that view.
+
+    def action_categorize_product(self):
+        return self.product_tmpl_id.action_categorize_product()
+
     # ── Button Actions ─────────────────────────────────────────────────
 
     def action_update_pm_prices(self):
