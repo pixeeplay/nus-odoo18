@@ -231,14 +231,6 @@ class ProductProduct(models.Model):
                     f'<pre>{json.dumps(specs, indent=2)}</pre>'
                 )
 
-    # ── Stubs for parent view compatibility ─────────────────────────────
-    # product.product_normal_form_view may reference actions defined only on
-    # product.template; adding stubs prevents validation errors when we
-    # inherit that view.
-
-    def action_categorize_product(self):
-        return self.product_tmpl_id.action_categorize_product()
-
     # ── Button Actions ─────────────────────────────────────────────────
 
     def action_update_pm_prices(self):
@@ -489,3 +481,46 @@ class ProductProduct(models.Model):
                         self.write({'pm_image_3': b64})
             except Exception:
                 _logger.debug('Failed to download PM image %s', url)
+
+
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    pm_has_pm_data = fields.Boolean(
+        string='Has PM Data',
+        compute='_compute_pm_has_pm_data',
+    )
+
+    @api.depends('product_variant_ids.pm_external_id')
+    def _compute_pm_has_pm_data(self):
+        for tmpl in self:
+            tmpl.pm_has_pm_data = any(
+                v.pm_external_id for v in tmpl.product_variant_ids
+            )
+
+    def action_open_pm_form(self):
+        """Open the dedicated PM form for this product's variant."""
+        self.ensure_one()
+        variant = self.product_variant_ids.filtered('pm_external_id')[:1]
+        if not variant:
+            raise UserError(_(
+                'This product has no Products Manager data. '
+                'Import it first from Products Manager > Search & Import.'
+            ))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Products Manager'),
+            'res_model': 'product.product',
+            'res_id': variant.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('productsmanager_odoo.pm_product_view_form').id,
+            'target': 'current',
+        }
+
+    def action_update_pm_prices_tmpl(self):
+        """Forward to variant's PM price update."""
+        self.ensure_one()
+        variant = self.product_variant_ids.filtered('pm_external_id')[:1]
+        if not variant:
+            raise UserError(_('This product has no PM External ID.'))
+        return variant.action_update_pm_prices()
