@@ -62,7 +62,10 @@ class ProductTemplate(models.Model):
     )
     def _compute_label_preview(self):
         for product in self:
-            product.label_preview = product._build_label_preview_html()
+            try:
+                product.label_preview = product._build_label_preview_html()
+            except Exception:
+                product.label_preview = '<p style="color:#999;">Preview unavailable</p>'
 
     @api.depends('name', 'image_128', 'barcode', 'list_price')
     def _compute_label_data_complete(self):
