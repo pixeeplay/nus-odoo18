@@ -129,7 +129,7 @@ class PmImportWizard(models.TransientModel):
                 offset = (page - 1) * per_page
                 self.env.cr.execute("""
                     SELECT pp.id, pt.name, pp.default_code, pp.barcode,
-                           pt.list_price, pt.standard_price,
+                           pt.list_price,
                            pp.pm_external_id, pp.pm_brand
                     FROM product_product pp
                     JOIN product_template pt ON pt.id = pp.product_tmpl_id
@@ -360,7 +360,11 @@ class PmImportWizard(models.TransientModel):
             name = name.get('en_US') or name.get('fr_FR') or next(iter(name.values()), '')
 
         product_id = row['id']
-        best_price = row.get('standard_price') or row.get('list_price') or 0
+        list_price = row.get('list_price') or 0
+        # list_price can be jsonb in some Odoo 18 setups
+        if isinstance(list_price, dict):
+            list_price = next((v for v in list_price.values() if v), 0)
+        best_price = _safe_float(list_price)
         best_supplier = ''
         total_stock = 0
         suppliers = []
