@@ -174,7 +174,7 @@
                               editable="bottom"
                               create="0" delete="0">
                             <field name="selected"
-                                   readonly="source == 'odoo' or already_imported"
+                                   readonly="source == 'odoo'"
                                    optional="show"/>
                             <field name="source" widget="badge"
                                    decoration-info="source == 'odoo'"
