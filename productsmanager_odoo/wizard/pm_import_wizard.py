@@ -102,26 +102,28 @@ class PmImportWizard(models.TransientModel):
         except ProductsManagerAPIError as exc:
             _logger.warning('PM search failed: %s', exc)
 
-        # Search Odoo products using raw SQL to bypass ORM field issues
+        # Search Odoo products using raw SQL to bypass ORM field issues.
+        # Use savepoint so SQL errors don't corrupt the transaction.
         try:
-            query_param = f'%{self.search_query}%'
-            offset = (page - 1) * per_page
-            self.env.cr.execute("""
-                SELECT pp.id, pt.name, pp.default_code, pp.barcode,
-                       pt.list_price, pt.standard_price,
-                       pp.pm_external_id, pp.pm_brand
-                FROM product_product pp
-                JOIN product_template pt ON pt.id = pp.product_tmpl_id
-                WHERE pp.active = true
-                  AND (pt.name::text ILIKE %s
-                       OR pp.default_code ILIKE %s
-                       OR pp.barcode ILIKE %s)
-                LIMIT %s OFFSET %s
-            """, (query_param, query_param, query_param, per_page, offset))
-            rows = self.env.cr.dictfetchall()
-            for row in rows:
-                line_vals = self._odoo_row_to_line(row)
-                lines.append((0, 0, line_vals))
+            with self.env.cr.savepoint():
+                query_param = f'%{self.search_query}%'
+                offset = (page - 1) * per_page
+                self.env.cr.execute("""
+                    SELECT pp.id, pt.name, pp.default_code, pp.barcode,
+                           pt.list_price, pt.standard_price,
+                           pp.pm_external_id, pp.pm_brand
+                    FROM product_product pp
+                    JOIN product_template pt ON pt.id = pp.product_tmpl_id
+                    WHERE pp.active = true
+                      AND (pt.name::text ILIKE %s
+                           OR pp.default_code ILIKE %s
+                           OR pp.barcode ILIKE %s)
+                    LIMIT %s OFFSET %s
+                """, (query_param, query_param, query_param, per_page, offset))
+                rows = self.env.cr.dictfetchall()
+                for row in rows:
+                    line_vals = self._odoo_row_to_line(row)
+                    lines.append((0, 0, line_vals))
         except Exception as exc:
             _logger.warning('Odoo product search failed: %s', exc)
 
@@ -154,10 +156,15 @@ class PmImportWizard(models.TransientModel):
         ean = pm_prod.get('ean') or pm_prod.get('barcode') or ''
         brand = pm_prod.get('brand') or pm_prod.get('brand_name') or ''
 
-        # Check if already imported
-        already = bool(self.env['product.product'].search([
-            ('pm_external_id', '=', pm_id),
-        ], limit=1))
+        # Check if already imported (use savepoint to protect transaction)
+        already = False
+        try:
+            with self.env.cr.savepoint():
+                already = bool(self.env['product.product'].search([
+                    ('pm_external_id', '=', pm_id),
+                ], limit=1))
+        except Exception:
+            pass
 
         # Extract suppliers from the product's "prices" array (PriceComparisonEntry format)
         suppliers = self._extract_pm_suppliers(pm_prod)
@@ -288,32 +295,34 @@ class PmImportWizard(models.TransientModel):
         suppliers = []
 
         # Fetch Odoo supplier info via raw SQL (avoid ORM field issues)
+        # Use savepoint so SQL errors don't corrupt the main transaction
         try:
-            self.env.cr.execute("""
-                SELECT si.price, si.min_qty, si.delay,
-                       rp.name AS partner_name, rp.id AS partner_id
-                FROM product_supplierinfo si
-                JOIN res_partner rp ON rp.id = si.partner_id
-                JOIN product_product pp ON pp.product_tmpl_id = si.product_tmpl_id
-                WHERE pp.id = %s
-                ORDER BY si.price ASC
-                LIMIT 3
-            """, (product_id,))
-            sup_rows = self.env.cr.dictfetchall()
-            for sr in sup_rows:
-                partner_name = sr.get('partner_name') or ''
-                if isinstance(partner_name, dict):
-                    partner_name = next(iter(partner_name.values()), '') if partner_name else ''
-                sup_price = sr.get('price') or 0
-                suppliers.append({
-                    'name': partner_name,
-                    'price': sup_price,
-                    'stock': 0,
-                    'moq': int(sr.get('min_qty') or 1),
-                })
-                if sup_price > 0 and (not best_supplier or sup_price < best_price):
-                    best_price = sup_price
-                    best_supplier = partner_name
+            with self.env.cr.savepoint():
+                self.env.cr.execute("""
+                    SELECT si.price, si.min_qty, si.delay,
+                           rp.name AS partner_name, rp.id AS partner_id
+                    FROM product_supplierinfo si
+                    JOIN res_partner rp ON rp.id = si.partner_id
+                    JOIN product_product pp ON pp.product_tmpl_id = si.product_tmpl_id
+                    WHERE pp.id = %s
+                    ORDER BY si.price ASC
+                    LIMIT 3
+                """, (product_id,))
+                sup_rows = self.env.cr.dictfetchall()
+                for sr in sup_rows:
+                    partner_name = sr.get('partner_name') or ''
+                    if isinstance(partner_name, dict):
+                        partner_name = next(iter(partner_name.values()), '') if partner_name else ''
+                    sup_price = sr.get('price') or 0
+                    suppliers.append({
+                        'name': partner_name,
+                        'price': sup_price,
+                        'stock': 0,
+                        'moq': int(sr.get('min_qty') or 1),
+                    })
+                    if sup_price > 0 and (not best_supplier or sup_price < best_price):
+                        best_price = sup_price
+                        best_supplier = partner_name
         except Exception:
             pass
 
