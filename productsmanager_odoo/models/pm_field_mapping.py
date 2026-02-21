@@ -51,6 +51,10 @@ class PmFieldMapping(models.Model):
             value = pm_data.get(mapping.pm_field)
             if value is None:
                 continue
+            # Skip binary fields — images are handled separately via
+            # _download_pm_images (they need download + base64 encoding)
+            if mapping.odoo_field == 'image_1920':
+                continue
             if mapping.odoo_field in ('standard_price', 'list_price', 'weight', 'volume'):
                 try:
                     value = float(value)

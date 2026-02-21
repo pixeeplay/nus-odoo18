@@ -655,6 +655,10 @@ class PmImportWizard(models.TransientModel):
 
         product = self.env['product.product'].create(vals)
 
+        # Download images from PM data
+        if pm_data:
+            product._download_pm_images(pm_data)
+
         suppliers_data = []
         if line.supplier_data_json:
             try:
